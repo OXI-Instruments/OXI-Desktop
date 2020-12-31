@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>HomeForm.qml</file>
+        <file>BackupStartDialogue.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>BackupDataView.qml</file>
+        <file>BackupItemView.qml</file>
+        <file>LoadingScreen.qml</file>
+        <file>UpdateStartDialogue.qml</file>
+    </qresource>
+</RCC>
