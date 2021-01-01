@@ -2,6 +2,9 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.5
 import QtGraphicalEffects 1.0
+import QtQuick.Dialogs 1.2
+
+
 
 Page {
   id: home
@@ -9,6 +12,15 @@ Page {
   height: 520
   title: oxiConnected ? "Oxi One" : "Please connect your Oxi One"
   background: null
+
+  FileDialog {
+    id: updateDialog
+    title: "Chose update file"
+    folder: shortcuts.home
+    nameFilters: ["Sysex file (*.syx)", "All files (*)"]
+    onAccepted: {
+    }
+  }
 
   GridLayout {
     id: btns
@@ -82,8 +94,14 @@ Page {
         anchors.fill: parent
         cursorShape: containsMouse
                      && oxiConnected === false ? Qt.ForbiddenCursor : Qt.ArrowCursor
+        onPressed: {
+          if(mouse.modifiers & Qt.ControlModifier) {
+            updateDialog.visible = true
+          }
+        }
         onClicked: {
           if (oxiConnected === true) {
+            if(Qt.ControlModifier)
             stackView.push("UpdateStartDialogue.qml")
           }
         }

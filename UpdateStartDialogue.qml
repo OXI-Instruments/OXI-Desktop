@@ -15,13 +15,14 @@ Page {
     id: formColumn
     anchors.verticalCenter: parent.verticalCenter
     anchors.horizontalCenter: parent.horizontalCenter
-    width: 360
-    spacing: 3
+    width: 460
+    spacing: 10
 
     Text {
-      text: "This will install the newest firmware from our servers. An automatic backup of your device will be made before the installation starts."
+      text: "This will install firmware version 1.4.2 from our servers. An automatic backup of your device will be made before the installation starts."
       wrapMode: Text.WordWrap
-      width: parent.width
+      Layout.fillWidth: true
+//      width: parent.width
       color: "white"
       font.pointSize: 16
       font.styleName: "Light"
@@ -29,10 +30,10 @@ Page {
 
     Button {
       id: backupBtn
-      Layout.alignment: Qt.AlignCenter
+      Layout.alignment: Qt.AlignHCenter
       hoverEnabled: true
       contentItem: Text {
-        text: "Search and install update"
+        text: "Install update"
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         font.pointSize: 16
@@ -52,6 +53,15 @@ Page {
                          "title": "Data backup"
                        })
       }
+    }
+    Text {
+      text: "Install from file"
+      color: "#d7d7d7"
+      font.pointSize: 14
+      font.styleName: "Thin"
+//      Layout.fillWidth: true
+      Layout.alignment: Qt.AlignHCenter
+      Layout.topMargin: 5
     }
   }
 }
