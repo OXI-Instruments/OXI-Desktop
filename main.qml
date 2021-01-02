@@ -65,7 +65,7 @@ ApplicationWindow {
         visible: !blockNav && stackView.depth > 1
         anchors.verticalCenter: parent.verticalCenter
         height: parent.height
-        width: 65
+        width: 45
         gradient: Gradient {
           orientation: Gradient.Horizontal
           GradientStop {
@@ -74,16 +74,16 @@ ApplicationWindow {
           }
           GradientStop {
             position: 0.00;
-            color: "#69a84eaf";
+            color: "#42a84eaf";
           }
         }
 
         Text {
-          text: "◀"
-          color: "#ebebf1"
-          font.pointSize: 18
+          text: "◂"
+          color: "#ffffff"
+          opacity: 0.69
+          font.pointSize: 20
           font.styleName: "Light"
-          anchors.left: -10
 
           anchors.verticalCenter: parent.verticalCenter
           anchors.horizontalCenter: parent.horizontalCenter

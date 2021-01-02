@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.5
 import QtQuick.Shapes 1.15
 import QtQuick.Layouts 1.15
+import QtGraphicalEffects 1.0
 
 Page {
   width: 800
@@ -26,6 +27,25 @@ Page {
       to: 1
       value: 0
       Layout.fillWidth: true
+      contentItem: Item {
+        implicitWidth: parent.width
+        LinearGradient {
+          width: backupProgress.visualPosition * parent.width
+          height: parent.height
+          start: Qt.point(0, 0)
+          end: Qt.point(200, 5)
+          gradient: Gradient {
+            GradientStop {
+              position: 0.2
+              color: "#a84eaf"
+            }
+            GradientStop {
+              position: 0.8
+              color: "#7baefb"
+            }
+          }
+        }
+      }
     }
     Timer {
       id: progressTimer
@@ -34,11 +54,12 @@ Page {
       running: false
       onTriggered: {
         if (backupProgress.value < 1) {
-          backupProgress.value += 0.01
+          backupProgress.value += 0.05
         } else {
           blockNav = false
           progressTimer.stop()
-          confirmBtn.visible = true
+          confirmBtn.opacity = 1
+          confirmBtn.enabled = true
           progressText.text = "Backup succeeded"
         }
       }
@@ -49,7 +70,6 @@ Page {
       running: false
       onTriggered: {
         progressText.text = "Backing up your data"
-        progressTextWrapper.width = progressText.width
         progressTimer.start()
         backupProgress.indeterminate = false
       }
@@ -61,7 +81,7 @@ Page {
       id: progressTextWrapper
       Layout.alignment: Qt.AlignHCenter
       height: progressText.height
-      width: progressText.width
+      Layout.fillWidth: true
       color: "#00000000"
 
       Text {
@@ -69,7 +89,11 @@ Page {
         text: qsTr("Starting backup")
         font.styleName: "Light"
         font.pointSize: 16
+        anchors.horizontalCenter: parent.horizontalCenter
         color: "white"
+        onTextChanged: {
+          anchors.horizontalCenter = parent.horizontalCenter
+        }
       }
       MouseArea {
         anchors.fill: parent
@@ -77,15 +101,17 @@ Page {
           blockNav = false
           progressTimer.stop()
           waitTimer.stop()
+//          stackView.clear()
           stackView.push("BackupDataView.qml")
         }
       }
     }
     Button {
       id: confirmBtn
-      visible: false
+      enabled: false
+      opacity: 0
       Layout.fillWidth: true
-      Layout.preferredHeight: 60
+      Layout.preferredHeight: 40
       contentItem: Text {
         text: qsTr("OK")
         horizontalAlignment: Text.AlignHCenter
@@ -99,8 +125,10 @@ Page {
         border.color: "#7a7a95"
         border.width: 1
       }
-      onClicked: stackView.push("BackupDataView.qml")
-
+      onClicked: {
+//        stackView.clear()
+        stackView.push("BackupDataView.qml")
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.5
 import QtQuick.Shapes 1.15
 import QtQuick.Layouts 1.15
+import QtQuick.Dialogs 1.2
 
 Page {
   width: 800
@@ -10,6 +11,15 @@ Page {
   background: null
 
   title: qsTr("Update firmware")
+
+  FileDialog {
+    id: updateDialog
+    title: "Chose update file"
+    folder: shortcuts.home
+    nameFilters: ["Sysex file (*.syx)", "All files (*)"]
+    onAccepted: {
+    }
+  }
 
   ColumnLayout {
     id: formColumn
@@ -57,11 +67,24 @@ Page {
     Text {
       text: "Install from file"
       color: "#d7d7d7"
-      font.pointSize: 14
-      font.styleName: "Thin"
+      font.pointSize: 12
+      font.styleName: "Light"
 //      Layout.fillWidth: true
       Layout.alignment: Qt.AlignHCenter
       Layout.topMargin: 5
+      font.underline: false
+      MouseArea {
+        anchors.fill: parent
+        onClicked: updateDialog.visible = true
+        hoverEnabled: true
+        onHoveredChanged: {
+          if (containsMouse) {
+            parent.font.underline = true
+          } else {
+            parent.font.underline = false
+          }
+        }
+      }
     }
   }
 }

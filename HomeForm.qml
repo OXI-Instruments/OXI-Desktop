@@ -127,6 +127,12 @@ Page {
         border.color: "#7a7a95"
         border.width: 1
       }
+      MouseArea {
+        hoverEnabled: true
+        anchors.fill: parent
+        cursorShape: containsMouse
+                     && oxiConnected === false ? Qt.ForbiddenCursor : Qt.ArrowCursor
+      }
     }
 
     Button {
@@ -147,11 +153,13 @@ Page {
         border.color: "#7a7a95"
         border.width: 1
       }
-      onClicked: Qt.openUrlExternally("https://oxiinstruments.com/product/")
       MouseArea {
         hoverEnabled: true
         anchors.fill: parent
         cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onClicked: {
+          Qt.openUrlExternally("https://oxiinstruments.com/product/")
+        }
       }
     }
 
