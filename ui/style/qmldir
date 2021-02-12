@@ -1,0 +1,2 @@
+module OxiTheme
+singleton OxiTheme 1.0 OxiTheme.qml

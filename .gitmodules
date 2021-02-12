@@ -1,0 +1,3 @@
+[submodule "lib/mido"]
+	path = lib/mido
+	url = https://github.com/mido/mido.git
