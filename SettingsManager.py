@@ -12,7 +12,22 @@ class SettingsManager(QtCore.QObject):
     """
 
     DB_BACKUP_SCHEMA = """
-        CREATE table backups (id, date, version, data, compatible_version)
+        create table backups
+        (
+            id                 INTEGER
+                constraint backups_pk
+                    primary key autoincrement,
+            version            TEXT,
+            date               TEXT,
+            name               TEXT,
+            compatible_version TEXT,
+            cause              INTEGER,
+            restored           INTEGER,
+            restored_date      TEXT,
+            data               BLOB
+        );
+        create unique index backups_id_uindex
+            on backups (id);
     """
 
     DB_SETTING_SCHEMA = """

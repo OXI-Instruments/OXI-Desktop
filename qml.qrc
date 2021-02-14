@@ -9,6 +9,7 @@
         <file>ui/UpdateStartDialogue.qml</file>
         <file>ui/style/OxiTheme.qml</file>
         <file>ui/style/qmldir</file>
-	<file>ui/qtquickcontrols2.conf</file>
+        <file>ui/qtquickcontrols2.conf</file>
+        <file>ui/CClayout.qml</file>
     </qresource>
 </RCC>

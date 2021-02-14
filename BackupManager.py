@@ -5,6 +5,46 @@ from dataclasses import dataclass
 from enum import IntEnum, auto
 from pprint import pprint
 import sqlite3
+from OxiHardware import OxiHardware, HardwareDisconnectException
+
+
+@dataclass
+class Backup:
+
+    class Cause(IntEnum):
+        MANUAL = auto()
+        FW_UPDATE = auto()
+        APP_UPDATE = auto()
+
+    id: int
+    version: str
+    date: str
+    name: str
+    compatible_version: str
+    cause: Cause
+    restored: bool
+    date_restored: str
+    data: bytearray
+
+
+class BackupManager:
+
+    def __init__(self, hw: OxiHardware):
+        self.hw = hw
+        pass
+
+    def create_backup(self, name: str, cause: Backup.Cause):
+        backup = Backup(None,)
+        try:
+            backup.data = self.hw.startBackup()
+        except HardwareDisconnectException:
+            pass
+
+    def restore_backup(self, backup: Backup):
+        try:
+            self.hw.restoreBackup(backup.data)
+        except HardwareDisconnectException:
+            pass
 
 
 class BackupModel(QtCore.QAbstractListModel):
@@ -32,7 +72,6 @@ class BackupModel(QtCore.QAbstractListModel):
             db_conn.executemany("INSERT INTO backups VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)", data)
             db_conn.commit()
             db_conn.close()
-
 
     def __init__(self, *args, backups=None, **kwargs):
         super(BackupModel, self).__init__(*args, **kwargs)
@@ -68,23 +107,3 @@ class BackupModel(QtCore.QAbstractListModel):
     def get(self, row):
         if 0 <= row < self.rowCount():
             return self.backups[row]
-
-
-
-@dataclass
-class Backup:
-
-    class Cause(IntEnum):
-        MANUAL = auto()
-        FW_UPDATE = auto()
-        APP_UPDATE = auto()
-
-    id: int
-    version: str
-    date: str
-    name: str
-    compatible_version: str
-    cause: Cause
-    restored: bool
-    date_restored: str
-    data: bytearray
