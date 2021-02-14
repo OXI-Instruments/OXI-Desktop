@@ -26,8 +26,10 @@ class SettingsManager(QtCore.QObject):
             restored_date      TEXT,
             data               BLOB
         );
+    """
+    DB_BACKUP_PK = """
         create unique index backups_id_uindex
-            on backups (id);
+        on backups (id);
     """
 
     DB_SETTING_SCHEMA = """
@@ -50,6 +52,7 @@ class SettingsManager(QtCore.QObject):
         db_cursor.execute(self.DB_SETTING_SCHEMA)
         db_cursor.execute(self.DB_UPDATE_SCHEMA)
         db_cursor.execute(self.DB_BACKUP_SCHEMA)
+        db_cursor.execute(self.DB_BACKUP_PK)
         db_cursor.executemany("INSERT into settings(key, value) values (?, ?)", self.DB_DEFAULT_SETTINGS)
         db_connection.commit()
         db_connection.close()
