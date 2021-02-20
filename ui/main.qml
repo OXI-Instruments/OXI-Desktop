@@ -176,6 +176,10 @@ ApplicationWindow {
     function onIsConnected(state) {
       oxiConnected = state
     }
+    function onVersion(ver) {
+      console.log("version bubbled to QML and is: " + ver)
+      oxiVersion = ver
+    }
   }
   Connections {
     target: settings

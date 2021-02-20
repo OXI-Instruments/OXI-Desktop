@@ -133,6 +133,11 @@ Page {
         anchors.fill: parent
         cursorShape: containsMouse
                      && oxiConnected === false ? Qt.ForbiddenCursor : Qt.ArrowCursor
+        onClicked: function () {
+          if (oxiConnected === true) {
+            stackView.push(Qt.resolvedUrl("GlobalConfigView.qml"))
+          }
+        }
       }
     }
 
