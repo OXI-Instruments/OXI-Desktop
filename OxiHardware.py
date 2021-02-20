@@ -12,7 +12,6 @@ class RequestMessages:
 
 class ReceiveMessages:
     VERSION = bytearray([144, 62, 64])
-    MIDI_SEND_CLOCK = [144, 64, 64]
     UPDATE_READY = bytearray([0xf0, 0x43])
 
     @staticmethod
@@ -39,24 +38,20 @@ class MidiLoop(QtCore.QRunnable):
         self.port_name = port_name
         self.signals = MidiLoopSignals()
 
-    QtCore.Slot()
+    @QtCore.Slot()
     def run(self) -> None:
-
         try:
-            print("PROCESS")
             with mido.open_input(self.port_name) as port:
                 for msg in port:
                     if msg.type == "sysex":
                         print(msg.bin())
                         if msg.bin().startswith(ReceiveMessages.UPDATE_READY):
-                            print("update ready!!1")
                             self.signals.inUpdateMode.emit()
                     elif msg.type == "note_on":
                         print(msg.bytes())
                         if msg.bin()[0:3] == ReceiveMessages.VERSION:
                             version = ReceiveMessages.parse_version(msg.bytes)
                             self.signals.version.emit(version)
-                            print(f"it should emit {version}")
                             sys.stdout.flush()
                         elif msg.bytes()[0:2] == ReceiveMessages.MIDI_SEND_CLOCK:
                             pass
