@@ -41,8 +41,10 @@ class MidiLoop(QtCore.QThread):
         try:
             with mido.open_input(self.port_name) as port:
                 for msg in port:
-                    if msg.type == "note_on":
-                        # print(msg.bytes())
+                    if msg.type == "sysex":
+                        print(msg.bytes())
+                    elif msg.type == "note_on":
+                        print(msg.bytes())
                         if msg.bin() == ReceiveMessages.VERSION:
                             version = ReceiveMessages.parse_version(msg.bytes)
                             self.hw.version.emit(version)
@@ -56,14 +58,14 @@ class MidiLoop(QtCore.QThread):
 
 class OxiHardware(QtCore.QObject):
 
-    def __init__(self):
+    def __init__(self, port: str = None):
         QtCore.QObject.__init__(self)
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(lambda: self.detectDevice())
         self.timer.start(800)
-        self.deviceName = "Deluge"
-        self.port = ""
-        self.midi_loop = MidiLoop("Deluge MIDI 1", self)
+        self.deviceSearchName = port or "Deluge"
+        self.port = port
+        self.midi_loop = MidiLoop(self.port, self)
         self.midi_loop.start()
 
     isConnected = QtCore.Signal(bool)
@@ -72,8 +74,9 @@ class OxiHardware(QtCore.QObject):
     @QtCore.Slot(bool)
     def detectDevice(self):
         for device in mido.get_ioport_names():
-            if self.deviceName in device:
-                self.port = device
+            if self.deviceSearchName in device:
+                if not self.port:
+                    self.port = device
                 self.isConnected.emit(True)
                 return
         self.isConnected.emit(True)
