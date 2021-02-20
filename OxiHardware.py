@@ -13,6 +13,7 @@ class RequestMessages:
 class ReceiveMessages:
     VERSION = bytearray([144, 62, 64])
     MIDI_SEND_CLOCK = [144, 64, 64]
+    UPDATE_READY = bytearray([0xf0, 0x43])
 
     @staticmethod
     def parse_version(ver: bytearray):
@@ -26,28 +27,35 @@ class HardwareDisconnectException(Exception):
         pass
 
 
-class MidiLoop(QtCore.QThread):
-    def __init__(self, port_name: str, hw):
-        super(MidiLoop, self).__init__()
+class MidiLoopSignals(QtCore.QObject):
+    inUpdateMode = QtCore.Signal()
+    version = QtCore.Signal(str)
+
+
+class MidiLoop(QtCore.QRunnable):
+
+    def __init__(self, port_name: str):
+        super().__init__()
         self.port_name = port_name
-        self.hw = hw
-        self.mode = 0
+        self.signals = MidiLoopSignals()
 
-    def __del__(self):
-        self.wait()
-        # self.quit()
-
+    QtCore.Slot()
     def run(self) -> None:
+
         try:
+            print("PROCESS")
             with mido.open_input(self.port_name) as port:
                 for msg in port:
                     if msg.type == "sysex":
-                        print(msg.bytes())
+                        print(msg.bin())
+                        if msg.bin().startswith(ReceiveMessages.UPDATE_READY):
+                            print("update ready!!1")
+                            self.signals.inUpdateMode.emit()
                     elif msg.type == "note_on":
                         print(msg.bytes())
-                        if msg.bin() == ReceiveMessages.VERSION:
+                        if msg.bin()[0:3] == ReceiveMessages.VERSION:
                             version = ReceiveMessages.parse_version(msg.bytes)
-                            self.hw.version.emit(version)
+                            self.signals.version.emit(version)
                             print(f"it should emit {version}")
                             sys.stdout.flush()
                         elif msg.bytes()[0:2] == ReceiveMessages.MIDI_SEND_CLOCK:
@@ -65,11 +73,22 @@ class OxiHardware(QtCore.QObject):
         self.timer.start(800)
         self.deviceSearchName = port or "Deluge"
         self.port = port
-        self.midi_loop = MidiLoop(self.port, self)
-        self.midi_loop.start()
+        self.updateFile = ""
+
+        self.thread_pool = QtCore.QThreadPool()
+        self.midi_loop = MidiLoop(self.port)
+        self.midi_loop.signals.inUpdateMode.connect(self.__sendUpdateData)
+        self.midi_loop.signals.version.connect(self.__setVersion())
+        # self.th.finished.connect(app.quit) TODO: can this be used for clean exit?
+        self.thread_pool.start(self.midi_loop)
 
     isConnected = QtCore.Signal(bool)
     version = QtCore.Signal(str)
+    inUpdateMode = QtCore.Signal(bool)
+
+    @QtCore.Slot()
+    def __setVersion(self):
+        self.version.emit("1337")
 
     @QtCore.Slot(bool)
     def detectDevice(self):
@@ -90,12 +109,20 @@ class OxiHardware(QtCore.QObject):
         pass
 
     def start_update(self, file_path):
-        if not self.isConnected:
+        if self.isConnected == False:
             raise HardwareDisconnectException
         self.timer.stop()
-        data = mido.read_syx_file(file_path)
-        port = mido.open_output(self.port)
-        port.send(data)
+        self.updateFile = file_path
+        # TODO: put oxi into update mode
+
+    @QtCore.Slot()
+    def __sendUpdateData(self):
+        print("totally sending the update!!1")
+        # data = mido.read_syx_file(file_path)
+        # port = mido.open_output(self.port)
+        # #skip ack for now
+        # port.send(data)
+        # #detect last package
 
     def get_version(self):
         with mido.open_output(self.port) as midi_out:
@@ -107,6 +134,7 @@ class OxiHardware(QtCore.QObject):
 class OxiSeqPreset:
     is_empty: bool
     color_variation: int
+
 
 @dataclass
 class OxiProject:
