@@ -55,8 +55,6 @@ class MidiLoop(QtCore.QRunnable):
                             version = ReceiveMessages.parse_version(msg.bytes)
                             self.signals.version.emit(version)
                             sys.stdout.flush()
-                        elif msg.bytes()[0:2] == ReceiveMessages.MIDI_SEND_CLOCK:
-                            pass
         except Exception as e:
             print("port open failed!")
 
