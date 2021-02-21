@@ -39,22 +39,27 @@ class MidiLoop(QtCore.QRunnable):
         super().__init__()
         self.port_name = port_name
         self.signals = MidiLoopSignals()
+        self.cancel = False
 
     @QtCore.Slot()
     def run(self) -> None:
         try:
             with mido.open_input(self.port_name) as port:
-                for msg in port:
-                    if msg.type == "sysex":
-                        print(msg.bin())
-                        if msg.bin().startswith(ReceiveMessages.UPDATE_READY):
-                            self.signals.inUpdateMode.emit()
-                    elif msg.type == "note_on":
-                        print(msg.bytes())
-                        if msg.bin().startswith(ReceiveMessages.VERSION):
-                            version = ReceiveMessages.parse_version(msg.bytes)
-                            self.signals.version.emit(version)
-                            sys.stdout.flush()
+                while True:
+                    for msg in port.iter_pending():
+                        if msg.type == "sysex":
+                            print(msg.bin())
+                            if msg.bin().startswith(ReceiveMessages.UPDATE_READY):
+                                self.signals.inUpdateMode.emit()
+                        elif msg.type == "note_on":
+                            print(msg.bytes())
+                            if msg.bin().startswith(ReceiveMessages.VERSION):
+                                version = ReceiveMessages.parse_version(msg.bytes)
+                                self.signals.version.emit(version)
+                                sys.stdout.flush()
+                    if self.cancel:
+                        print("We should return...")
+                        return
         except Exception as e:
             print("port open failed!")
 
@@ -130,6 +135,10 @@ class OxiHardware(QtCore.QObject):
         with mido.open_output(self.port) as midi_out:
             msg = mido.Message("sysex", data=RequestMessages.GET_VERSION)
             midi_out.send(msg)
+
+    @QtCore.Slot()
+    def stop_communication(self):
+        self.midi_loop.cancel = True
 
 
 @dataclass

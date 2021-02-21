@@ -26,6 +26,7 @@ if __name__ == "__main__":
     print(f"opening device: {parsed_arg.device}")
     hw = OxiHardware(parsed_arg.device)
     settings = SettingsManager()
+    app.aboutToQuit.connect(hw.stop_communication)
     # update_mgr = UpdateManager("oxi.db")
     backup_model = BackupModel()
 
