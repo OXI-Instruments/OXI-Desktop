@@ -20,6 +20,7 @@ Page {
     folder: StandardPaths.writableLocation(StandardPaths.DownloadsLocation)
     nameFilters: ["Sysex file (*.syx)", "All files (*)"]
     onAccepted: {
+        hw.start_update(settings.url_to_path(updateDialog.file))
     }
   }
 
@@ -102,7 +103,7 @@ Page {
         }
         onClicked: {
           if (oxiConnected === true) {
-            if(Qt.ControlModifier)
+//            if(Qt.ControlModifier)
             stackView.push("UpdateStartDialogue.qml")
           }
         }

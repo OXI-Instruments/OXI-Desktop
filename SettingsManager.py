@@ -76,3 +76,8 @@ class SettingsManager(QtCore.QObject):
     def ask_for_backups(self):
         #TODO: create cleaner mapping to object
         return bool(self.__get_setting_by_key("ask_for_backups"))
+
+    @QtCore.Slot(str, result=str)
+    def url_to_path(self, url):
+        qurl = QtCore.QUrl(url)
+        return qurl.path()

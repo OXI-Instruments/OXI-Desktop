@@ -1,4 +1,6 @@
 # This Python file uses the following encoding: utf-8
+import time
+
 from PySide6 import QtCore
 import mido
 import sys
@@ -49,7 +51,7 @@ class MidiLoop(QtCore.QRunnable):
                             self.signals.inUpdateMode.emit()
                     elif msg.type == "note_on":
                         print(msg.bytes())
-                        if msg.bin()[0:3] == ReceiveMessages.VERSION:
+                        if msg.bin().startswith(ReceiveMessages.VERSION):
                             version = ReceiveMessages.parse_version(msg.bytes)
                             self.signals.version.emit(version)
                             sys.stdout.flush()
@@ -68,12 +70,12 @@ class OxiHardware(QtCore.QObject):
         self.timer.start(800)
         self.deviceSearchName = port or "Deluge"
         self.port = port
-        self.updateFile = ""
+        self.updateFile = None
 
         self.thread_pool = QtCore.QThreadPool()
         self.midi_loop = MidiLoop(self.port)
-        self.midi_loop.signals.inUpdateMode.connect(self.__sendUpdateData)
-        self.midi_loop.signals.version.connect(self.__setVersion())
+        self.midi_loop.signals.inUpdateMode.connect(self.__send_update_data)
+        self.midi_loop.signals.version.connect(lambda x: self.__setVersion(x))
         # self.th.finished.connect(app.quit) TODO: can this be used for clean exit?
         self.thread_pool.start(self.midi_loop)
 
@@ -81,9 +83,9 @@ class OxiHardware(QtCore.QObject):
     version = QtCore.Signal(str)
     inUpdateMode = QtCore.Signal(bool)
 
-    @QtCore.Slot()
-    def __setVersion(self):
-        self.version.emit("1337")
+    @QtCore.Slot(str)
+    def __setVersion(self, version):
+        self.version.emit(version)
 
     @QtCore.Slot(bool)
     def detectDevice(self):
@@ -103,6 +105,7 @@ class OxiHardware(QtCore.QObject):
         print("restore_backup is a stub!")
         pass
 
+    @QtCore.Slot(str)
     def start_update(self, file_path):
         if self.isConnected == False:
             raise HardwareDisconnectException
@@ -111,13 +114,19 @@ class OxiHardware(QtCore.QObject):
         # TODO: put oxi into update mode
 
     @QtCore.Slot()
-    def __sendUpdateData(self):
+    def __send_update_data(self):
         print("totally sending the update!!1")
-        # data = mido.read_syx_file(file_path)
-        # port = mido.open_output(self.port)
-        # #skip ack for now
-        # port.send(data)
-        # #detect last package
+        if self.updateFile:
+            pass
+            data = mido.read_syx_file(self.updateFile)
+            port = mido.open_output(self.port)
+            # skip ack for now
+            for pkg in data:
+                port.send(pkg)
+                time.sleep(.1)
+            self.timer.start(800)
+            self.updateFile = None
+            # #detect last package
 
     def get_version(self):
         with mido.open_output(self.port) as midi_out:
