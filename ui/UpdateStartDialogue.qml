@@ -16,9 +16,11 @@ Page {
   FileDialog {
     id: updateDialog
     title: "Chose update file"
-    folder: shortcuts.home
+    folder: StandardPaths.writableLocation(StandardPaths.DownloadsLocation)
     nameFilters: ["Sysex file (*.syx)", "All files (*)"]
     onAccepted: {
+      hw.start_update(settings.url_to_path(updateDialog.file))
+      stackView.push(Qt.resolvedUrl("UpdateProgress.qml"))
     }
   }
 

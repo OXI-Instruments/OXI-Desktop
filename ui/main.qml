@@ -173,10 +173,10 @@ ApplicationWindow {
 
   Connections {
     target: hw
-    function onIsConnected(state) {
+    function onIsConnectedSignal(state) {
       oxiConnected = state
     }
-    function onVersion(ver) {
+    function onVersionSignal(ver) {
       console.log("version bubbled to QML and is: " + ver)
       oxiVersion = ver
     }

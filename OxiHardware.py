@@ -14,7 +14,7 @@ class RequestMessages:
 
 class ReceiveMessages:
     VERSION = bytearray([144, 62, 64])
-    UPDATE_READY = bytearray([0xf0, 0x43])
+    UPDATE_READY = bytearray([0xf0, 0x7f, 0x43])
 
     @staticmethod
     def parse_version(ver: bytearray):
@@ -61,6 +61,7 @@ class MidiLoop(QtCore.QRunnable):
                         print("We should return...")
                         return
         except Exception as e:
+            print(e)
             print("port open failed!")
 
 
@@ -71,24 +72,40 @@ class OxiHardware(QtCore.QObject):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(lambda: self.detectDevice())
         self.timer.start(800)
-        self.deviceSearchName = port or "Deluge"
+        self.deviceSearchName = port or "OXI"
         self.port = port
         self.updateFile = None
+        self.thread_pool = None
+        self.midi_loop = None
+        self.connected = False
+        self.progress = 0
+        self.isConnectedSignal.connect(lambda state: self.__manage_midi_loop(state))
 
-        self.thread_pool = QtCore.QThreadPool()
-        self.midi_loop = MidiLoop(self.port)
-        self.midi_loop.signals.inUpdateMode.connect(self.__send_update_data)
-        self.midi_loop.signals.version.connect(lambda x: self.__setVersion(x))
-        # self.th.finished.connect(app.quit) TODO: can this be used for clean exit?
-        self.thread_pool.start(self.midi_loop)
+    isConnectedSignal = QtCore.Signal(bool)
+    versionSignal = QtCore.Signal(str)
+    inUpdateModeSignal = QtCore.Signal(bool)
+    updateStartSignal = QtCore.Signal()
+    progressSignal = QtCore.Signal(float)
+    updateFinishedSignal = QtCore.Signal()
 
-    isConnected = QtCore.Signal(bool)
-    version = QtCore.Signal(str)
-    inUpdateMode = QtCore.Signal(bool)
+    def __manage_midi_loop(self, device_connected):
+        if device_connected:
+            if not self.thread_pool:
+                self.thread_pool = QtCore.QThreadPool()
+            if self.thread_pool.activeThreadCount() == 0:
+                self.midi_loop = MidiLoop(self.port)
+                self.midi_loop.signals.inUpdateMode.connect(self.__send_update_data)
+                self.midi_loop.signals.version.connect(lambda x: self.__setVersion(x))
+                self.thread_pool.start(self.midi_loop)
+        elif self.thread_pool:
+            self.midi_loop.cancel = True
+            while self.thread_pool.activeThreadCount() > 0:
+                time.sleep(.01)
+            del self.midi_loop
 
     @QtCore.Slot(str)
     def __setVersion(self, version):
-        self.version.emit(version)
+        self.versionSignal.emit(version)
 
     @QtCore.Slot(bool)
     def detectDevice(self):
@@ -96,9 +113,13 @@ class OxiHardware(QtCore.QObject):
             if self.deviceSearchName in device:
                 if not self.port:
                     self.port = device
-                self.isConnected.emit(True)
+                if not self.connected:
+                    self.connected = True
+                    self.isConnectedSignal.emit(True)
                 return
-        self.isConnected.emit(True)
+        if self.connected:
+            self.connected = False
+            self.isConnectedSignal.emit(False)
 
     def start_backup(self):
         print("start_backup is a stub!")
@@ -110,7 +131,7 @@ class OxiHardware(QtCore.QObject):
 
     @QtCore.Slot(str)
     def start_update(self, file_path):
-        if self.isConnected == False:
+        if not self.connected:
             raise HardwareDisconnectException
         self.timer.stop()
         self.updateFile = file_path
@@ -118,18 +139,24 @@ class OxiHardware(QtCore.QObject):
 
     @QtCore.Slot()
     def __send_update_data(self):
-        print("totally sending the update!!1")
+        self.updateStartSignal.emit()
         if self.updateFile:
             pass
             data = mido.read_syx_file(self.updateFile)
             port = mido.open_output(self.port)
             # skip ack for now
+            sent = 0
             for pkg in data:
+                print(f"sending {sent} of {len(data)-1} messages")
                 port.send(pkg)
-                time.sleep(.1)
+                time.sleep(.2)
+                sent += 1
+                self.progress = 1/(len(data)-1)*sent
+                self.progressSignal.emit(self.progress)
             self.timer.start(800)
             self.updateFile = None
-            # #detect last package
+            #TODO detect last package -> why?
+            #TODO: startup message?
 
     def get_version(self):
         with mido.open_output(self.port) as midi_out:
