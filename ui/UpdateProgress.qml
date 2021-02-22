@@ -94,19 +94,21 @@ Page {
 
   Connections {
     target: hw
+    function onIsConnectedSignal() {
+      progressText.text = "Update successful!"
+      confirmBtn.opacity = 1
+      confirmBtn.enabled = true
+      blockNav = false
+    }
     function onUpdateStartSignal() {
+      console.log("Update started!")
       progress.indeterminate = false
       progressText.text =  "Updating..."
     }
     function onProgressSignal(val) {
       progress.value = val
-      if (val < 0.99) {
-        console.log("GUI Progress " + val)
-      } else {
-        progressText.text = "Update successful!"
-        confirmBtn.opacity = 1
-        confirmBtn.enabled = true
-        blockNav = false
+      if (val > 0.9) { //TODO maybe listen to signal instead?
+        progressText.text = "Oxi starting up..."
       }
     }
   }

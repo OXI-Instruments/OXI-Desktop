@@ -65,6 +65,38 @@ class MidiLoop(QtCore.QRunnable):
             print("port open failed!")
 
 
+class MidiWorkerSignals(QtCore.QObject):
+    progress = QtCore.Signal(float)
+    finished = QtCore.Signal()
+
+
+class MidiDumpWorker(QtCore.QRunnable):
+
+    def __init__(self, port_name: str, data: list):
+        super().__init__()
+        self.port_name = port_name
+        self.data = data
+        self.progress = 0
+        self.signals = MidiWorkerSignals()
+
+    @QtCore.Slot()
+    def run(self) -> None:
+        try:
+            with mido.open_output(self.port_name) as port:
+                sent = 0
+                for pkg in self.data:
+                    print(f"sending {sent} of {len(self.data)-1} messages")
+                    port.send(pkg)
+                    time.sleep(.2)
+                    sent += 1
+                    self.progress = 1/(len(self.data)-1)*sent
+                    self.signals.progress.emit(self.progress)
+                self.signals.finished.emit()
+        except Exception as e:
+            print("Failed to send data")
+            print(e)
+
+
 class OxiHardware(QtCore.QObject):
 
     def __init__(self, port: str = None):
@@ -95,7 +127,7 @@ class OxiHardware(QtCore.QObject):
             if self.thread_pool.activeThreadCount() == 0:
                 self.midi_loop = MidiLoop(self.port)
                 self.midi_loop.signals.inUpdateMode.connect(self.__send_update_data)
-                self.midi_loop.signals.version.connect(lambda x: self.__setVersion(x))
+                self.midi_loop.signals.version.connect(lambda ver: self.__emitVersion(ver))
                 self.thread_pool.start(self.midi_loop)
         elif self.thread_pool:
             self.midi_loop.cancel = True
@@ -104,8 +136,12 @@ class OxiHardware(QtCore.QObject):
             del self.midi_loop
 
     @QtCore.Slot(str)
-    def __setVersion(self, version):
+    def __emitVersion(self, version: str):
         self.versionSignal.emit(version)
+
+    @QtCore.Slot(float)
+    def __emitProgress(self, progress: float):
+        self.progressSignal.emit(progress)
 
     @QtCore.Slot(bool)
     def detectDevice(self):
@@ -143,20 +179,19 @@ class OxiHardware(QtCore.QObject):
         if self.updateFile:
             pass
             data = mido.read_syx_file(self.updateFile)
-            port = mido.open_output(self.port)
             # skip ack for now
-            sent = 0
-            for pkg in data:
-                print(f"sending {sent} of {len(data)-1} messages")
-                port.send(pkg)
-                time.sleep(.2)
-                sent += 1
-                self.progress = 1/(len(data)-1)*sent
-                self.progressSignal.emit(self.progress)
-            self.timer.start(800)
-            self.updateFile = None
+            worker = MidiDumpWorker(self.port, data)
+            worker.signals.progress.connect(lambda progress: self.__emitProgress(progress))
+            worker.signals.finished.connect(lambda: self.__cleanup_after_update())
+            self.thread_pool.start(worker)
             #TODO detect last package -> why?
             #TODO: startup message?
+
+    @QtCore.Slot()
+    def __cleanup_after_update(self):
+        print("Update cleanup started")
+        self.timer.start(800)
+        self.updateFile = None
 
     def get_version(self):
         with mido.open_output(self.port) as midi_out:
