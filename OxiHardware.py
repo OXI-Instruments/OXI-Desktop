@@ -127,7 +127,8 @@ class OxiHardware(QtCore.QObject):
             if self.thread_pool.activeThreadCount() == 0:
                 self.midi_loop = MidiLoop(self.port)
                 self.midi_loop.signals.inUpdateMode.connect(self.__send_update_data)
-                self.midi_loop.signals.version.connect(lambda ver: self.__emitVersion(ver))
+                self.midi_loop.signals.version.connect(self.versionSignal.emit)
+                # self.midi_loop.signals.version.connect(lambda ver: self.__emitVersion(ver))
                 self.thread_pool.start(self.midi_loop)
         elif self.thread_pool:
             self.midi_loop.cancel = True
@@ -181,7 +182,8 @@ class OxiHardware(QtCore.QObject):
             data = mido.read_syx_file(self.updateFile)
             # skip ack for now
             worker = MidiDumpWorker(self.port, data)
-            worker.signals.progress.connect(lambda progress: self.__emitProgress(progress))
+            worker.signals.progress.connect(self.progressSignal)
+            # worker.signals.progress.connect(lambda progress: self.__emitProgress(progress))
             worker.signals.finished.connect(lambda: self.__cleanup_after_update())
             self.thread_pool.start(worker)
             #TODO detect last package -> why?

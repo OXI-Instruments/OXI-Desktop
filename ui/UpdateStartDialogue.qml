@@ -5,6 +5,9 @@ import QtQuick.Layouts 1.15
 //import QtQuick.Dialogs 1.2
 import Qt.labs.platform 1.1
 
+import "components" as Oxi
+import "style"
+
 Page {
   width: 800
   height: 520
@@ -36,28 +39,16 @@ Page {
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
 //      width: parent.width
-      color: "white"
+      color: OxiTheme.colors.font_color
       font.pointSize: 16
       font.styleName: "Light"
     }
 
-    Button {
+    Oxi.UiButton {
       id: backupBtn
       Layout.alignment: Qt.AlignHCenter
       hoverEnabled: true
-      contentItem: Text {
-        text: "Install update"
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        font.pointSize: 16
-        color: "white"
-        font.styleName: "Light"
-      }
-      background: Rectangle {
-        color: "#000"
-        border.color: "#7a7a95"
-        border.width: 1
-      }
+      txt: "Install update"
       width: 260
       height: 60
       onClicked: {
@@ -68,8 +59,9 @@ Page {
       }
     }
     Text {
-      text: "Install from file"
-      color: "#d7d7d7"
+      text: "Install from file instead"
+      color: OxiTheme.colors.font_color
+      opacity: 0.8
       font.pointSize: 12
       font.styleName: "Light"
 //      Layout.fillWidth: true

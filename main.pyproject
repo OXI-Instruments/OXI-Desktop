@@ -1,3 +1,3 @@
 {
-    "files": ["ui/BackupDataView.qml","ui/style/qmldir","ui/UpdateStartDialogue.qml","ui/BackupStartDialogue.qml","qtquickcontrols2.conf","ui/main.qml","ui/LoadingScreen.qml","qml.qrc","qml_qrc.py","ui/style/OxiTheme.qml","ui/BackupItemView.qml","ui/HomeForm.qml","main.py","OxiHardware.py","UpdateManager.py"]
+    "files": ["ui/UpdateStartDialogue.qml","qtquickcontrols2.conf","ui/main.qml","qml.qrc","ui/BackupStartDialogue.qml","ui/components/UiButton.qml","ui/style/qmldir","ui/BackupDataView.qml","main.py","ui/LoadingScreen.qml","ui/BackupItemView.qml","ui/HomeForm.qml","ui/style/OxiTheme.qml","ui/components/OxiSwitch.qml","OxiHardware.py","UpdateManager.py","qml_qrc.py"]
 }

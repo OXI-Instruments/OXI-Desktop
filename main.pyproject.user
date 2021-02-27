@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.14.0, 2021-02-20T17:31:59. -->
+<!-- Written by QtCreator 4.14.0, 2021-02-26T23:14:44. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -172,6 +172,7 @@
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/davy/projects/music/oxi/app/python-prototype/main.py</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Interpreter">{44da99ae-c0da-47b9-9e1a-551a1825c5d0}</value>
     <value type="QString" key="PythonEditor.RunConfiguation.Script">/home/davy/projects/music/oxi/app/python-prototype/main.py</value>
+    <value type="QString" key="RunConfiguration.Arguments">--device &quot;Midi Through:Midi Through Port-0 14:0&quot;</value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>

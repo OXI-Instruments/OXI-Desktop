@@ -5,24 +5,15 @@ import QtQuick.Controls 2.5
 //import QtQuick.Dialogs 1.2
 import Qt.labs.platform 1.1
 
-//import com.oxiinstruments.theme 1.0
+import "components" as Oxi
+import "style"
 
 Page {
   id: home
-  width: 800
-  height: 520
+  width: window.width
+  height: window.height-80
   title: oxiConnected ? "Oxi One" : "Please connect your Oxi One"
-  background: null
-
-  FileDialog {
-    id: updateDialog
-    title: "Chose update file"
-    folder: StandardPaths.writableLocation(StandardPaths.DownloadsLocation)
-    nameFilters: ["Sysex file (*.syx)", "All files (*)"]
-    onAccepted: {
-        hw.start_update(settings.url_to_path(updateDialog.file))
-    }
-  }
+  background: null //Oxi.OxiTheme.colors.accent_purple
 
   GridLayout {
     id: btns
@@ -34,34 +25,22 @@ Page {
     columns: 1
     rows: 5
     z: 1
-    rowSpacing: 8
+    rowSpacing: 12
 
-    Button {
+    Oxi.UiButton {
       id: backupBtn
-      Layout.preferredHeight: 60
       Layout.fillWidth: true
-      hoverEnabled: true
-      contentItem: Text {
-        text: oxiConnected === false
-              && backupBtn.hovered ? qsTr("Please connect your Oxi") : qsTr(
-                                       "Backup and restore")
-        opacity: oxiConnected ? 1.0 : 0.5
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        font.pointSize: 16
-        color: "white"
-        font.styleName: "Light"
-      }
-      background: Rectangle {
-        color: "#000"
-        border.color: "#7a7a95"
-        border.width: 1
-      }
+      Layout.preferredHeight: 60
+      txt: oxiConnected === false && backupBtn.hovered ?
+        qsTr("Please connect your Oxi") :
+        qsTr("Backup and restore")
+      txtOpacity: oxiConnected ? 1 : 0.5
       MouseArea {
         hoverEnabled: true
         anchors.fill: parent
-        cursorShape: containsMouse
-                     && oxiConnected === false ? Qt.ForbiddenCursor : Qt.ArrowCursor
+        cursorShape: containsMouse && oxiConnected === false ?
+            Qt.ForbiddenCursor :
+            Qt.ArrowCursor
         onClicked: function () {
           if (oxiConnected === true) {
             stackView.push(Qt.resolvedUrl("BackupStartDialogue.qml"))
@@ -70,70 +49,65 @@ Page {
       }
     }
 
-    Button {
+    Oxi.UiButton {
       id: fwBtn
-      hoverEnabled: true
       Layout.fillWidth: true
       Layout.preferredHeight: 60
-      contentItem: Text {
-        text: oxiConnected === false
-              && fwBtn.hovered ? qsTr("Please connect your Oxi") : qsTr(
-                                   "Update firmware")
-        opacity: oxiConnected === true ? 1.0 : 0.5
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        font.pointSize: 16
-        color: "white"
-        font.styleName: "Light"
-      }
-      background: Rectangle {
-        color: "#000"
-        border.color: "#7a7a95"
-        border.width: 1
-      }
+      txt: oxiConnected === false && fwBtn.hovered ?
+        qsTr("Please connect your Oxi") :
+        qsTr("Update firmware")
+      txtOpacity: oxiConnected === true ? 1.0 : 0.5
+
       MouseArea {
         hoverEnabled: true
         anchors.fill: parent
-        cursorShape: containsMouse
-                     && oxiConnected === false ? Qt.ForbiddenCursor : Qt.ArrowCursor
-        onPressed: {
-          if(mouse.modifiers & Qt.ControlModifier) {
-            updateDialog.visible = true
-          }
-        }
+        cursorShape: containsMouse && oxiConnected === false ?
+            Qt.ForbiddenCursor :
+            Qt.ArrowCursor
         onClicked: {
           if (oxiConnected === true) {
-//            if(Qt.ControlModifier)
             stackView.push("UpdateStartDialogue.qml")
           }
         }
       }
     }
 
-    Button {
-      id: globalBtn
+    Oxi.UiButton {
+      id: projBtn
       Layout.fillWidth: true
       Layout.preferredHeight: 60
-      hoverEnabled: true
-      contentItem: Text {
-        text: globalBtn.hovered? qsTr("Comming soon") : qsTr("Global options")
-        opacity: 0.5
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        font.pointSize: 16
-        color: "white"
-        font.styleName: "Light"
-      }
-      background: Rectangle {
-        color: "#000"
-        border.color: "#7a7a95"
-        border.width: 1
-      }
+      txt: projBtn.hovered? qsTr("Comming soon") : qsTr("Project manager")
+      txtOpacity: 0.5
       MouseArea {
         hoverEnabled: true
         anchors.fill: parent
-        cursorShape: containsMouse
-                     && oxiConnected === false ? Qt.ForbiddenCursor : Qt.ArrowCursor
+        cursorShape: containsMouse && oxiConnected === false ?
+            Qt.ForbiddenCursor :
+            Qt.ArrowCursor
+        onClicked: function () {
+          window.minimumWidth = 1000
+          window.maximumHeight = 800
+          window.maximumWidth = 1000
+          window.minimumHeight = 800
+          if (oxiConnected === true) {
+//            stackView.push(Qt.resolvedUrl("GlobalConfigView.qml"))
+          }
+        }
+      }
+    }
+
+    Oxi.UiButton {
+      id: globalBtn
+      Layout.fillWidth: true
+      Layout.preferredHeight: 60
+      txt: globalBtn.hovered? qsTr("Comming soon") : qsTr("Configure device")
+      txtOpacity: 0.5
+      MouseArea {
+        hoverEnabled: true
+        anchors.fill: parent
+        cursorShape: containsMouse && oxiConnected === false ?
+            Qt.ForbiddenCursor :
+            Qt.ArrowCursor
         onClicked: function () {
           if (oxiConnected === true) {
             stackView.push(Qt.resolvedUrl("GlobalConfigView.qml"))
@@ -142,25 +116,11 @@ Page {
       }
     }
 
-    Button {
+    Oxi.UiButton {
       id: manBtn
-      hoverEnabled: true
       Layout.fillWidth: true
       Layout.preferredHeight: 60
-      contentItem: Text {
-        text: qsTr("Open manual")
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        font.pointSize: 16
-        color: "white"
-        font.styleName: "Light"
-      }
-      background: Rectangle {
-        color: "#000"
-        border.color: "#7a7a95"
-        border.width: 1
-      }
-
+      txt: qsTr("Open manual")
       MouseArea {
         hoverEnabled: true
         anchors.fill: parent
@@ -178,23 +138,11 @@ Page {
       }
     }
 
-    Button {
+    Oxi.UiButton {
       id: bugBtn
       Layout.fillWidth: true
       Layout.preferredHeight: 60
-      contentItem: Text {
-        text: qsTr("Report a bug")
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        font.pointSize: 16
-        color: "white"
-        font.styleName: "Light"
-      }
-      background: Rectangle {
-        color: "#000"
-        border.color: "#7a7a95"
-        border.width: 1
-      }
+      txt: qsTr("Report a bug")
       onClicked: oxiConnected = !oxiConnected
     }
   }

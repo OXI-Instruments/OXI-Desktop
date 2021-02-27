@@ -6,6 +6,8 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 
+import "components"
+
 //import com.oxiinstruments.theme 1.0
 //import OxiTheme 1.0
 //import "Style.qml"
@@ -21,38 +23,25 @@ ApplicationWindow {
   title: qsTr("Oxi One Tool")
   background: bgr
 
+  Style {
+    id: style
+  }
+
   Item {
     id: bgr
     Image {
       id: bagBg
       source: "background.svg"
-      width: 800
-      height: 565
+      width: window.width
+      height: window.height-35 //565
     }
-//    Rectangle {
-//      id: barBg
-//      width: 800
-//      height: 565
-//      gradient: Gradient  {
-//        //fill?
-//        orientation: Gradient.Horizontal
-//        GradientStop {
-//          position: 0.2
-//          color: "#a84eaf"
-//        }
-//        GradientStop {
-//          position: 0.8
-//          color: "#7baefb"
-//        }
-//      }
-//    }
 
     Rectangle {
       id: menuBg
       y: 65
       x: 0
-      width: 800
-      height: 495
+      width: window.width
+      height: window.height-105 //495
       color: "black"
     }
   }
@@ -60,7 +49,7 @@ ApplicationWindow {
   header: Item {
     id: windowHeader
     height: 60
-    width: 800
+    width: window.width
 
     Rectangle {
       //        color: "#883e2424"
@@ -160,8 +149,8 @@ ApplicationWindow {
 
   StackView {
     id: stackView
-    width: 800
-    height: 600
+    width: window.width
+    height: window.height
     initialItem: "HomeForm.qml"
     anchors.fill: parent
   }

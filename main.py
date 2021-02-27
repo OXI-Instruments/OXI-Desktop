@@ -3,7 +3,7 @@ import sys
 import os
 import argparse
 
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtWidgets import QApplication, QDialog
 from PySide6.QtQml import QQmlApplicationEngine
 
@@ -20,9 +20,14 @@ if __name__ == "__main__":
                     help='MIDI device to use for communication')
     parsed_arg, unparsed_arg = parser.parse_known_args()
 
+
 #app = QGuiApplication(sys.argv)
     app = QApplication(unparsed_arg)
+    app.setWindowIcon(QIcon('icon.png'))
+
     engine = QQmlApplicationEngine()
+    # engine.addImportPath("./ui/style")
+    print(engine.importPathList())
     print(f"opening device: {parsed_arg.device}")
     hw = OxiHardware(parsed_arg.device)
     settings = SettingsManager()

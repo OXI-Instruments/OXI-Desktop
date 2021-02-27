@@ -11,5 +11,8 @@
         <file>ui/style/qmldir</file>
         <file>ui/qtquickcontrols2.conf</file>
         <file>ui/CClayout.qml</file>
+        <file>ui/components/UiButton.qml</file>
+        <file>ui/components/Style.qml</file>
+        <file>ui/MidiConfigView.qml</file>
     </qresource>
 </RCC>
