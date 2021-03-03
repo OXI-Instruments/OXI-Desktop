@@ -8,10 +8,6 @@ import QtQuick.Window 2.15
 
 import "components"
 
-//import com.oxiinstruments.theme 1.0
-//import OxiTheme 1.0
-//import "Style.qml"
-//import com.oxiinstruments.hardware 1.0
 
 ApplicationWindow {
   id: window
@@ -25,7 +21,16 @@ ApplicationWindow {
 
   Style {
     id: style
+    FontLoader {
+      id: light
+      source: "../NotoSansDisplay-Light.ttf"
+    }
+    FontLoader {
+      id: thin
+      source: "../NotoSansDisplay-Thin.ttf"
+    }
   }
+
 
   Item {
     id: bgr
@@ -52,7 +57,6 @@ ApplicationWindow {
     width: window.width
 
     Rectangle {
-      //        color: "#883e2424"
       color: "#000"
       anchors.fill: parent
 
@@ -109,7 +113,9 @@ ApplicationWindow {
           anchors.verticalCenter: parent.verticalCenter
           font.pointSize: 24
           color: "#ffffff"
-          font.styleName: "Thin"
+          font.family: thin.font.family
+          font.styleName: thin.font.styleName
+//          font.styleName: fonts.thin
         }
         Text {
           id: oxiVersionTitleText

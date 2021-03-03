@@ -70,13 +70,25 @@ Page {
           }
         }
       }
+      SequentialAnimation on bgBri {
+        loops: Animation.Infinite
+        PropertyAnimation {
+          to: 0.14
+          duration: 1500
+          easing.type: Easing.InOutCubic
+        }
+        PropertyAnimation {
+          to: 0
+          easing.type: Easing.InOutCubic
+        }
+      }
     }
 
     Oxi.UiButton {
       id: projBtn
       Layout.fillWidth: true
       Layout.preferredHeight: 60
-      txt: projBtn.hovered? qsTr("Comming soon") : qsTr("Project manager")
+      txt: projBtn.hovered? qsTr("Comming soon") : qsTr("Manage projects")
       txtOpacity: 0.5
       MouseArea {
         hoverEnabled: true
@@ -85,12 +97,12 @@ Page {
             Qt.ForbiddenCursor :
             Qt.ArrowCursor
         onClicked: function () {
-          window.minimumWidth = 1000
-          window.maximumHeight = 800
-          window.maximumWidth = 1000
-          window.minimumHeight = 800
+          window.minimumWidth = 1200
+          window.maximumHeight = 600
+          window.maximumWidth = 1200
+          window.minimumHeight = 600
           if (oxiConnected === true) {
-//            stackView.push(Qt.resolvedUrl("GlobalConfigView.qml"))
+            stackView.push(Qt.resolvedUrl("ProjectView.qml"))
           }
         }
       }

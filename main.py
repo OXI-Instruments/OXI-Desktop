@@ -18,6 +18,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Oxi One companion app')
     parser.add_argument('--device', dest='device', type=str, action="store",
                     help='MIDI device to use for communication')
+    parser.add_argument('--no-wait', dest='wait_for_device', type=bool, action='store',
+                        help="Don't wait for the device to send a signal for starting the update")
     parsed_arg, unparsed_arg = parser.parse_known_args()
 
 
@@ -30,6 +32,7 @@ if __name__ == "__main__":
     print(engine.importPathList())
     print(f"opening device: {parsed_arg.device}")
     hw = OxiHardware(parsed_arg.device)
+    hw.wait_for_device = parsed_arg.wait_for_device
     settings = SettingsManager()
     app.aboutToQuit.connect(hw.stop_communication)
     # update_mgr = UpdateManager("oxi.db")

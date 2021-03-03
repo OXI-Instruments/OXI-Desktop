@@ -99,12 +99,13 @@ class MidiDumpWorker(QtCore.QRunnable):
 
 class OxiHardware(QtCore.QObject):
 
-    def __init__(self, port: str = None):
+    def __init__(self, port: str = 'OXI'):
         QtCore.QObject.__init__(self)
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(lambda: self.detectDevice())
         self.timer.start(800)
-        self.deviceSearchName = port or "OXI"
+        self.deviceSearchName = port
+        self.wait_for_device = True
         self.port = port
         self.updateFile = None
         self.thread_pool = None
@@ -126,7 +127,8 @@ class OxiHardware(QtCore.QObject):
                 self.thread_pool = QtCore.QThreadPool()
             if self.thread_pool.activeThreadCount() == 0:
                 self.midi_loop = MidiLoop(self.port)
-                self.midi_loop.signals.inUpdateMode.connect(self.__send_update_data)
+                if self.wait_for_device:
+                    self.midi_loop.signals.inUpdateMode.connect(self.__send_update_data)
                 self.midi_loop.signals.version.connect(self.versionSignal.emit)
                 # self.midi_loop.signals.version.connect(lambda ver: self.__emitVersion(ver))
                 self.thread_pool.start(self.midi_loop)
@@ -172,6 +174,8 @@ class OxiHardware(QtCore.QObject):
             raise HardwareDisconnectException
         self.timer.stop()
         self.updateFile = file_path
+        if not self.wait_for_device:
+            self.__send_update_data()
         # TODO: put oxi into update mode
 
     @QtCore.Slot()

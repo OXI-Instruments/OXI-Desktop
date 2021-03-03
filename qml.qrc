@@ -14,5 +14,7 @@
         <file>ui/components/UiButton.qml</file>
         <file>ui/components/Style.qml</file>
         <file>ui/MidiConfigView.qml</file>
+        <file>ui/ProjectViewGrid.qml</file>
+        <file>ui/ProjectView.qml</file>
     </qresource>
 </RCC>

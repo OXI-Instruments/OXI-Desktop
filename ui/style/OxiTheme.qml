@@ -1,5 +1,5 @@
 pragma Singleton
-import QtQuick 2.0
+import QtQuick 2.12
 
 QtObject {
 
@@ -8,6 +8,8 @@ QtObject {
     property color accent_cyan: "#7baefb"
     property color border_color: "#7a7a95"
     property color font_color: "#ffffff"
+
+
   }
 
 }
