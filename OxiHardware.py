@@ -99,12 +99,12 @@ class MidiDumpWorker(QtCore.QRunnable):
 
 class OxiHardware(QtCore.QObject):
 
-    def __init__(self, port: str = 'OXI'):
+    def __init__(self, port: str = None):
         QtCore.QObject.__init__(self)
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(lambda: self.detectDevice())
         self.timer.start(800)
-        self.deviceSearchName = port
+        self.deviceSearchName = port or "OXI"
         self.wait_for_device = True
         self.port = port
         self.updateFile = None
