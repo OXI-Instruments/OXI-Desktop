@@ -10,12 +10,12 @@ This document describes the way the app communicates with the Oxi One. This prot
 
 The communication is structured in a request-response model. This means that every message sent to the Oxi One will be answered by the device with an appropriate response.
 
-Messages are enapsulated into the well-known SysEx message format. This means that the first 6 bytes as well as the last byte are defined by the official standard and therefore static.
+Messages are encapsulated into the well-known SysEx message format. This means that the first 6 bytes as well as the last byte are defined by the official standard and therefore static.
 
 | Description | SysEx header | manufacturer ID | product ID | message category | message | options | SysEx Footer |
 | ---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Byte number** | 1 | 2, 3, 4 | 5, 6 | 7 | 8 | 9 - N | N + 1 |
-| **Bytes** | f0 | 00 22 42 | 08 15 | 01 | 01 | 02 00 | f7 |
+| **Bytes** | f0 | 00 22 42 | 08 15 | XX | XX | XX XX | f7 |
 
 In the Oxi One protocol we defined three more fields: *message category*, *message* and *options*.
 
@@ -47,7 +47,7 @@ The current sequence to update the firmware is the following:
   (assuming that the user agreed)
   5. Oxi One: Reboots into update mode
   6. Oxi One: Sends update-ready message
-  7. Application: Sends Nth chunk of the firmware data
+  7. Application: Sends N-th chunk of the firmware data
   8. Oxi One: Replies with ACK
   (go to 7. until all chunks are sent and acknowledged)
   9. Oxi One: reboot into normal mode
@@ -62,7 +62,7 @@ Ignore transport controls on the interfaces MIDI, Bluetooth LE or the analog clo
 
 Supported states:
 
-| interface | message catetory | message | option |
+| interface | message category | message | option |
 | --- | --- | --- | --- |
 | MIDI | 01 | 10 | On: 01 Off: 00 |
 | BT LE | 01 | 11 | On: 01 Off: 00 |
