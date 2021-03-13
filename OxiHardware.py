@@ -101,13 +101,13 @@ class OxiHardware(QtCore.QObject):
 
     def __init__(self, port: str = None):
         QtCore.QObject.__init__(self)
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(lambda: self.detectDevice())
-        self.timer.start(800)
-        self.deviceSearchName = port or "OXI"
+        self.continuous_device_detection = QtCore.QTimer()
+        self.continuous_device_detection.timeout.connect(lambda: self.detectDevice())
+        self.continuous_device_detection.start(800)
+        self.device_search_name = port or "OXI"
         self.wait_for_device = True
         self.port = port
-        self.updateFile = None
+        self.update_file = None
         self.thread_pool = None
         self.midi_loop = None
         self.connected = False
@@ -149,7 +149,7 @@ class OxiHardware(QtCore.QObject):
     @QtCore.Slot(bool)
     def detectDevice(self):
         for device in mido.get_ioport_names():
-            if self.deviceSearchName in device:
+            if self.device_search_name in device:
                 if not self.port:
                     self.port = device
                 if not self.connected:
@@ -172,8 +172,8 @@ class OxiHardware(QtCore.QObject):
     def start_update(self, file_path):
         if not self.connected:
             raise HardwareDisconnectException
-        self.timer.stop()
-        self.updateFile = file_path
+        self.continuous_device_detection.stop()
+        self.update_file = file_path
         if not self.wait_for_device:
             self.__send_update_data()
         # TODO: put oxi into update mode
@@ -181,9 +181,9 @@ class OxiHardware(QtCore.QObject):
     @QtCore.Slot()
     def __send_update_data(self):
         self.updateStartSignal.emit()
-        if self.updateFile:
+        if self.update_file:
             pass
-            data = mido.read_syx_file(self.updateFile)
+            data = mido.read_syx_file(self.update_file)
             # skip ack for now
             worker = MidiDumpWorker(self.port, data)
             worker.signals.progress.connect(self.progressSignal)
@@ -196,8 +196,8 @@ class OxiHardware(QtCore.QObject):
     @QtCore.Slot()
     def __cleanup_after_update(self):
         print("Update cleanup started")
-        self.timer.start(800)
-        self.updateFile = None
+        self.continuous_device_detection.start(800)
+        self.update_file = None
 
     def get_version(self):
         with mido.open_output(self.port) as midi_out:

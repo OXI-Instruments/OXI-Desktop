@@ -30,7 +30,7 @@ if __name__ == "__main__":
     engine = QQmlApplicationEngine()
     # engine.addImportPath("./ui/style")
     print(engine.importPathList())
-    print(f"opening device: {parsed_arg.device}")
+    print(f"opening device: { parsed_arg.device }")
     hw = OxiHardware(parsed_arg.device)
     hw.wait_for_device = parsed_arg.wait_for_device
     settings = SettingsManager()

@@ -98,9 +98,25 @@ Page {
         font.pointSize: 16
         font.styleName: "Light"
       }
-        Oxi.OxiSwitch {
-            id: usbMidiThruTgl
-        }
+      Oxi.OxiSwitch {
+        id: usbMidiThruTgl
+      }
+    }
+
+    RowLayout {
+      Layout.fillHeight: false
+
+      Text {
+        Layout.fillWidth: true
+        id: oxiSplitLbl
+        text: qsTr("Oxi split")
+        color: OxiTheme.colors.font_color
+        font.pointSize: 16
+        font.styleName: "Light"
+      }
+      Oxi.OxiSwitch {
+        id: oxiSplitTgl
+      }
     }
   }
 }
