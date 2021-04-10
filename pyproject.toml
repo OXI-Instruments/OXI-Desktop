@@ -1,0 +1,35 @@
+[tool.briefcase]
+project_name = "Oxi One Compantion App"
+bundle = "com.oxiinstruments"
+version = "0.0.1"
+url = "https://oxiinstruments.com/"
+license = "BSD license"
+author = 'Oxi Instruments Team'
+author_email = "info@oxiinstruments.com"
+
+[tool.briefcase.app.oxionecompanion]
+formal_name = "Oxi One Compantion"
+description = "Campanion app to update and configure the Oxi One sequencer"
+icon = "src/oxionecompanion/resources/oxi"
+sources = ['src/oxionecompanion']
+requires = [ 
+      'pyside6==6.0.2',
+      'mido==1.2.9',
+      'python-rtmidi==1.4.7',
+    ]   
+
+[tool.briefcase.app.oxionecompanion.macOS]
+requires=[]
+
+[tool.briefcase.app.oxionecompanion.linux]
+requires=[]
+system_requires=[]
+
+[tool.briefcase.app.oxionecompanion.windows]
+requires=[]
+
+[tool.briefcase.app.oxionecompanion.iOS]
+requires=[]
+
+[tool.briefcase.app.oxionecompanion.android]
+requires=[]

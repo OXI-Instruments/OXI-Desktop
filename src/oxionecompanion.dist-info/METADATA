@@ -1,0 +1,10 @@
+Metadata-Version: 2.1
+Briefcase-Version: 0.3.5
+Name: oxionecompanion
+Formal-Name: Oxi One Compantion
+App-ID: com.oxiinstruments.oxionecompanion
+Version: 0.0.1
+Home-page: https://oxiinstruments.com/
+Author: Oxi Instruments Team
+Author-email: info@oxiinstruments.com
+Summary: Campanion app to update and configure the Oxi One sequencer
