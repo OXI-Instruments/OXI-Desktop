@@ -71,6 +71,14 @@ Thumbs.db
 *.dll
 *.exe
 
+# Briefcase build directories
+iOS/
+macOS/
+windows/
+android/
+linux/
+django/
+
 /oxi.db
 /oxi-env/
 /.idea/

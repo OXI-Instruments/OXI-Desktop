@@ -144,7 +144,7 @@ ApplicationWindow {
 
     Label {
       id: footerLbl
-      text: "App version 0.2b4"
+      text: "App " + settings.app_version()
       anchors.verticalCenter: parent.verticalCenter
 
       anchors.right: parent.right

@@ -41,10 +41,13 @@ class SettingsManager(QtCore.QObject):
         ("ask_for_backups", True)
     ]
 
-    def __init__(self):
+    def __init__(self, dbfile=None, version=None):
         QtCore.QObject.__init__(self)
-        if not os.path.isfile(self.DB_FILE):
-            self.__initialize_database()
+        self.__app_version = version
+        if dbfile:
+            self.DB_FILE = dbfile
+            if not os.path.isfile(self.DB_FILE):
+                self.__initialize_database()
 
     def __initialize_database(self):
         db_connection = sqlite3.connect(self.DB_FILE)
@@ -59,12 +62,16 @@ class SettingsManager(QtCore.QObject):
         pass
 
     def __get_setting_by_key(self, key):
-        db_connection = sqlite3.connect(self.DB_FILE)
-        db_cursor = db_connection.cursor()
-        db_cursor.execute("SELECT value FROM settings where key = (?)", key)
-        data = db_cursor.fetchone()
-        db_connection.close()
-        return data[0]
+        try:
+            #TODO handle if no database is present
+            db_connection = sqlite3.connect(self.DB_FILE)
+            db_cursor = db_connection.cursor()
+            db_cursor.execute("SELECT value FROM settings where key = (?)", key)
+            data = db_cursor.fetchone()
+            db_connection.close()
+            return data[0]
+        except Exception as e:
+            print(e)
 
     @property
     @QtCore.Slot(bool)
@@ -81,3 +88,7 @@ class SettingsManager(QtCore.QObject):
     def url_to_path(self, url):
         qurl = QtCore.QUrl(url)
         return qurl.path()
+
+    @QtCore.Slot(result=str)
+    def app_version(self):
+        return self.__app_version
