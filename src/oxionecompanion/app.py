@@ -7,25 +7,27 @@ from PySide6.QtGui import QGuiApplication, QIcon
 from PySide6.QtWidgets import QApplication, QDialog
 from PySide6.QtQml import QQmlApplicationEngine
 
-from OxiHardware import OxiHardware
-from SettingsManager import SettingsManager
-from UpdateManager import UpdateManager
-from BackupManager import BackupModel
+from .OxiHardware import OxiHardware
+from .SettingsManager import SettingsManager
+from .UpdateManager import UpdateManager
+from .BackupManager import BackupModel
 
-import qml_qrc
+from .qml_qrc import *
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Oxi One companion app')
     parser.add_argument('--device', dest='device', type=str, action="store",
                     help='MIDI device to use for communication')
     parser.add_argument('--no-wait', dest='wait_for_device', type=bool, action='store',
                         help="Don't wait for the device to send a signal for starting the update")
+    parser.add_argument('--enable-persistence', dest='enable_persistence', type=bool, action='store',
+                        help="Enable persistence of settings and data in local sqlite database")
     parsed_arg, unparsed_arg = parser.parse_known_args()
 
 
 #app = QGuiApplication(sys.argv)
     app = QApplication(unparsed_arg)
-    app.setWindowIcon(QIcon('icon.png'))
+    app.setWindowIcon(QIcon('resources/oxionecompanion.png'))
 
     engine = QQmlApplicationEngine()
     # engine.addImportPath("./ui/style")
@@ -33,15 +35,15 @@ if __name__ == "__main__":
     print(f"opening device: { parsed_arg.device }")
     hw = OxiHardware(parsed_arg.device)
     hw.wait_for_device = parsed_arg.wait_for_device
-    settings = SettingsManager()
-    app.aboutToQuit.connect(hw.stop_communication)
-    # update_mgr = UpdateManager("oxi.db")
-    backup_model = BackupModel()
+    if parsed_arg.enable_persistence:
+        settings = SettingsManager()
+        # update_mgr = UpdateManager("oxi.db")
+        backup_model = BackupModel()
+        engine.rootContext().setContextProperty("backup_model", backup_model)
+        engine.rootContext().setContextProperty("settings", settings)
 
-#    qmlRegisterSingletonType(QUrl("qrc:ui/style/Theme.qml"), "com.oxiinstruments.theme", 1, 0, "Style")
+    app.aboutToQuit.connect(hw.stop_communication)
     engine.rootContext().setContextProperty("hw", hw)
-    engine.rootContext().setContextProperty("settings", settings)
-    engine.rootContext().setContextProperty("backup_model", backup_model)
     engine.load(os.path.join(os.path.dirname(__file__), "ui/main.qml"))
 
     if not engine.rootObjects():

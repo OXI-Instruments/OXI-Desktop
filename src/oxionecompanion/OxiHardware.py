@@ -206,7 +206,8 @@ class OxiHardware(QtCore.QObject):
 
     @QtCore.Slot()
     def stop_communication(self):
-        self.midi_loop.cancel = True
+        if self.midi_loop:
+            self.midi_loop.cancel = True
 
 
 @dataclass

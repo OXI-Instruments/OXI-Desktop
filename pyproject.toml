@@ -10,7 +10,7 @@ author_email = "info@oxiinstruments.com"
 [tool.briefcase.app.oxionecompanion]
 formal_name = "Oxi One Compantion"
 description = "Campanion app to update and configure the Oxi One sequencer"
-icon = "src/oxionecompanion/resources/oxi"
+icon = "src/oxionecompanion/resources/oxionecompanion"
 sources = ['src/oxionecompanion']
 requires = [ 
       'pyside6==6.0.2',

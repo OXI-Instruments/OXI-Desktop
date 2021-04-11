@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import IntEnum, auto
 from pprint import pprint
 import sqlite3
-from OxiHardware import OxiHardware, HardwareDisconnectException
+from .OxiHardware import OxiHardware, HardwareDisconnectException
 
 
 @dataclass
