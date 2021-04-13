@@ -88,3 +88,4 @@ django/
 /build/
 /main.bin
 /OxiOneCompanion.spec
+*venv*/
