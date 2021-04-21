@@ -11,9 +11,9 @@ import "components"
 
 ApplicationWindow {
   id: window
-  minimumWidth: 800
+  minimumWidth: 600
   maximumHeight: 600
-  maximumWidth: 800
+  maximumWidth: 600
   minimumHeight: 600
   visible: true
   title: qsTr("Oxi One Tool")
@@ -43,10 +43,10 @@ ApplicationWindow {
 
     Rectangle {
       id: menuBg
-      y: 65
+      y: 63
       x: 0
       width: window.width
-      height: window.height-105 //495
+      height: window.height-101 //495
       color: "black"
     }
   }

@@ -1,7 +1,7 @@
 [tool.briefcase]
 project_name = "Oxi One Companion App"
 bundle = "com.oxiinstruments"
-version = "0.0.2"
+version = "0.0.3"
 url = "https://oxiinstruments.com/"
 license = "BSD license"
 author = 'Oxi Instruments Team'

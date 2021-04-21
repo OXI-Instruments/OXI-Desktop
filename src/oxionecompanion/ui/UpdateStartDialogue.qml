@@ -9,7 +9,7 @@ import "components" as Oxi
 import "style"
 
 Page {
-  width: 800
+  width: window.width
   height: 520
   id: updateStartDialogue
   background: null

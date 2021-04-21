@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.15
 //import QtGraphicalEffects 1.0
 
 Page {
-  width: 800
+  width: window.width
   height: 520
   id: updateProgress
   background: null
