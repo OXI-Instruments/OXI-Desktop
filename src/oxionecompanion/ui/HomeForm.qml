@@ -12,7 +12,7 @@ Page {
   id: home
   width: window.width
   height: window.height-80
-  title: oxiConnected ? "Oxi One" : "Please connect your Oxi One"
+  title: oxiConnected ? "Oxi One connected" : "Please connect your Oxi One"
   background: null //Oxi.OxiTheme.colors.accent_purple
 
   GridLayout {
@@ -29,6 +29,7 @@ Page {
 
     Oxi.UiButton {
       id: backupBtn
+      visible: settings.backup_feature_enabled()
       Layout.fillWidth: true
       Layout.preferredHeight: 60
       txt: oxiConnected === false && backupBtn.hovered ?
@@ -71,6 +72,7 @@ Page {
         }
       }
       SequentialAnimation on bgBri {
+        running: update_avail
         loops: Animation.Infinite
         PropertyAnimation {
           to: 0.14
@@ -86,6 +88,7 @@ Page {
 
     Oxi.UiButton {
       id: projBtn
+      visible: settings.project_feature_enabled()
       Layout.fillWidth: true
       Layout.preferredHeight: 60
       txt: projBtn.hovered? qsTr("Comming soon") : qsTr("Manage projects")
@@ -110,6 +113,7 @@ Page {
 
     Oxi.UiButton {
       id: globalBtn
+      visible: settings.config_feature_enabled()
       Layout.fillWidth: true
       Layout.preferredHeight: 60
       txt: globalBtn.hovered? qsTr("Comming soon") : qsTr("Configure device")
@@ -144,7 +148,7 @@ Page {
           if(containsMouse) {
             parent.contentItem.text = "Will open your browser"
           } else {
-            parent.contentItem.text = "Open manual"
+            parent.contentItem.text = qsTr("Open manual")
           }
         }
       }
@@ -155,7 +159,21 @@ Page {
       Layout.fillWidth: true
       Layout.preferredHeight: 60
       txt: qsTr("Report a bug")
-      onClicked: oxiConnected = !oxiConnected
+      MouseArea {
+        hoverEnabled: true
+        anchors.fill: parent
+        cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onClicked: {
+          Qt.openUrlExternally("https://gitlab.com/manuwind6/oxi-one-beta")
+        }
+        onHoveredChanged: {
+          if(containsMouse) {
+            parent.contentItem.text = "Will open your browser"
+          } else {
+            parent.contentItem.text = qsTr("Report a bug")
+          }
+        }
+      }
     }
   }
 }

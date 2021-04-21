@@ -31,21 +31,28 @@ Page {
     id: formColumn
     anchors.verticalCenter: parent.verticalCenter
     anchors.horizontalCenter: parent.horizontalCenter
-    width: 460
+    width: 340
     spacing: 10
 
-    Text {
-      text: "This will install firmware version 1.4.2 from our servers. An automatic backup of your device will be made before the installation starts."
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
-//      width: parent.width
-      color: OxiTheme.colors.font_color
-      font.pointSize: 16
-      font.styleName: "Light"
+    Rectangle {
+        Layout.fillWidth: true
+        Layout.maximumWidth: 340
+        Text {
+          id: updateTxt
+          text: update_avail ?
+            "This will install firmware version 1.4.2 from our servers. An automatic backup of your device will be made before the installation starts.":
+            "It seems like there's no online update available right now. Go make some music! :)"
+          wrapMode: Text.WordWrap
+          anchors.centerIn: parent
+          color: OxiTheme.colors.font_color
+          font.pointSize: 16
+          font.styleName: "Light"
+        }
     }
 
     Oxi.UiButton {
       id: backupBtn
+      visible: update_avail
       Layout.alignment: Qt.AlignHCenter
       hoverEnabled: true
       txt: "Install update"
@@ -66,7 +73,7 @@ Page {
       font.styleName: "Light"
 //      Layout.fillWidth: true
       Layout.alignment: Qt.AlignHCenter
-      Layout.topMargin: 5
+      Layout.topMargin: update_avail? 5 : 25
       font.underline: false
       MouseArea {
         anchors.fill: parent

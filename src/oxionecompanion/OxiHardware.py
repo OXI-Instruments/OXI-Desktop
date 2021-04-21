@@ -103,7 +103,7 @@ class OxiHardware(QtCore.QObject):
         QtCore.QObject.__init__(self)
         self.continuous_device_detection = QtCore.QTimer()
         self.continuous_device_detection.timeout.connect(lambda: self.detectDevice())
-        self.continuous_device_detection.start(800)
+        self.continuous_device_detection.start(2000)
         self.device_search_name = port or "OXI"
         self.wait_for_device = True
         self.port = port
@@ -112,6 +112,7 @@ class OxiHardware(QtCore.QObject):
         self.midi_loop = None
         self.connected = False
         self.progress = 0
+        self.pollcount = 0
         self.isConnectedSignal.connect(lambda state: self.__manage_midi_loop(state))
 
     isConnectedSignal = QtCore.Signal(bool)
@@ -123,6 +124,7 @@ class OxiHardware(QtCore.QObject):
 
     def __manage_midi_loop(self, device_connected):
         if device_connected:
+            self.continuous_device_detection.stop()
             if not self.thread_pool:
                 self.thread_pool = QtCore.QThreadPool()
             if self.thread_pool.activeThreadCount() == 0:
@@ -148,6 +150,8 @@ class OxiHardware(QtCore.QObject):
 
     @QtCore.Slot(bool)
     def detectDevice(self):
+        self.pollcount += 1
+        print(f"polling MIDI devices: {self.pollcount}")
         for device in mido.get_ioport_names():
             if self.device_search_name in device:
                 if not self.port:

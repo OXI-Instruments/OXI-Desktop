@@ -6,7 +6,7 @@ from PySide6 import QtCore
 
 class SettingsManager(QtCore.QObject):
 
-    DB_FILE = "oxi.db"
+    DB_FILE = None
     DB_UPDATE_SCHEMA = """
         CREATE table updates (id, date, version, maturity, source, last_compatible, data)
     """
@@ -41,13 +41,15 @@ class SettingsManager(QtCore.QObject):
         ("ask_for_backups", True)
     ]
 
-    def __init__(self, dbfile=None, version=None):
+    def __init__(self, db_file=None, version=None, backup_feature=False, proj_feature=False, conf_feature=False):
         QtCore.QObject.__init__(self)
         self.__app_version = version
-        if dbfile:
-            self.DB_FILE = dbfile
-            if not os.path.isfile(self.DB_FILE):
-                self.__initialize_database()
+        self.__backup_feature = backup_feature
+        self.__proj_feature = proj_feature
+        self.__conf_feature = conf_feature
+        self.DB_FILE = db_file
+        if self.DB_FILE and not os.path.isfile(self.DB_FILE):
+            self.__initialize_database()
 
     def __initialize_database(self):
         db_connection = sqlite3.connect(self.DB_FILE)
@@ -92,3 +94,15 @@ class SettingsManager(QtCore.QObject):
     @QtCore.Slot(result=str)
     def app_version(self):
         return self.__app_version
+
+    @QtCore.Slot(result=bool)
+    def project_feature_enabled(self):
+        return self.__proj_feature
+
+    @QtCore.Slot(result=bool)
+    def backup_feature_enabled(self):
+        return self.__backup_feature
+
+    @QtCore.Slot(result=bool)
+    def config_feature_enabled(self):
+        return self.__conf_feature

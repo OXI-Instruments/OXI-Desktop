@@ -127,7 +127,7 @@ ApplicationWindow {
           font.pointSize: 10
           color: "#ffffff"
           font.styleName: "Thin"
-          visible: oxiConnected && stackView.depth == 1
+          visible: false //oxiConnected && stackView.depth == 1
         }
       }
     }
@@ -165,6 +165,7 @@ ApplicationWindow {
   property var oxiVersion: "1.4b2"
   property var backupNumber: 0
   property var blockNav: false
+  property bool update_avail: false
 
   Connections {
     target: hw
@@ -178,6 +179,13 @@ ApplicationWindow {
   }
   Connections {
     target: settings
+  }
+
+  Connections {
+    target: updates
+    function onUpdateAvailableSignal() {
+      update_avail = true
+    }
   }
 
 }

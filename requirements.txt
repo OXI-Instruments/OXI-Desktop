@@ -21,7 +21,7 @@ lazy-object-proxy==1.4.3
 mac-alias==2.2.0
 MarkupSafe==1.1.1
 mccabe==0.6.1
-mido==1.2.9
+mido @ git+https://github.com/mido/mido.git@2f53ba0bfa4c0fc5949bd5802d9cb03366e34317
 parso==0.7.1
 pluggy==0.13.1
 poyo==0.5.0

@@ -22,27 +22,38 @@ def main():
                         help="Don't wait for the device to send a signal for starting the update")
     parser.add_argument('--enable-persistence', dest='enable_persistence', type=bool, action='store',
                         help="Enable persistence of settings and data in local sqlite database")
+    parser.add_argument('--enable-backup', dest='enable_backup', type=bool, action='store',
+                        help="Enable the backup feature")
+    parser.add_argument('--enable-proj-mgmt', dest='enable_proj_mgmt', type=bool, action='store',
+                        help="Enable project management feature")
+    parser.add_argument('--enable-config', dest='enable_config', type=bool, action='store',
+                        help="Enable device configuration feature")
+
     parsed_arg, unparsed_arg = parser.parse_known_args()
 
-    APP_VERSION="0.0.2"
+    APP_VERSION = "0.0.3"
+    DB_FILE = None
 
-#app = QGuiApplication(sys.argv)
     app = QApplication(unparsed_arg)
     app.setWindowIcon(QIcon('resources/oxionecompanion.png'))
 
     engine = QQmlApplicationEngine()
     # engine.addImportPath("./ui/style")
-    print(engine.importPathList())
-    print(f"opening device: { parsed_arg.device }")
+    # print(engine.importPathList())
+    # print(f"opening device: { parsed_arg.device }")
     hw = OxiHardware(parsed_arg.device)
     hw.wait_for_device = parsed_arg.wait_for_device
     if parsed_arg.enable_persistence:
-        settings = SettingsManager("oxi.db", version=APP_VERSION)
-        # update_mgr = UpdateManager("oxi.db")
+        DB_FILE = "oxi.db"
+
+    update_mgr = UpdateManager(db_file=DB_FILE)
+    engine.rootContext().setContextProperty("updates", update_mgr)
+
+    if parsed_arg.enable_backup:
         backup_model = BackupModel()
         engine.rootContext().setContextProperty("backup_model", backup_model)
-    else:
-        settings = SettingsManager(version=APP_VERSION)
+
+    settings = SettingsManager(db_file=DB_FILE, version=APP_VERSION)
     engine.rootContext().setContextProperty("settings", settings)
 
     app.aboutToQuit.connect(hw.stop_communication)

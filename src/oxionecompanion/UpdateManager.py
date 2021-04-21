@@ -9,16 +9,18 @@ from dataclasses import dataclass
 from enum import IntEnum, auto
 
 
-class UpdateManager:
+class UpdateManager(QtCore.QObject):
 
     def __init__(self, db_file=None):
+        QtCore.QObject.__init__(self)
         self.updateURL = "https://oxiinstruments.com"
         self.updateDir = "update/oxi_one"
         self.updateMetaData = "latest.json"
         self.db_file = db_file
         self.updates = []
         self.downloadedUpdate = None
-        pass
+
+    updateAvailableSignal = QtCore.Signal(bool)
 
     def get_update_history(self):
         db_conn = sqlite3.connect(self.db_file)
@@ -29,13 +31,18 @@ class UpdateManager:
         db_conn.close()
         return self.updates
 
+    @QtCore.Slot(result=dict)
     def check_for_update(self):
-        conn = HTTPConnection(self.updateURL)
-        conn.request("GET", f"/{self.updateDir}/{self.updateMetaData}")
-        res = conn.getresponse()
-        dat = json.loads(res.read())
+        try:
+            conn = HTTPConnection(self.updateURL)
+            conn.request("GET", f"/{self.updateDir}/{self.updateMetaData}")
+            res = conn.getresponse()
+            dat = json.loads(res.read())
+        except HTTPConnection as e:
+            self.updateAvailableSignal.emit(False)
+            return None
+        self.updateAvailableSignal.emit(True)
         return dat["latest"], dat["latest_beta"]
-        pass
 
     def download_update(self, version):
         conn = HTTPConnection(self.updateURL)
