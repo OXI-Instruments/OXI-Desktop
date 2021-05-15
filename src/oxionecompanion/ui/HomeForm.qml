@@ -164,7 +164,7 @@ Page {
         anchors.fill: parent
         cursorShape: containsMouse ? Qt.PointingHandCursor : Qt.ArrowCursor
         onClicked: {
-          Qt.openUrlExternally("https://gitlab.com/manuwind6/oxi-one-beta")
+          Qt.openUrlExternally("https://gitlab.com/manuwind5/oxi-one-beta")
         }
         onHoveredChanged: {
           if(containsMouse) {
