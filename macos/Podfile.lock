@@ -1,0 +1,28 @@
+PODS:
+  - desktop_window (0.0.1):
+    - FlutterMacOS
+  - flutter_midi_command (0.0.1):
+    - FlutterMacOS
+  - FlutterMacOS (1.0.0)
+
+DEPENDENCIES:
+  - desktop_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_window/macos`)
+  - flutter_midi_command (from `Flutter/ephemeral/.symlinks/plugins/flutter_midi_command/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+
+EXTERNAL SOURCES:
+  desktop_window:
+    :path: Flutter/ephemeral/.symlinks/plugins/desktop_window/macos
+  flutter_midi_command:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_midi_command/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+
+SPEC CHECKSUMS:
+  desktop_window: fb7c4f12c1129f947ac482296b6f14059d57a3c3
+  flutter_midi_command: 66bd6c84f86c68ebde5df1839f92e084529fb135
+  FlutterMacOS: 57701585bf7de1b3fc2bb61f6378d73bbdea8424
+
+PODFILE CHECKSUM: 0d3963a09fc94f580682bd88480486da345dc3f0
+
+COCOAPODS: 1.10.1
