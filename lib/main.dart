@@ -48,6 +48,7 @@ class MyApp extends StatelessWidget {
           '/home': (context) => HomeScreen(),
         },
         theme: oxiTheme,
+        debugShowCheckedModeBanner: false,
 
       )
     );

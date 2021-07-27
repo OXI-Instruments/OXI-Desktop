@@ -50,13 +50,27 @@ AppBar OxiAppBar ({
   bool disableNav = false
 }) {
   return AppBar (
-    title: title,
+    title: Column(
+      children: [
+        title,
+        Padding(
+          padding: const EdgeInsets.all(2.0),
+          child: Text(
+              "1.0.2",
+              style: TextStyle(
+                fontSize: 9.0,
+                fontWeight: FontWeight.w100
+              ),
+          ),
+        )
+      ],
+    ),
     actions: [
       IconButton(onPressed: null, icon: Icon(Icons.settings))
     ],
     centerTitle: true,
     automaticallyImplyLeading: !disableNav,
-    toolbarHeight: 76,
+    toolbarHeight: 60,
     bottom: PreferredSize(
       preferredSize: Size(double.infinity, 5.0),
       child: Container(

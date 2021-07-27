@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:oxi_companion_flttr/common/oxi_theme.dart';
 import 'package:provider/provider.dart';
 
-import 'package:flutter_midi_command/flutter_midi_command.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:oxi_companion_flttr/models/midi_device_model.dart';
 
@@ -83,12 +83,13 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: OutlinedButton(
-                  onPressed: null,
+                  onPressed: _openGitlab,
                   child: const Text(
                     "Report a Bug",
                     style: TextStyle(
                         fontSize: 22,
-                        fontWeight: FontWeight.w100
+                        fontWeight: FontWeight.w100,
+                        color: Color(0xfffff0f8)
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -101,6 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
       )
     );
   }
+
+  void _openGitlab() async =>
+      await canLaunch("https://gitlab.com/manuwind5/oxi-one-beta") ? await launch("https://gitlab.com/manuwind5/oxi-one-beta") : throw 'Could not launch https://gitlab.com/manuwind5/oxi-one-beta';
 
   void _clickDummy() {
     dev.log("klick klock");

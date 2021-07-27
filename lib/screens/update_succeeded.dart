@@ -37,13 +37,33 @@ class _UpdateSucceedState extends State<UpdateSucceed> {
             Text(
               "Update was successful!",
               style: TextStyle(
-                fontSize: 12.0
+                fontSize: 22.0
               ),
             ),
-            TextButton(
-                onPressed: () => Navigator.of(context).pushNamed('/'),
-                child: Text ("Awesome!")
-            )
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/home', (_)=>(false)),
+                  child: const Text(
+                    "Awesome!",
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w100,
+                        color: Color(0xfffff0f8)
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                      fixedSize: Size(180.0, 40.0),
+                      shape: ContinuousRectangleBorder (
+                        side: BorderSide(
+                          color: Color(0xffffffff),
+                          width: 5.0,
+                          style: BorderStyle.solid,
+                        ),
+                      )
+                  )
+              ),
+            ),
           ],
         ),
       )
@@ -52,14 +72,5 @@ class _UpdateSucceedState extends State<UpdateSucceed> {
 
   void _clickDummy() {
     dev.log("klick klock");
-  }
-
-  void _selectUpdate() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      File file = File(result.files.single.path as String);
-      dev.log(file.path);
-      Navigator.of(context).pushNamedAndRemoveUntil('/updater', (_)=>(false));
-    }
   }
 }
