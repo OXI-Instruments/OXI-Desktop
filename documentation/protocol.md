@@ -14,7 +14,7 @@ The communication is structured in a request-response model. This means that eve
 
 Messages are encapsulated into the well-known SysEx message format. This means that the first 6 bytes as well as the last byte are defined by the official standard and therefore static.
 
-| Description | SysEx header | manufacturer ID | product ID | message category | message | options | SysEx Footer |
+|  | SysEx header | manufacturer ID | product ID | message category | message | options | SysEx Footer |
 | ---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Byte number** | 1 | 2, 3, 4 | 5, 6 | 7 | 8 | 9 - N | N + 1 |
 | **Bytes** | f0 | 00 22 42 | 08 15 | XX | XX | XX XX | f7 |
@@ -23,14 +23,14 @@ In the Oxi One protocol we defined three more fields: *message category*, *messa
 
 ## Response
 
-If there's no data requested from the Oxi, for example when device settings are changed, the Oxi responds to it in the following way:
+Unless stated otherwise, if there's no data requested from the Oxi (ie. example when device settings are changed) the Oxi responds to it in the following way:
 
-| SysEx header | manufacturer ID | product ID | message category | message | status | SysEx Footer |
-| ---: | :---: | :---: | :---: | :---: | :---: | :---: | | :---: |
+|  | SysEx header | manufacturer ID | product ID | message category | message | status | SysEx Footer |
+| ---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Byte number** | 1 | 2, 3, 4 | 5, 6 | 7 | 8 | 9 | 10 |
 | **Bytes** | f0 | 00 22 42 | 08 15 | XX | XX | XX | f7 |
 
-**message** and **message category** are equal to the request.
+**message category** and **message** are equal to the request.
 **status** represents the success of the requested operation.
 
 # Messages
@@ -76,9 +76,30 @@ Ignore transport controls on the interfaces MIDI, Bluetooth LE or the analog clo
 Supported states:
 
 | interface | message category | message | option |
-| --- | --- | --- | --- |
-| MIDI | 01 | 10 | On: 01 Off: 00 |
-| BT LE | 01 | 11 | On: 01 Off: 00 |
-| Analog | 01 | 12 | On: 01 Off: 00 |
+| :---: | :---: | :---: | :---: |
+| MIDI | 01 | 10 | Off: 00 |
+|  |  |  | On: 01 |
+| BT LE | 01 | 11 | Off: 00 |
+|  |  |  | On: 01 |
+| Analog | 01 | 12 | Off: 00 |
+|  |  |  | On: 01 |
 
 ## Project management
+
+### Project list
+
+#### Request
+
+| message category | message |
+| :---: | :---: |
+| 02 | 00 |
+
+#### Response
+
+| message category | message | project name 1 | project name N |
+| :---: | :---: | :---: | :---: | 
+| 1 | 2 | 3 + 16 | 19 + 16...|
+| 02 | 00 | XX | YY |
+
+
+### Sequence list of a project
