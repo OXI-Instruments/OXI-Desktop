@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_midi_command/flutter_midi_command.dart';
 import 'package:desktop_window/desktop_window.dart';
+import 'package:oxi_companion_flttr/screens/project_selector.dart';
 import 'package:provider/provider.dart';
 
 import 'package:oxi_companion_flttr/models/midi_device_model.dart';
@@ -42,12 +43,13 @@ class MyApp extends StatelessWidget {
         initialRoute: '/device_selector',
         routes: {
           '/update_select': (context) => UpdateSelect(),
+          '/project_select': (context) => ProjectSelector(),
           '/device_selector': (context) => DeviceSelector(),
           '/updater': (context) => Updater(),
           '/update_succeeded': (context) => UpdateSucceed(),
           '/home': (context) => HomeScreen(),
         },
-        theme: oxiTheme,
+        theme: OxiTheme.data,
         debugShowCheckedModeBanner: false,
 
       )

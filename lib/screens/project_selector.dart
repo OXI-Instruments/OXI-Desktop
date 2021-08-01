@@ -12,25 +12,25 @@ import 'package:oxi_companion_flttr/models/midi_device_model.dart';
 import 'oxi_one.dart' as oxiOne;
 
 
-class DeviceSelector extends StatefulWidget {
+class ProjectSelector extends StatefulWidget {
   @override
-  _DeviceSelectorState createState() => _DeviceSelectorState();
+  _ProjectSelectorState createState() => _ProjectSelectorState();
 }
 
-class _DeviceSelectorState extends State<DeviceSelector> {
+class _ProjectSelectorState extends State<ProjectSelector> {
 
   MidiCommand _midiCommand = MidiCommand();
-  late StreamSubscription<String> _devSubscription;
+  late StreamSubscription<MidiPacket> _devSubscription;
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _devSubscription = _midiCommand.onMidiSetupChanged!.listen((event) {
+    _devSubscription = _midiCommand.onMidiDataReceived!.listen((event) {
       setState(() {});
-      dev.log(event);
-      dev.inspect(this);
+      dev.log('');
+      // dev.inspect(this);
     });
   }
 

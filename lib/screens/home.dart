@@ -67,6 +67,32 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: OutlinedButton(
+                  onPressed: () {
+                      Navigator.of(context).pushNamed('/project_select');
+                    },
+                  child: const Text(
+                    "Manage Projects",
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w100,
+                        color: Color(0xfffff0f8)
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                      fixedSize: Size(260.0, 62.0),
+                      shape: ContinuousRectangleBorder (
+                        side: BorderSide(
+                          color: Color(0xffffffff),
+                          width: 5.0,
+                          style: BorderStyle.solid,
+                        ),
+                      )
+                  )
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: OutlinedButton(
                   onPressed: null,
                   child: const Text(
                     "Open Manual",

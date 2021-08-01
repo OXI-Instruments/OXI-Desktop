@@ -26,33 +26,31 @@ class Updater extends StatefulWidget {
 
 class _UpdaterState extends State<Updater> with TickerProviderStateMixin {
 
-  // late AnimationController controller;
-  // late StreamSubscription<Uint8List> _txSubscription;
+  late AnimationController _controller;
   MidiCommand _midiCommand = MidiCommand();
   double _progress = 0;
+  late Timer _sendLoop;
+  late Uint8List _syxData;
+  List<Uint8List> _chunks = [];
+  int _chunkCount = 0;
 
   @override
   void initState() {
     super.initState();
-    // controller = AnimationController(
-    //     vsync: this,
-    //     duration: Duration(seconds: 7),
-    // )..addListener(() {
-    //   setState(() { });
-    // });
-    // _txSubscription = _midiCommand.onMidiDataSent.listen((event) {
-    //   dev.log("sending stuff!!!");
-    //   dev.log(event.buffer.toString());
-    // });
 
+    _controller = AnimationController(
+        vsync: this,
+        lowerBound: 0,
+        upperBound: 1,
+    )..addListener(() {
+      setState(() { });
+    });
 
-    // WidgetsBinding.instance?.addPostFrameCallback((_) async {
-    //   final Uint8List _syxData = ModalRoute.of(context)?.settings.arguments as Uint8List;
-    //   send(_syxData).then((value) => null).whenComplete(() => Navigator.of(context).pushNamedAndRemoveUntil('/update_succeeded', (_)=>(false)));
-    // });
-    Future.delayed(Duration.zero, () async {
-      final Uint8List _syxData = ModalRoute.of(context)?.settings.arguments as Uint8List;
-      send(_syxData).then((value) => null).whenComplete(() => Navigator.of(context).pushNamedAndRemoveUntil('/update_succeeded', (_)=>(false)));
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      _syxData = ModalRoute.of(context)?.settings.arguments as Uint8List;
+      _prepareChunks();
+      _midiCommand.connectToDevice(oxiOne.OxiOne().device);
+      _sendLoop = Timer.periodic(Duration(milliseconds: 250), send);
     });
   }
 
@@ -63,33 +61,34 @@ class _UpdaterState extends State<Updater> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Future<void> send(Uint8List _syxData) async {
-    _midiCommand.connectToDevice(oxiOne.OxiOne().device);
-
+  void _prepareChunks(){
     int chunkSize = _syxData.indexWhere((element) => element == 0xf7) + 1;
     int chunks = (_syxData.lengthInBytes % chunkSize == 0) ?
     _syxData.lengthInBytes ~/ chunkSize :
     _syxData.lengthInBytes ~/ chunkSize + 1;
-    dev.log("sending $chunks chunks of data with size $chunkSize");
-
-    for (int chunkCount = 1, start = 0, end = chunkSize; chunkCount <= chunks; chunkCount++ ){
+    for (int chunkCount = 1, start = 0, end = chunkSize; chunkCount <= chunks; chunkCount++ ) {
       if (chunkCount == chunks){
-        dev.log("sending last chunk: ");
-        _midiCommand.sendData(_syxData.sublist(start));
+        _chunks.add(_syxData.sublist(start));
       } else {
-        _midiCommand.sendData(_syxData.sublist(start, end));
-        dev.log("last byte of this chunk $chunkCount is ${_syxData[end-1]}");
+        _chunks.add(_syxData.sublist(start, end));
       }
       start = chunkCount*chunkSize;
       end = start+chunkSize;
-      sleep(Duration(milliseconds: 190));
-      if (chunkCount == chunks) {
-        return;
-      } else {
-        setState(() {
-          _progress = 100/chunks*chunkCount;
-        });
-      }
+    }
+  }
+
+  void send(Timer timer) {
+    _midiCommand.sendData(_chunks.elementAt(_chunkCount));
+    if (_chunkCount == _chunks.length-1) {
+      timer.cancel();
+      Navigator.of(context).pushNamedAndRemoveUntil('/update_succeeded', (_)=>(false));
+    } else {
+      double progress = 1/_chunks.length*_chunkCount;
+      setState(() {
+        _progress = progress;
+      });
+      _controller.animateTo(progress, duration: Duration(milliseconds: 180));
+      _chunkCount++;
     }
   }
 
@@ -107,27 +106,38 @@ class _UpdaterState extends State<Updater> with TickerProviderStateMixin {
         ),
         disableNav: true
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              alignment: Alignment.center,
-              height: 80.0,
-              padding: const EdgeInsets.only(left: 40, right: 40),
-              child: LinearProgressIndicator(
-                value: _progress,
-                minHeight: 8,
+      body: WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                alignment: Alignment.center,
+                height: 80.0,
+                padding: const EdgeInsets.only(left: 140, right: 140),
+                child: LinearProgressIndicator(
+                  value: _progress,
+                  minHeight: 8,
+                  valueColor: ColorTween(begin: OxiTheme.purple, end: OxiTheme.cyan).animate(
+                    CurvedAnimation(
+                      parent: _controller,
+                      curve: Curves.linear
+                    )
+                  ),
+                ),
               ),
-            ),
-            Text(
-              "Update in progress, hold your breath!",
-              style: TextStyle(
-                fontSize: 12.0
-              ),
-            )
-          ],
+              Text(
+                "Update in progress, hold your breath!",
+                style: TextStyle(
+                  fontSize: 12.0
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
