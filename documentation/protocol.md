@@ -10,6 +10,8 @@ This document describes the way the app communicates with the Oxi One. This prot
 
 The communication is structured in a request-response model. This means that every message sent to the Oxi One will be answered by the device with an appropriate response.
 
+## Requests
+
 Messages are encapsulated into the well-known SysEx message format. This means that the first 6 bytes as well as the last byte are defined by the official standard and therefore static.
 
 | Description | SysEx header | manufacturer ID | product ID | message category | message | options | SysEx Footer |
@@ -19,6 +21,17 @@ Messages are encapsulated into the well-known SysEx message format. This means t
 
 In the Oxi One protocol we defined three more fields: *message category*, *message* and *options*.
 
+## Response
+
+If there's no data requested from the Oxi, for example when device settings are changed, the Oxi responds to it in the following way:
+
+| SysEx header | manufacturer ID | product ID | message category | message | status | SysEx Footer |
+| ---: | :---: | :---: | :---: | :---: | :---: | :---: | | :---: |
+| **Byte number** | 1 | 2, 3, 4 | 5, 6 | 7 | 8 | 9 | 10 |
+| **Bytes** | f0 | 00 22 42 | 08 15 | XX | XX | XX | f7 |
+
+**message** and **message category** are equal to the request.
+**status** represents the success of the requested operation.
 
 # Messages
 
