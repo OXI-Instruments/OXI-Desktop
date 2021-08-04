@@ -118,11 +118,11 @@ typedef struct {
 typedef struct
 {
   uint8_t project_num;
-	char project_name[12];
-	uint16_t tempo;
-	SYSEX_Name_s pattern_name[4][16];
-	SYSEX_Name_s song_name[16];
-	SYSEX_Name_s cc_name[128];
+  char project_name[12];
+  uint16_t tempo;
+  SYSEX_Name_s pattern_name[4][16];
+  SYSEX_Name_s song_name[16];
+  SYSEX_Name_s cc_name[128];
 } SYSEX_ProjInfo_s;
 ```
 
