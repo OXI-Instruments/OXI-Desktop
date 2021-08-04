@@ -123,6 +123,7 @@ typedef struct
   SYSEX_Name_s pattern_name[4][16];
   SYSEX_Name_s song_name[16];
   SYSEX_Name_s cc_name[128];
+  uint32_t checksum;
 } SYSEX_ProjInfo_s;
 ```
 
