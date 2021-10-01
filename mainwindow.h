@@ -24,16 +24,7 @@ public:
 
 private slots:
 
-
-    void on_lineEdit_returnPressed();
-
-    void on_lineEdit_textChanged(const QString &arg1);
-
-    void on_devicesComboBox_currentIndexChanged(int index);
-
     void updateProgressBar(int value);
-
-    void on_refreshButton_clicked();
 
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoOXIBootloaderButton_clicked();
@@ -43,8 +34,6 @@ private slots:
     void on_loadFileButton_clicked();
 
     void on_stopButton_clicked();
-
-    void on_devicesComboBox_activated(int index);
 
     void on_sendProjectButton_clicked();
 

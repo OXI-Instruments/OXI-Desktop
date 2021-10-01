@@ -71,13 +71,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(connection_timer, SIGNAL(timeout()), this, SLOT(ConnectionCheck()));
 
+    connection_timer->start(1000);
+
     //    connect(&mWorker->midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),mWorker, SLOT(onMidiReceive(QMidiMessage*)));
 
     ui->progressBar->setValue(0);
 
-    on_refreshButton_clicked();
-
-    // on_devicesComboBox_activated(0);
 }
 
 
@@ -88,45 +87,6 @@ MainWindow::~MainWindow()
 }
 
 
-
-void MainWindow::ConnectionCheck(void)
-{
-
-}
-
-void MainWindow::on_lineEdit_returnPressed()
-{
-#if 0
-    midi_out.sendSysEx(sysex_cmd);
-#endif
-}
-
-void MainWindow::on_lineEdit_textChanged(const QString &arg1)
-{
-#if 0
-    sysex_cmd.setRawData(arg1.toUtf8(), arg1.size());
-#endif
-}
-
-
-void MainWindow::on_devicesComboBox_currentIndexChanged(int index)
-{
-#if 0
-    if ((unsigned int)index < mWorker->midi_out.getPortCount())
-    {
-        mWorker->midi_out.closePort();
-        mWorker->midi_in.closePort();
-
-        mWorker->midi_out.openPort(index);
-        mWorker->midi_in.openPort(index);
-
-        qDebug() << "Connected to " <<  mWorker->midi_out.getPorts()[index] << Qt::endl;
-    }
-
-#endif
-}
-
-
 void MainWindow::updateProgressBar(int value)
 {
     ui->progressBar->setValue(value);
@@ -134,17 +94,108 @@ void MainWindow::updateProgressBar(int value)
 
 
 
-void MainWindow::on_refreshButton_clicked()
+void MainWindow::ConnectionCheck(void)
 {
     //    emit WorkerRefreshDevices();
 
-    QStringList midi_list =  mWorker->midi_out.getPorts();
+    QStringList midi_out_list =  mWorker->midi_out.getPorts();
+    QStringList midi_in_list =  mWorker->midi_in.getPorts();
+    QString oxi = QString("OXI");
+#if defined(__LINUX_ALSA__)
+    QString port_in_str = QString(":0");
+    QString port_out_str = QString(":0");
+#elif defined(__WINDOWS_MM__)
+    QString port_in_str = QString("0");
+    QString port_out_str = QString("1");
+#elif defined(__MACOSX_CORE__)
+    QString port_in_str = QString("1");
+    QString port_out_str = QString("1");
+#endif
+    QString fw_update = QString("FW Update");
 
-    ui->devicesComboBox->clear();
+    bool found = false;
+    // Port already open, check changes in ports
+    if (mWorker->midi_out.isPortOpen()) {
+        for (int i = 0; i != midi_out_list.size(); ++i)
+        {
+            if (mWorker->port_out_string == midi_out_list[i]) {
+                found = true;
+                break;
+            }
+        }
+    }
 
-    for (int i = 0; i != midi_list.size(); ++i)
+    if (!found && mWorker->port_out_string != "")
     {
-        ui->devicesComboBox->addItem(midi_list[i], i);
+        mWorker->port_out_string = "";
+        ui->connection_status_label->setText("CONNECT YOUR OXI ONE");
+    }
+
+    // Port not open or has changed
+    if ((!mWorker->midi_out.isPortOpen()) || (found == false)) {
+        for (int i = 0; i != midi_out_list.size(); ++i)
+        {
+            if ((midi_out_list[i].contains(port_out_str) || (midi_out_list[i].contains(fw_update))) &&
+                    midi_out_list[i].contains(oxi))
+            {
+                mWorker->midi_out.closePort();
+
+                try {
+                    mWorker->midi_out.openPort(i);
+                }
+                catch ( RtMidiError &error ) {
+                    error.printMessage();
+                    return;
+                }
+
+                mWorker->port_out_string = midi_out_list[i];
+                ui->connection_status_label->setText("OXI ONE CONNECTED");
+
+                qDebug() << "Connected to " <<  midi_out_list[i] << Qt::endl;
+                break;
+            }
+        }
+    }
+
+
+    found = false;
+    // Port already open, check changes in ports
+    if (mWorker->midi_in.isPortOpen()) {
+        for (int i = 0; i != midi_in_list.size(); ++i)
+        {
+            if (mWorker->port_in_string == midi_in_list[i]) {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    if (!found && mWorker->port_in_string != "") mWorker->port_in_string = "";
+
+    // Port not open or has changed
+    if ((!mWorker->midi_in.isPortOpen()) || (!found)) {
+        for (int i = 0; i != midi_in_list.size(); ++i)
+        {
+            if ((midi_in_list[i].contains(port_in_str) || (midi_in_list[i].contains(fw_update))) &&
+                    midi_in_list[i].contains(oxi))
+            {
+                mWorker->midi_in.closePort();
+
+                try {
+                    mWorker->midi_in.openPort(i);
+                }
+                catch ( RtMidiError &error ) {
+                    error.printMessage();
+                    return;
+                }
+
+
+                mWorker->port_in_string = midi_in_list[i];
+
+                qDebug() << "Connected to " <<  midi_in_list[i] << Qt::endl;
+                break;
+            }
+        }
     }
 
 }
@@ -209,54 +260,13 @@ void MainWindow::on_stopButton_clicked()
 }
 
 
-void MainWindow::on_devicesComboBox_activated(int index)
-{
-    if ((unsigned int)index < mWorker->midi_out.getPortCount())
-    {
-        mWorker->midi_out.closePort();
-
-        QStringList midi_out_ports = mWorker->midi_out.getPorts();
-        QString midi_out_q_string = midi_out_ports[index];
-        QByteArray midi_out_port = midi_out_ports[index].toLocal8Bit();
-        const char *midi_out_name = midi_out_port.data();
-
-        if (qstrncmp (midi_out_name, "OXI", 3) == 0) {
-            mWorker->midi_out.openPort(index, midi_out_q_string);
-            qDebug() << "Connected to " <<  mWorker->midi_out.getPorts()[index] << Qt::endl;
-
-            if ((unsigned int)index < mWorker->midi_in.getPortCount())
-            {
-
-                QStringList midi_in_ports = mWorker->midi_in.getPorts();
-                QString midi_in_q_string = midi_in_ports[index];
-                QByteArray midi_in_port = midi_in_ports[index].toLocal8Bit();
-                const char *midi_in_name = midi_in_port.data();
-
-                mWorker->midi_in.closePort();
-
-                if (qstrncmp (midi_in_name, "OXI", 3) == 0) {
-                    mWorker->midi_in.openPort(midi_in_q_string);
-                    qDebug() << "Connected to " <<  mWorker->midi_in.getPorts()[index] << Qt::endl;
-                } else {
-                    qDebug() << "OXI ONE not recognized";
-                }
-            }
-        } else {
-            qDebug() << "OXI ONE not recognized";
-        }
-
-
-    }
-
-}
-
 
 
 void MainWindow::on_sendProjectButton_clicked()
 {
     std::snprintf(proj_info.song_name[0].name, PROJ_NAME_LEN, "%s", ui->lineEdit_projectName->text().toLocal8Bit().constData());
 
-//    proj_info.song_name[0].name << ui->lineEdit_projectName->text().toLocal8Bit().constData();
+    //    proj_info.song_name[0].name << ui->lineEdit_projectName->text().toLocal8Bit().constData();
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 16; j++) {

@@ -10,8 +10,8 @@ Worker::Worker(QObject *parent, bool b) :
     QThread(parent), Stop(b)
 {
     midi_in.setIgnoreTypes(false, true, true);
-    connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
-            this, SLOT(onMidiReceive(QMidiMessage*)));
+    Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
+                     this, SLOT(onMidiReceive(QMidiMessage*))));
 }
 
 // run() will be called when a thread starts
@@ -38,77 +38,80 @@ void Worker::run()
 #endif
 
 #if 1
-//        update_file_name_ = QFileDialog::getOpenFileName(
-//                    (QWidget*)this,
-//                    tr("Select SYSEX"),
-//                    tr("/Users/ManuelVr/Desktop"),
-//                    tr("Sysex ( *.syx);All Files ( * )"));
-//    update_file_name_ = "/Users/ManuelVr/Desktop/midi_ble.syx";
+    //        update_file_name_ = QFileDialog::getOpenFileName(
+    //                    (QWidget*)this,
+    //                    tr("Select SYSEX"),
+    //                    tr("/Users/ManuelVr/Desktop"),
+    //                    tr("Sysex ( *.syx);All Files ( * )"));
+    //    update_file_name_ = "/Users/ManuelVr/Desktop/midi_ble.syx";
 
     file.setFileName(update_file_name_);
     if (!file.open(QIODevice::ReadOnly))
         return;
 
-//    QByteArray sysex_file_buffer;
+    //    QByteArray sysex_file_buffer;
     //    sysex_file_buffer.setRawData(file.readAll(), file.size());
     int timeout = 0;
     int retries = 0;
-    const int DELAY_TIME = 150;
+    const int DELAY_TIME = 50;
     const int TIMEOUT_TIME = 1000;
 
 
     QByteArray sysex_file_buffer = file.readAll();
 
-    int current_position, previous_position = 0;
-        int length;
-        int package_num = 0;
-    char * p_last;
-    char * p_first;
-    p_first = (char *)&sysex_file_buffer[0];
+    int package_num = 0;
 
     emit ui_UpdateProgressBar(0);
 
     qDebug() << "File length: " << sysex_file_buffer.length() << Qt::endl;
 
-    uint8_t byte;
+    QList<QByteArray> packages = sysex_file_buffer.split(0xF7);
+    for (package_num = 0; package_num < packages.size(); package_num ++)
+    {
+        packages[package_num].append(0xF7);
+    }
+
 LOOP:
-    for (current_position = 0; (current_position < sysex_file_buffer.length()); current_position++) {
-        byte = sysex_file_buffer[current_position];
-        if (byte == 0xF7)
-        {
-            timeout = 0;
-            package_num ++;
-            sysex_ack_ = 0;
-            p_last = &sysex_file_buffer[current_position];
-            raw_data.assign (p_first, p_last + 1);
+    for (package_num = 0; package_num < packages.size(); )
+    {
+        timeout = 0;
+        sysex_ack_ = 0;
+
+        raw_data.assign(packages[package_num].constData(), packages[package_num].constData() + packages[package_num].size());
+
+        try {
             midi_out.sendRawMessage(raw_data);
+        }
+        catch ( RtMidiError &error ) {
+            error.printMessage();
+            goto EXIT;
+        }
 
-            length = current_position - previous_position;
-            qDebug() << "Pck: " << package_num << " length: " << length << Qt::endl;
+        qDebug() << "Pck: " << package_num << " length: " << packages[package_num].size() << Qt::endl;
 
-            emit ui_UpdateProgressBar(100 * current_position / sysex_file_buffer.length());
+        emit ui_UpdateProgressBar(100 * package_num / packages.size());
 
-            if (current_position >= sysex_file_buffer.length() - 1) goto EXIT;
+        if (package_num >= packages.size() - 2) {
+            goto EXIT;
+        }
 
-            while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
-            {
-                this->msleep(DELAY_TIME);
-                timeout += DELAY_TIME;
-            }
+        while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
+        {
+            this->msleep(DELAY_TIME);
+            timeout += DELAY_TIME;
+        }
 
-            if (timeout >= TIMEOUT_TIME) {
-                goto SEND_RESET;
-            }
-            else if (sysex_ack_ == MSG_FW_UPDT_ACK) {
-                sysex_ack_ = 0;
-                retries = 0;
+        if (timeout >= TIMEOUT_TIME) {
+            goto SEND_RESET;
+        }
+        else if (sysex_ack_ == MSG_FW_UPDT_ACK) {
+            sysex_ack_ = 0;
+            retries = 0;
 
-                p_first = p_last + 1;
-                previous_position = current_position;
-            }
-            else if (sysex_ack_ == MSG_FW_UPDT_NACK) {
-                goto SEND_RESET;
-            }
+            package_num ++;
+        }
+        else if (sysex_ack_ == MSG_FW_UPDT_NACK) {
+            goto SEND_RESET;
         }
     }
 
@@ -116,16 +119,24 @@ LOOP:
 
 SEND_RESET:
     {
-     if (retries > 2) {
-        this->msleep(DELAY_TIME);
         uint8_t bootloader_reset[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_RESTART, 0xF7 };
         raw_data.assign (&bootloader_reset[0], &bootloader_reset[sizeof(bootloader_reset)]);
-        midi_out.sendRawMessage( raw_data);
-     } else {
-         current_position = previous_position;
-         retries ++;
-         goto LOOP;
-     }
+
+        try {
+            midi_out.sendRawMessage( raw_data);
+        }
+        catch ( RtMidiError &error ) {
+            error.printMessage();
+        }
+        this->msleep(DELAY_TIME);
+
+        if (retries < 3) {
+            retries ++;
+            goto LOOP;
+        } else {
+            goto EXIT;
+        }
+
     }
 
 EXIT:

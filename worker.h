@@ -24,6 +24,11 @@ public:
     std::vector<unsigned char> raw_data;
     QString update_file_name_;
 
+    QString port_in_string;
+    QString port_out_string;
+    int port_out_index;
+    int port_in_index;
+
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
     void WorkerRefreshDevices(void);
