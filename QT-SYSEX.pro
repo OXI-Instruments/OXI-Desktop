@@ -18,6 +18,9 @@ SOURCES += \
 #INCLUDEPATH += "/usr/local/include/libusb-1.0"
 INCLUDEPATH += "QMIDI"
 #LIBS += -L/usr/local/Cellar/libusb/1.0.23/lib -lusb-1.0
+ICON = oxiupdater.icns
+DEFINES += QT_DEPRECATED_WARNINGS
+
 
 HEADERS += \
     OXI_SYSEX_MSG.h \
