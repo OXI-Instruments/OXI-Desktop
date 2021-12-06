@@ -62,7 +62,7 @@
             <x>10</x>
             <y>10</y>
             <width>411</width>
-            <height>214</height>
+            <height>243</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -88,6 +88,13 @@
             <widget class="QPushButton" name="gotoBLEBootloaderButton">
              <property name="text">
               <string>GOTO BLE BOOTLOADER</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="gotoSPLITBootloaderButton">
+             <property name="text">
+              <string>GOTO SPLIT BOOTLOADER</string>
              </property>
             </widget>
            </item>
@@ -214,8 +221,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>100</width>
-                 <height>30</height>
+                 <width>98</width>
+                 <height>28</height>
                 </rect>
                </property>
                <attribute name="label">

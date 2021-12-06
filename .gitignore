@@ -47,3 +47,5 @@ app.*.map.json
 
 #iOS specifics
 /ios/build/
+/Debug/
+/Release/

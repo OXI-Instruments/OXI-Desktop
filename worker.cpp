@@ -55,7 +55,7 @@ void Worker::run()
     int retries = 0;
     const int DELAY_TIME = 50;
     const int TIMEOUT_TIME = 1000;
-
+    bool success = false;
 
     QByteArray sysex_file_buffer = file.readAll();
 
@@ -92,26 +92,35 @@ LOOP:
         emit ui_UpdateProgressBar(100 * package_num / packages.size());
 
         if (package_num >= packages.size() - 2) {
+            success = true;
             goto EXIT;
         }
 
-        while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
-        {
-            this->msleep(DELAY_TIME);
-            timeout += DELAY_TIME;
-        }
+        if (this->wait_for_ack) {
+            while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
+            {
+                this->msleep(DELAY_TIME);
+                timeout += DELAY_TIME;
+            }
 
-        if (timeout >= TIMEOUT_TIME) {
-            goto SEND_RESET;
+            if (timeout >= TIMEOUT_TIME) {
+                goto SEND_RESET;
+            }
+            else if (sysex_ack_ == MSG_FW_UPDT_ACK) {
+                sysex_ack_ = 0;
+                retries = 0;
+
+                package_num ++;
+            }
+            else if (sysex_ack_ == MSG_FW_UPDT_NACK) {
+                goto SEND_RESET;
+            }
         }
-        else if (sysex_ack_ == MSG_FW_UPDT_ACK) {
-            sysex_ack_ = 0;
-            retries = 0;
+        // Do not wait for ack, just sleep
+        else {
+            this->msleep(DELAY_TIME*6);
 
             package_num ++;
-        }
-        else if (sysex_ack_ == MSG_FW_UPDT_NACK) {
-            goto SEND_RESET;
         }
     }
 
@@ -140,7 +149,12 @@ SEND_RESET:
     }
 
 EXIT:
-    emit ui_UpdateProgressBar(0);
+    if (success) {
+        emit ui_UpdateProgressBar(100);
+    } else {
+         emit ui_UpdateProgressBar(0);
+    }
+
     file.close();
 #endif
 }

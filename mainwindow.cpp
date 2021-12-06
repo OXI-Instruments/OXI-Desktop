@@ -13,6 +13,7 @@
 
 //uint8_t cmd[128]; // = {0xF0, 0x00, 0x22, 0x03, 0x00, 0x02, 0x7F, 0x00, 0xF7 };
 uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
+uint8_t goto_split_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_SPLIT, 0xF7 };
 uint8_t goto_oxi_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_ONE, 0xF7 };
 uint8_t cmd2[] =            {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_STARTED, 0xF7 };
 uint8_t exit_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_EXIT, 0xF7 };
@@ -208,7 +209,20 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
         //        std::vector<unsigned char>
         mWorker->raw_data.assign(&goto_ble_bootloader[0], &goto_ble_bootloader[sizeof(goto_ble_bootloader)]);
         mWorker->midi_out.sendRawMessage( mWorker->raw_data);
+        mWorker->wait_for_ack = true;
+    }
+#endif
+}
 
+void MainWindow::on_gotoSPLITBootloaderButton_clicked()
+{
+#if 1
+    if ( mWorker->midi_out.isPortOpen()) {
+
+        //        std::vector<unsigned char>
+        mWorker->raw_data.assign(&goto_split_bootloader[0], &goto_split_bootloader[sizeof(goto_split_bootloader)]);
+        mWorker->midi_out.sendRawMessage( mWorker->raw_data);
+        mWorker->wait_for_ack = false;
     }
 #endif
 }
@@ -221,7 +235,7 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
         //        std::vector<unsigned char>
         mWorker->raw_data.assign(&goto_oxi_bootloader[0], &goto_oxi_bootloader[sizeof(goto_oxi_bootloader)]);
         mWorker->midi_out.sendRawMessage( mWorker->raw_data);
-
+        mWorker->wait_for_ack = true;
     }
 #endif
 }

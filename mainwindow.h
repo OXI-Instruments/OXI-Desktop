@@ -27,6 +27,7 @@ private slots:
     void updateProgressBar(int value);
 
     void on_gotoBLEBootloaderButton_clicked();
+    void on_gotoSPLITBootloaderButton_clicked();
     void on_gotoOXIBootloaderButton_clicked();
 
     void on_exitBootloaderButton_clicked();

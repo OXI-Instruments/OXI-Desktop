@@ -28,6 +28,7 @@ public:
     QString port_out_string;
     int port_out_index;
     int port_in_index;
+    bool wait_for_ack = true;
 
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
