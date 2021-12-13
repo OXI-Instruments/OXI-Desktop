@@ -1,0 +1,16 @@
+{
+  "projects": [
+    {
+      "project_num": 1,
+      "project_name": "Pakito Mix",
+      "tempo": 120,
+      "song_name": "Muy Top",
+      "checksum": "12345678910",
+      "sequences": [
+        {
+          "patterns": [{ "pattern_name": "Main Lead" }]
+        }
+      ]
+    }
+  ]
+}

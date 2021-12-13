@@ -5,10 +5,13 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += c++11
 #CONFIG += link_pkgconfig
 #PKGCONFIG += libusb-1.0
-
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+
+macx {
+    QMAKE_MACOSX_DEPLOYMENT_TARGET=10.15
+}
 
 SOURCES += \
     main.cpp \
@@ -27,6 +30,7 @@ HEADERS += \
     SYSEX_PROJ.h \
     mainwindow.h \
     MIDI.h \
+    nlohmann/json.hpp \
     worker.h
 
 FORMS += \
@@ -40,4 +44,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 #include (QMIDI/QMidi.pri)
 include (QMidi/QMidi.pri)
 
-DISTFILES +=
+DISTFILES += \
+    projects.json

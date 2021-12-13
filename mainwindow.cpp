@@ -10,6 +10,7 @@
 
 #include "SYSEX_PROJ.h"
 #include "MIDI.h"
+#include <nlohmann/json.hpp>
 
 //uint8_t cmd[128]; // = {0xF0, 0x00, 0x22, 0x03, 0x00, 0x02, 0x7F, 0x00, 0xF7 };
 uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
@@ -24,7 +25,7 @@ QByteArray sysex_file_buffer;
 
 std::vector<unsigned char> raw_data2;
 
-
+using json = nlohmann::json;
 
 
 
@@ -274,13 +275,9 @@ void MainWindow::on_stopButton_clicked()
 }
 
 
-
-
 void MainWindow::on_sendProjectButton_clicked()
 {
     std::snprintf(proj_info.song_name[0].name, PROJ_NAME_LEN, "%s", ui->lineEdit_projectName->text().toLocal8Bit().constData());
-
-    //    proj_info.song_name[0].name << ui->lineEdit_projectName->text().toLocal8Bit().constData();
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 16; j++) {
@@ -290,9 +287,33 @@ void MainWindow::on_sendProjectButton_clicked()
     for (int j = 0; j < 16; j++) {
         // sprintf(proj_info.song_name[j].name, "Song %d", j);
     }
-    strcpy(proj_info.song_name[0].name, "Juntitos");
-    strcpy(proj_info.song_name[SONG_NUM - 1].name, "Muy Top");
-    sprintf(proj_info.pattern_name[0][0].name, "Main Lead");
+
+    const QString fileName = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/../../../" + "projects.json");
+    qDebug() <<fileName;
+    QFile projectsFile(fileName);
+    if (projectsFile.open(QIODevice::ReadOnly)) {
+     qDebug()<< "The file "<< fileName<< " has been opened successfully";
+    } else {
+      qDebug()<< "Failed to open file "<< fileName;
+    }
+
+    QByteArray projectLines = projectsFile.readAll();
+
+    //    proj_info.song_name[0].name << ui->lineEdit_projectName->text().toLocal8Bit().constData();
+
+    auto projs = json::parse(projectLines.toStdString());
+    auto proj0 = projs.at("projects")[0];
+    auto proj0Songs = proj0.at("songs");
+
+    auto proj0Name = proj0Songs[0].at("song_name").dump();
+    strcpy(proj_info.song_name[0].name, proj0Name.c_str());
+    auto projLastName = proj0Songs[SONG_NUM - 1].at("song_name").dump();
+    strcpy(proj_info.song_name[SONG_NUM - 1].name, projLastName.c_str());
+
+    auto proj0Seqs = proj0.at("sequences");
+    auto proj0Seqs0Patterns = proj0Seqs[0].at("patterns");
+    auto patternName = proj0Seqs0Patterns[0].at("pattern_name").dump();
+    strcpy(proj_info.pattern_name[0][0].name, patternName.c_str());
 
     for (uint16_t i = 0; i < (sizeof(SYSEX_ProjInfo_s) - 4); i++)
     {

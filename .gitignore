@@ -49,3 +49,4 @@ app.*.map.json
 /ios/build/
 /Debug/
 /Release/
+*.user
