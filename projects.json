@@ -4,7 +4,20 @@
       "project_num": 1,
       "project_name": "Pakito Mix",
       "tempo": 120,
-      "song_name": "Muy Top",
+      "songs": [
+        { "song_name": "Juntitos" },
+        { "song_name": "Pakito" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Song Song" },
+        { "song_name": "Muy Top" }
+      ],
       "checksum": "12345678910",
       "sequences": [
         {

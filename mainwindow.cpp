@@ -274,6 +274,9 @@ void MainWindow::on_stopButton_clicked()
     ui->progressBar->setValue(0);
 }
 
+json::json_pointer _json_pointer(std::string s) {
+    return json::json_pointer(s.c_str());
+}
 
 void MainWindow::on_sendProjectButton_clicked()
 {
@@ -300,19 +303,12 @@ void MainWindow::on_sendProjectButton_clicked()
     QByteArray projectLines = projectsFile.readAll();
 
     //    proj_info.song_name[0].name << ui->lineEdit_projectName->text().toLocal8Bit().constData();
-
     auto projs = json::parse(projectLines.toStdString());
-    auto proj0 = projs.at("projects")[0];
-    auto proj0Songs = proj0.at("songs");
-
-    auto proj0Name = proj0Songs[0].at("song_name").dump();
-    strcpy(proj_info.song_name[0].name, proj0Name.c_str());
-    auto projLastName = proj0Songs[SONG_NUM - 1].at("song_name").dump();
+    auto name = projs["/projects/0/songs/0/song_name"_json_pointer].dump();
+    strcpy(proj_info.song_name[0].name, name.c_str());
+    auto projLastName = projs[_json_pointer("/projects/0/songs/" + std::to_string(SONG_NUM - 1) + "/song_name")].dump();
     strcpy(proj_info.song_name[SONG_NUM - 1].name, projLastName.c_str());
-
-    auto proj0Seqs = proj0.at("sequences");
-    auto proj0Seqs0Patterns = proj0Seqs[0].at("patterns");
-    auto patternName = proj0Seqs0Patterns[0].at("pattern_name").dump();
+    auto patternName = projs["/projects/0/sequences/0/patterns/0/pattern_name"_json_pointer].dump();
     strcpy(proj_info.pattern_name[0][0].name, patternName.c_str());
 
     for (uint16_t i = 0; i < (sizeof(SYSEX_ProjInfo_s) - 4); i++)
