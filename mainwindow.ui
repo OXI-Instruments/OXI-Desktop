@@ -50,7 +50,7 @@
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_fw_update">
          <attribute name="title">
@@ -163,7 +163,7 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>10</y>
+            <y>20</y>
             <width>461</width>
             <height>401</height>
            </rect>
@@ -193,13 +193,13 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-47</y>
              <width>445</width>
-             <height>673</height>
+             <height>706</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_13">
-            <item row="5" column="0">
+            <item row="8" column="0">
              <widget class="QToolBox" name="toolBox">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -214,15 +214,15 @@
                </size>
               </property>
               <property name="currentIndex">
-               <number>1</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="page_3">
                <property name="geometry">
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
-                 <height>28</height>
+                 <width>427</width>
+                 <height>540</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1641,7 +1641,7 @@
               </widget>
              </widget>
             </item>
-            <item row="1" column="0">
+            <item row="4" column="0">
              <layout class="QHBoxLayout" name="horizontalLayout">
               <property name="sizeConstraint">
                <enum>QLayout::SetFixedSize</enum>
@@ -1709,6 +1709,118 @@
               </item>
              </layout>
             </item>
+            <item row="1" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="minimumSize">
+                 <size>
+                  <width>60</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>40</width>
+                  <height>24</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>PROJECT</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="project_index">
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="decimals">
+                 <number>0</number>
+                </property>
+                <property name="minimum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>15.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="seq_index_label">
+                <property name="maximumSize">
+                 <size>
+                  <width>40</width>
+                  <height>24</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>SEQ</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="seq_index">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="decimals">
+                 <number>0</number>
+                </property>
+                <property name="minimum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>4.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_5">
+                <property name="minimumSize">
+                 <size>
+                  <width>65</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>40</width>
+                  <height>24</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>PATTERN</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="pattern_index">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="decimals">
+                 <number>0</number>
+                </property>
+                <property name="minimum">
+                 <double>1.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>16.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
             <item row="0" column="0">
              <widget class="QLabel" name="label_project_num">
               <property name="maximumSize">
@@ -1728,24 +1840,56 @@
            </layout>
           </widget>
          </widget>
-         <widget class="QPushButton" name="sendProjectButton">
+         <widget class="QWidget" name="verticalLayoutWidget_2">
           <property name="geometry">
            <rect>
-            <x>10</x>
-            <y>420</y>
-            <width>461</width>
-            <height>24</height>
+            <x>20</x>
+            <y>430</y>
+            <width>451</width>
+            <height>91</height>
            </rect>
           </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>SEND</string>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QPushButton" name="sendProjectButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>SEND</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="getProjectButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>GET PROJECT</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="getProjectButton_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>GET PATTERN</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </widget>
        </widget>

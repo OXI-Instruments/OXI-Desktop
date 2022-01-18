@@ -83,11 +83,12 @@ typedef enum {
 } OXI_SYSEX_MIDI_e;
 
 typedef enum {
-    MSG_PROJECT_GET_INFO = 0, // Only supported for the Loaded project
-    MSG_PROJECT_SET_INFO,	// Only supported for the Loaded project
-
-    MSG_PROJECT_GET_PATTERN,	// Next byte is the pattern index // Only supported for the patterns the Loaded project
-    MSG_PROJECT_SET_PATTERN,	// Next byte is the pattern index // Only supported for the patterns the Loaded project
+    MSG_PROJECT_GET_PROJ_HEADER = 0,
+    MSG_PROJECT_SEND_PROJ_HEADER = 1,
+    MSG_PROJECT_GET_PATTERN = 2,
+    MSG_PROJECT_SET_PATTERN = 3,
+    MSG_PROJECT_DELETE_PROJECT = 4,
+    MSG_PROJECT_DELETE_PATTERN = 5,
     /* ----- */
     MSG_PROJECT_SIZE,
 } OXI_SYSEX_PROJECT_e;

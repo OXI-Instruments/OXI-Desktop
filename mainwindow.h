@@ -40,6 +40,16 @@ private slots:
 
     void ConnectionCheck(void);;
 
+    void on_getProjectButton_clicked();
+
+    void on_seq_index_valueChanged(double arg1);
+
+    void on_project_index_valueChanged(double arg1);
+
+    void on_pattern_index_valueChanged(double arg1);
+
+    void on_getProjectButton_2_clicked();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerRefreshDevices(void);

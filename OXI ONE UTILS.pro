@@ -16,7 +16,7 @@ SOURCES += \
     worker.cpp
 
 #INCLUDEPATH += "/usr/local/include/libusb-1.0"
-INCLUDEPATH += "QMIDI"
+INCLUDEPATH += "QMidi"
 #LIBS += -L/usr/local/Cellar/libusb/1.0.23/lib -lusb-1.0
 ICON = oxiupdater.icns
 DEFINES += QT_DEPRECATED_WARNINGS
