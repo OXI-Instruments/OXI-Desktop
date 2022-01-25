@@ -29,12 +29,12 @@
 
 
 /* SYSEX CATHEGORIES */
-typedef enum {
+typedef enum OXI_SYSEX_CAT_e {
     MSG_CAT_FW_UPDATE = 0,
     MSG_CAT_BLE = 1,
     MSG_CAT_MIDI = 2,
     MSG_CAT_SYSTEM = 3,
-    MSG_CAT_ANALOG = 4,
+    MSG_CAT_ANALOG = 4, // Factory?
     MSG_CAT_PROJECT = 5,
     /* ----- */
     MSG_CAT_SIZE,
@@ -49,12 +49,20 @@ typedef enum {
 } OXI_SYSEX_ANALOG_e;
 
 typedef enum {
+    MSG_SYSTEM_MEM_RESET = 0x0A,
+    MSG_SYSTEM_FACTORY_TEST = 0x55,
+    MSG_SYSTEM_FACTORY_TEST_NOK = 0x56,
+    /* ----- */
+    MSG_SYSTEM_SIZE,
+} OXI_SYSEX_SYSTEM_e;
+
+typedef enum {
     MSG_FW_UPDT_OXI_ONE = 0x31,
     MSG_FW_UPDT_OXI_BLE = 0x32,
     MSG_FW_UPDT_OXI_SPLIT = 0x33,
     /* ----- */
     MSG_FW_UPDT_READY = 0x50,
-    MSG_FW_UPDT_STARTED = 0x51,
+    MSG_FW_UPDT_STARTED = 0x51, // bootloader started
     MSG_FW_UPDT_EXIT = 0x52,
     MSG_FW_UPDT_ACK = 0x53,
     MSG_FW_UPDT_NACK = 0x54,
@@ -86,7 +94,7 @@ typedef enum {
     MSG_PROJECT_GET_PROJ_HEADER = 0,
     MSG_PROJECT_SEND_PROJ_HEADER = 1,
     MSG_PROJECT_GET_PATTERN = 2,
-    MSG_PROJECT_SET_PATTERN = 3,
+    MSG_PROJECT_SEND_PATTERN = 3,
     MSG_PROJECT_DELETE_PROJECT = 4,
     MSG_PROJECT_DELETE_PATTERN = 5,
     /* ----- */

@@ -4,7 +4,38 @@
 #include <QDebug>
 #include <mainwindow.h>
 
+#include "SYSEX_APP.h"
 //QString update_file_name_;
+
+uint8_t seq_data_buffer[4096*2];
+
+
+uint32_t crc32(uint32_t * data, int data_len)
+{
+    const uint32_t POLY = 0x4C11DB7;
+    uint32_t init = 0XFFFFFFFF;
+    uint32_t crc_ = 0;
+    uint32_t data_ = 0;
+
+    for (int index = 0; index < data_len; index++) {
+        data_ = data[index];
+         crc_ = init ^ data_;
+        for (int i = 0; i < 32 ; i++) {
+            if ((0x80000000 & crc_) != 0) {
+                crc_ = (crc_ << 1) ^ POLY;
+            } else {
+                crc_ = (crc_ << 1);
+            }
+        }
+
+        qDebug() << "Data[" << index << "]:  " << Qt::hex << data_ <<Qt::endl;
+        qDebug() << "Crc: " << Qt::hex << crc_ <<Qt::endl;
+        init = crc_;
+    }
+
+    return crc_;
+}
+
 
 Worker::Worker(QObject *parent, bool b) :
     QThread(parent), Stop(b)
@@ -152,7 +183,7 @@ EXIT:
     if (success) {
         emit ui_UpdateProgressBar(100);
     } else {
-         emit ui_UpdateProgressBar(0);
+        emit ui_UpdateProgressBar(0);
     }
 
     file.close();
@@ -171,6 +202,45 @@ void Worker::WorkerRefreshDevices(void)
     //        }
 }
 
+
+void DeNibblize(std::vector<uint8_t> &buf, std::vector<uint8_t> &sysex_data)
+{
+    int count = 0;
+    for (auto it = sysex_data.begin(); it != sysex_data.end(); ++it)
+      {
+        uint8_t byte = static_cast<uint8_t>(*it);
+
+         if ((count & 1) == 0)
+         {
+             buf.push_back(byte & 0xf);
+         } else {
+             int size = buf.size();
+             buf[size] |= (byte << 4);
+         }
+         count++;
+      }
+}
+
+void DeNibblize2(std::vector<uint8_t> &buf, std::vector<uint8_t> &data, int offset)
+{
+    int count = 0;
+    for (uint32_t it = offset; it < data.size(); ++it)
+    {
+        uint8_t byte = data.at(it);
+
+        if ((count & 1) == 0)
+        {
+            uint8_t byte_ = (byte << 4) & 0xF0;
+            buf.push_back(byte_);
+        } else {
+            int size = buf.size() - 1;
+            buf[size] |= byte & 0xF;
+        }
+        count++;
+    }
+}
+
+
 void Worker::onMidiReceive(QMidiMessage* p_msg)
 {
     if (p_msg->_status == MIDI_SYSEX)
@@ -178,9 +248,11 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
         //        char * p_SysExData = p_msg->getSysExData().data();
         if (memcmp(p_msg->getSysExData().data(), sysex_header, 6) == 0)
         {
-            switch (p_msg->getSysExData()[6]) {
+            switch (p_msg->getSysExData()[6])
+            {
             case MSG_CAT_FW_UPDATE:
-                switch (p_msg->getSysExData()[7]) {
+                switch (p_msg->getSysExData()[7])
+                {
                 case MSG_FW_UPDT_READY:
                     this->Stop = false;
                     this->start();
@@ -196,7 +268,108 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                 }
 
                 break;
+            case MSG_CAT_PROJECT:
+                switch (p_msg->getSysExData()[7])
+                {
+                case MSG_PROJECT_GET_PROJ_HEADER:
 
+                    break;
+                case MSG_PROJECT_SEND_PROJ_HEADER:
+
+                    break;
+                case MSG_PROJECT_GET_PATTERN:
+                {
+                    std::vector<uint8_t>buffer;
+                    std::vector<uint8_t>sysex_data = static_cast<std::vector<uint8_t>>(p_msg->getSysExData());
+
+                    DeNibblize2(buffer, sysex_data, 8);
+
+                    uint8_t seq_type = buffer.at(0);
+
+                    if (seq_type == SEQ_MULTITRACK) {
+                        SEQ_multi_buffer_s buf;
+                        uint8_t * p_buf = reinterpret_cast<uint8_t*>(&buf);
+                        std::copy(buffer.begin(), buffer.end(), p_buf);
+
+                        int buf_len = (sizeof(SEQ_multi_buffer_s));
+                        buf_len = (buf_len - 4) / 4;
+
+                        uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(&buf), buf_len);
+
+                        if (crc_check == buf.crc_check) {
+                            qDebug() << "MULTI received ok" << Qt::endl;
+                        }
+                        else {
+                            qDebug() << "CRC Invalid calculated:" << crc_check << " Received: "<< buf.crc_check << Qt::endl;
+                            return;
+                        }
+                    }
+                    else if (seq_type == SEQ_MONO) {
+                        SEQ_mono_buffer_s buf;
+                        uint8_t * p_buf =reinterpret_cast<uint8_t*>(&buf);
+                        std::copy(buffer.begin(), buffer.end(), p_buf);
+
+                        int buf_len = (sizeof(SEQ_mono_buffer_s));
+                        buf_len = (buf_len - 4) / 4;
+
+                        uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(&buf), buf_len);
+
+                        if (crc_check == buf.crc_check) {
+                            qDebug() << "MONO received ok" << Qt::endl;
+                        }
+                        else {
+                            return;
+                        }
+                    }
+                    else if (seq_type == SEQ_CHORDS) {
+                        SEQ_chord_buffer_s buf;
+                        uint8_t * p_buf =reinterpret_cast<uint8_t*>(&buf);
+                        std::copy(buffer.begin(), buffer.end(), p_buf);
+
+                        int buf_len = (sizeof(SEQ_chord_buffer_s));
+                        buf_len = (buf_len - 4) / 4;
+
+                        uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(&buf), buf_len);
+
+                        if (crc_check == buf.crc_check) {
+                            qDebug() << "CHORD received ok" << Qt::endl;
+                        }
+                        else {
+                            return;
+                        }
+                    }
+                    else if (seq_type == SEQ_POLY) {
+                        SEQ_poly_buffer_s buf;
+                        uint8_t * p_buf =reinterpret_cast<uint8_t*>(&buf);
+                        std::copy(buffer.begin(), buffer.end(), p_buf);
+
+                        int buf_len = (sizeof(SEQ_poly_buffer_s));
+                        buf_len = (buf_len - 4) / 4;
+
+                        uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(&buf), buf_len);
+
+                        if (crc_check == buf.crc_check) {
+                            qDebug() << "POLY received ok" << Qt::endl;
+                        }
+                        else {
+                            return;
+                        }
+                    }
+                    break;
+                }
+                case MSG_PROJECT_SEND_PATTERN:
+
+                    break;
+                case MSG_PROJECT_DELETE_PROJECT:
+
+                    break;
+                case MSG_PROJECT_DELETE_PATTERN:
+
+                    break;
+                default:
+                    break;
+                }
+                break;
             default:
                 break;
             }

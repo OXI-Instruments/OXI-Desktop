@@ -50,6 +50,10 @@ private slots:
 
     void on_getProjectButton_2_clicked();
 
+    void on_deleteProjectButton_clicked();
+
+    void on_deletePatternButton_clicked();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerRefreshDevices(void);

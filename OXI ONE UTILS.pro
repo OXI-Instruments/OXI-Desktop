@@ -2,7 +2,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11
+CONFIG += c++17
 #CONFIG += link_pkgconfig
 #PKGCONFIG += libusb-1.0
 
@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 HEADERS += \
     OXI_SYSEX_MSG.h \
+    SYSEX_APP.h \
     SYSEX_PROJ.h \
     mainwindow.h \
     MIDI.h \

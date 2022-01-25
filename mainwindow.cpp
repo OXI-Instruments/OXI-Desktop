@@ -25,9 +25,9 @@ QByteArray sysex_file_buffer;
 std::vector<unsigned char> raw_data2;
 
 
-static int project_index = 0;
-static int seq_index = 0;
-static int pattern_index = 0;
+static uint8_t project_index = 0;
+static uint8_t seq_index = 0;
+static uint8_t pattern_index = 0;
 
 
 SYSEX_ProjInfo_s proj_info = {
@@ -335,7 +335,7 @@ void MainWindow::on_getProjectButton_clicked()
     mWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     mWorker->raw_data.push_back(MSG_CAT_PROJECT);
     mWorker->raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
-    mWorker->raw_data.push_back(0);
+    mWorker->raw_data.push_back(project_index);
     mWorker->raw_data.push_back(0);
     mWorker->raw_data.push_back(0xF7);
     mWorker->midi_out.sendRawMessage(mWorker->raw_data);
@@ -355,17 +355,42 @@ void MainWindow::on_getProjectButton_2_clicked()
 
 void MainWindow::on_seq_index_valueChanged(double arg1)
 {
-    seq_index = static_cast<int>(arg1);
+    seq_index = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_project_index_valueChanged(double arg1)
 {
-    project_index = static_cast<int>(arg1);
+    project_index = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_pattern_index_valueChanged(double arg1)
 {
-     pattern_index = static_cast<int>(arg1);
+     pattern_index = static_cast<int>(arg1) - 1;
 }
 
 
+
+void MainWindow::on_deleteProjectButton_clicked()
+{
+    mWorker->raw_data.clear();
+    mWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    mWorker->raw_data.push_back(MSG_CAT_PROJECT);
+    mWorker->raw_data.push_back(MSG_PROJECT_DELETE_PROJECT);
+    mWorker->raw_data.push_back(project_index);
+    mWorker->raw_data.push_back(0);
+    mWorker->raw_data.push_back(0xF7);
+    mWorker->midi_out.sendRawMessage(mWorker->raw_data);
+}
+
+
+void MainWindow::on_deletePatternButton_clicked()
+{
+    mWorker->raw_data.clear();
+    mWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    mWorker->raw_data.push_back(MSG_CAT_PROJECT);
+    mWorker->raw_data.push_back(MSG_PROJECT_DELETE_PATTERN);
+    mWorker->raw_data.push_back(project_index);
+    mWorker->raw_data.push_back(seq_index * 16 + pattern_index);
+    mWorker->raw_data.push_back(0xF7);
+    mWorker->midi_out.sendRawMessage(mWorker->raw_data);
+}

@@ -165,7 +165,7 @@
             <x>10</x>
             <y>20</y>
             <width>461</width>
-            <height>401</height>
+            <height>311</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -193,7 +193,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-47</y>
+             <y>0</y>
              <width>445</width>
              <height>706</height>
             </rect>
@@ -450,8 +450,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>427</width>
-                 <height>540</height>
+                 <width>100</width>
+                 <height>30</height>
                 </rect>
                </property>
                <attribute name="label">
@@ -1844,9 +1844,9 @@
           <property name="geometry">
            <rect>
             <x>20</x>
-            <y>430</y>
+            <y>340</y>
             <width>451</width>
-            <height>91</height>
+            <height>171</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1886,6 +1886,32 @@
              </property>
              <property name="text">
               <string>GET PATTERN</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="deleteProjectButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>DELETE PROJECT</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="deletePatternButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>DELETE PATTERN</string>
              </property>
             </widget>
            </item>
