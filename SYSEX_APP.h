@@ -44,10 +44,11 @@ typedef enum
 
 #pragma pack(push,2)
 typedef struct {
-    int16_t rate;
-    int8_t shape;
-    int8_t amount;
-    uint8_t dest;
+    int16_t rate; // default : 12
+    int8_t shape; // def: 0
+    int8_t amount; // def: -1 == 0xFF
+    uint8_t dest; // def: 0
+    // uint8_t align; ?¿?¿?
 //	int8_t retrigger_mode;
 } SEQ_Lfo_s;
 #pragma pack(pop)
@@ -112,7 +113,7 @@ typedef struct {
     uint8_t midi_channel_offset[SEQ_NOTES_STEP_MAX];
     uint8_t track_glide[SEQ_NOTES_STEP_MAX];
     uint8_t cc_mod[SEQ_NOTES_STEP_MAX];
-    uint8_t cc_mod_global[SEQ_NOTES_STEP_MAX];
+    uint8_t cc_mod_global[SEQ_NOTES_STEP_MAX]; // TODO change order in the future, like in other modes
     uint8_t mute_mask;
     uint8_t random_mask;
     uint8_t solo_mask;
@@ -136,7 +137,7 @@ typedef struct {
     uint8_t repeat;
     int8_t prob;
     int8_t offset;
-    int8_t param;
+    int8_t param; // == glide in mono and strum in chord
 } SEQ_step_mono_buffer_s;
 #pragma pack(pop)
 
@@ -147,8 +148,8 @@ typedef struct {
     uint8_t byte_align;
     uint16_t length;
     SEQ_step_mono_buffer_s steps[SEQ_STEPS_MAX];
-    uint8_t cc_mod[SEQ_MOD_NUM];
     uint8_t cc_mod_global[SEQ_MOD_NUM];
+    uint8_t cc_mod[SEQ_MOD_NUM];
     SEQ_param_buffer_s seq_params;
     uint32_t crc_check;
 } SEQ_mono_buffer_s;
@@ -170,14 +171,18 @@ typedef struct {
     uint8_t chord_inversion[SEQ_STEPS_MAX];
     uint8_t chord_bass;
     uint8_t chord_spread;
-    uint8_t cc_mod[SEQ_MOD_NUM];
     uint8_t cc_mod_global[SEQ_MOD_NUM];
+    uint8_t cc_mod[SEQ_MOD_NUM];
     SEQ_param_buffer_s seq_params;
     uint8_t byte_align2;
     uint16_t word_align;
     uint32_t crc_check;
 } SEQ_chord_buffer_s;
 #pragma pack(pop)
+
+
+
+
 
 // Poly step data
 #pragma pack(push,1)
@@ -202,8 +207,8 @@ typedef struct {
     uint8_t byte_align;
     uint16_t length;
     SEQ_step_poly_buffer_s steps[SEQ_STEPS_MAX];
-    uint8_t cc_mod[SEQ_MOD_NUM];
     uint8_t cc_mod_global[SEQ_MOD_NUM];
+    uint8_t cc_mod[SEQ_MOD_NUM];
     SEQ_param_buffer_s seq_params;
     uint32_t crc_check;
 } SEQ_poly_buffer_s;
@@ -212,8 +217,8 @@ typedef struct {
 
 // PROJECT RELATED STUFF
 #define SEQ_PRESET_NAME_LEN	(14)
-#define ARRANGER_TRACKS			4
-#define ARRANGER_SIZE			16
+#define ARR_TRACKS_NUM			4
+#define ARR_PATTERN_NUM			16
 #define ARR_SONG_NAME_LEN		14
 
 #define ARR_SONG_NUM		10
@@ -237,13 +242,13 @@ typedef struct
 
 typedef struct
 {
-    ARR_Pattern_s patterns[ARRANGER_SIZE];
+    ARR_Pattern_s patterns[ARR_PATTERN_NUM];
 } ARR_Track_s;
 
 typedef struct
 {
     char song_name[ARR_SONG_NAME_LEN];
-    ARR_Track_s tracks[ARRANGER_TRACKS];
+    ARR_Track_s tracks[ARR_TRACKS_NUM];
 } ARR_Song_s;
 
 typedef struct
@@ -259,19 +264,36 @@ typedef struct
     int8_t gate_config[GATE_SIZE];
 } CV_assign_s;
 
+// PROJ
 typedef struct {
     uint16_t length;
     char proj_name[PROJ_NAME_LEN];
     uint16_t proj_num;
     uint16_t tempo;
-    SEQ_Preset_s presets[4][ARRANGER_SIZE];
+    SEQ_Preset_s presets[4][ARR_PATTERN_NUM];
     uint8_t loaded_song;
     ARR_Song_s songs[ARR_SONG_NUM];
     CV_assign_s cv_assign;
     uint8_t loaded_preset[4];
     uint8_t active_seq[4];
-//	uint32_t crc_check;
+    uint32_t crc_check;
 } PROJ_buffer_s;
+
+
+// PROJ 0.1.3
+typedef struct {
+    uint16_t length;
+    char proj_name[PROJ_NAME_LEN];
+    uint16_t proj_num;
+    uint16_t tempo;
+    SEQ_Preset_s presets[4][ARR_PATTERN_NUM];
+    uint8_t loaded_song;
+    ARR_Song_s songs[ARR_SONG_NUM];
+    CV_assign_s cv_assign;
+    uint8_t loaded_preset[4];
+    // uint8_t active_seq[4];
+    uint32_t crc_check;
+} PROJ_buffer_0_1_3_s;
 
 
 

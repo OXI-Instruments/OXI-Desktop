@@ -4,6 +4,10 @@
 #include <QDebug>
 #include <mainwindow.h>
 
+#include <QFile>
+#include <QTextStream>
+
+
 #include "SYSEX_APP.h"
 //QString update_file_name_;
 
@@ -28,8 +32,8 @@ uint32_t crc32(uint32_t * data, int data_len)
             }
         }
 
-        qDebug() << "Data[" << index << "]:  " << Qt::hex << data_ <<Qt::endl;
-        qDebug() << "Crc: " << Qt::hex << crc_ <<Qt::endl;
+//        qDebug() << "Data[" << index << "]:  " << Qt::hex << data_ <<Qt::endl;
+//        qDebug() << "Crc: " << Qt::hex << crc_ <<Qt::endl;
         init = crc_;
     }
 
@@ -221,6 +225,7 @@ void DeNibblize(std::vector<uint8_t> &buf, std::vector<uint8_t> &sysex_data)
       }
 }
 
+
 void DeNibblize2(std::vector<uint8_t> &buf, std::vector<uint8_t> &data, int offset)
 {
     int count = 0;
@@ -230,13 +235,41 @@ void DeNibblize2(std::vector<uint8_t> &buf, std::vector<uint8_t> &data, int offs
 
         if ((count & 1) == 0)
         {
-            uint8_t byte_ = (byte << 4) & 0xF0;
+            uint8_t byte_ = (byte << 4) & 0xF0; // byte high
             buf.push_back(byte_);
         } else {
             int size = buf.size() - 1;
             buf[size] |= byte & 0xF;
         }
         count++;
+    }
+}
+
+void Nibblize2(std::vector<uint8_t> &buf, std::vector<uint8_t> &data, int offset)
+{
+    int count = 0;
+    for (uint32_t it = offset; it < data.size(); ++it)
+    {
+
+        uint8_t byte = data.at(it);
+        uint8_t byte_h = (byte << 4) & 0xF0;
+        buf.push_back(byte_h);
+        uint8_t byte_l = byte & 0xF;
+        buf.push_back(byte_l);
+    }
+}
+
+void Nibblize(std::vector<uint8_t> &buf, uint8_t data[], int length)
+{
+    int count = 0;
+    for (int it = 0; it < length; ++it)
+    {
+
+        uint8_t byte = data[it];
+        uint8_t byte_h = (byte >> 4) & 0x0F;
+        buf.push_back(byte_h);
+        uint8_t byte_l = byte & 0xF;
+        buf.push_back(byte_l);
     }
 }
 
@@ -272,50 +305,181 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                 switch (p_msg->getSysExData()[7])
                 {
                 case MSG_PROJECT_GET_PROJ_HEADER:
+   {
+                    std::vector<uint8_t>buffer;
+                    std::vector<uint8_t>sysex_data = p_msg->getSysExData();
+
+                    uint16_t proj_index = sysex_data.at(8);
+                    uint16_t pattern_index = sysex_data.at(9);
+                    uint16_t seq_index = pattern_index / 16;
+                    pattern_index = pattern_index % 16;
+
+                    DeNibblize2(buffer, sysex_data, 10);
+
+                    uint8_t seq_type = buffer.at(0);
+
+
+                    void * p_void = malloc(buffer.size());
+                    PROJ_buffer_s buf;
+                    PROJ_buffer_s * p_proj_buf = static_cast<PROJ_buffer_s *>(p_void);
+                    uint8_t * p_buf = reinterpret_cast<uint8_t*>(&buf);
+                    std::copy(buffer.begin(), buffer.end(), (uint8_t*)p_void);
+
+                    int buf_len = (sizeof(PROJ_buffer_s));
+                    buf_len = (buf_len - 4) / 4;
+
+                    uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(p_void), buf_len);
+
+                    if (crc_check == p_proj_buf->crc_check) {
+                        qDebug() << "PROJ received ok" << Qt::endl;
+                    }
 
                     break;
+                }
                 case MSG_PROJECT_SEND_PROJ_HEADER:
 
                     break;
                 case MSG_PROJECT_GET_PATTERN:
                 {
                     std::vector<uint8_t>buffer;
-                    std::vector<uint8_t>sysex_data = static_cast<std::vector<uint8_t>>(p_msg->getSysExData());
+                    std::vector<uint8_t>sysex_data = p_msg->getSysExData();
 
-                    DeNibblize2(buffer, sysex_data, 8);
+                    uint16_t proj_index = sysex_data.at(8);
+                    uint16_t pattern_index = sysex_data.at(9);
+                    uint16_t seq_index = pattern_index / 16;
+                    pattern_index = pattern_index % 16;
+
+                    DeNibblize2(buffer, sysex_data, 10);
 
                     uint8_t seq_type = buffer.at(0);
 
+
                     if (seq_type == SEQ_MULTITRACK) {
+                        void * p_void = malloc(buffer.size());
                         SEQ_multi_buffer_s buf;
+                        SEQ_multi_buffer_s * p_multi_buf = static_cast<SEQ_multi_buffer_s *>(p_void);
                         uint8_t * p_buf = reinterpret_cast<uint8_t*>(&buf);
-                        std::copy(buffer.begin(), buffer.end(), p_buf);
+                        std::copy(buffer.begin(), buffer.end(), (uint8_t*)p_void);
 
                         int buf_len = (sizeof(SEQ_multi_buffer_s));
                         buf_len = (buf_len - 4) / 4;
 
-                        uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(&buf), buf_len);
+                        uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(p_void), buf_len);
 
-                        if (crc_check == buf.crc_check) {
+                        if (crc_check == p_multi_buf->crc_check) {
                             qDebug() << "MULTI received ok" << Qt::endl;
+
+#if 0
+                            QString Hfilename="/Users/ManuelVr/Desktop/asdf.txt";
+                            QFile fileH( Hfilename );
+                            if ( fileH.open(QIODevice::ReadWrite) )
+                            {
+                                int j = 0;
+                                QTextStream stream( &fileH );
+                                do {
+                                    for (int i=0; i< 32; i++){
+                                        if (buffer[j] < 0x10) {
+                                            stream << "0" << buffer[j] << Qt::hex << " ";
+                                        } else {
+                                            stream << buffer[j] << Qt::hex << " ";
+                                        }
+
+//                                        stream << "1: " << Qt::showbase << buffer[i] << Qt::hex << " " << Qt::endl;
+//                                        stream << "2: " << QString::number(buffer[i], 16) << Qt::hex << " " << Qt::endl;
+//                                        stream << "3: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
+//                                        QString valueInHex= QString("%1").arg(buffer[i] , 0, 16);
+//                                        stream << "4: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
+                                        j++;
+                                    }
+                                    stream << Qt::endl;
+                                } while (j < buffer.size());
+                            }
+#endif
+                            raw_data.clear();
+                            raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+                            raw_data.push_back(MSG_CAT_PROJECT);
+                            raw_data.push_back(MSG_PROJECT_SEND_PATTERN);
+
+                            uint8_t project_index = 0;
+                            uint8_t seq_index = 0;
+                            uint8_t pattern_index = 2;
+
+                            raw_data.push_back(project_index);
+                            raw_data.push_back(seq_index * 16 + pattern_index);
+
+                            Nibblize(raw_data, (uint8_t*)p_void, sizeof(SEQ_multi_buffer_s));
+
+                            QString voidfilename ="/Users/ManuelVr/Desktop/void.txt";
+                            QFile file_void( voidfilename );
+                            if ( file_void.open(QIODevice::ReadWrite) )
+                            {
+                                int j = 0;
+                                uint8_t * p_data = (uint8_t*)p_void;
+                                QTextStream stream( &file_void );
+                                do {
+                                    for (int i=0; i< 32; i++){
+                                        if (p_data[j] < 0x10) {
+                                            stream << "0" << p_data[j] << Qt::hex << " ";
+                                        } else {
+                                            stream << p_data[j] << Qt::hex << " ";
+                                        }
+
+//                                        stream << "1: " << Qt::showbase << buffer[i] << Qt::hex << " " << Qt::endl;
+//                                        stream << "2: " << QString::number(buffer[i], 16) << Qt::hex << " " << Qt::endl;
+//                                        stream << "3: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
+//                                        QString valueInHex= QString("%1").arg(buffer[i] , 0, 16);
+//                                        stream << "4: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
+                                        j++;
+                                    }
+                                    stream << Qt::endl;
+                                } while (j < sizeof(SEQ_multi_buffer_s));
+                            }
+
+                            raw_data.push_back(0xF7);
+                            midi_out.sendRawMessage(raw_data);
+
+//                            QString s_file = QFileDialog::getOpenFileName( this->parent(),
+//                                        tr("Select bin"),
+//                                        tr("/"),
+//                                        tr("Sysex ( *.bin);All Files ( * )"));
+
+//                            QFile file;
                         }
                         else {
                             qDebug() << "CRC Invalid calculated:" << crc_check << " Received: "<< buf.crc_check << Qt::endl;
-                            return;
+
                         }
+                        free(p_void);
                     }
                     else if (seq_type == SEQ_MONO) {
                         SEQ_mono_buffer_s buf;
                         uint8_t * p_buf =reinterpret_cast<uint8_t*>(&buf);
                         std::copy(buffer.begin(), buffer.end(), p_buf);
 
-                        int buf_len = (sizeof(SEQ_mono_buffer_s));
+                        int buf_len = (sizeof(SEQ_mono_buffer_s)); // 1608
                         buf_len = (buf_len - 4) / 4;
 
                         uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(&buf), buf_len);
 
                         if (crc_check == buf.crc_check) {
                             qDebug() << "MONO received ok" << Qt::endl;
+
+                            raw_data.clear();
+                            raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+                            raw_data.push_back(MSG_CAT_PROJECT);
+                            raw_data.push_back(MSG_PROJECT_SEND_PATTERN);
+
+                            uint8_t project_index = 0;
+                            uint8_t seq_index = 0;
+                            uint8_t pattern_index = 3;
+
+                            raw_data.push_back(project_index);
+                            raw_data.push_back(seq_index * 16 + pattern_index);
+
+                            Nibblize(raw_data, (uint8_t*)&buf, sizeof(SEQ_mono_buffer_s));
+
+                            raw_data.push_back(0xF7);
+                            midi_out.sendRawMessage(raw_data);
                         }
                         else {
                             return;
@@ -326,13 +490,50 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                         uint8_t * p_buf =reinterpret_cast<uint8_t*>(&buf);
                         std::copy(buffer.begin(), buffer.end(), p_buf);
 
-                        int buf_len = (sizeof(SEQ_chord_buffer_s));
+                        int buf_len = (sizeof(SEQ_chord_buffer_s)); // 1872
                         buf_len = (buf_len - 4) / 4;
 
                         uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(&buf), buf_len);
 
                         if (crc_check == buf.crc_check) {
                             qDebug() << "CHORD received ok" << Qt::endl;
+
+                            QString voidfilename ="/Users/ManuelVr/Desktop/chords.txt";
+                            QFile file_void( voidfilename );
+                            if ( file_void.open(QIODevice::ReadWrite) )
+                            {
+                                int j = 0;
+                                uint8_t * p_data = (uint8_t*)&buf;
+                                QTextStream stream( &file_void );
+                                do {
+                                    for (int i=0; i< 32; i++){
+                                        if (p_data[j] < 0x10) {
+                                            stream << "0" << p_data[j] << Qt::hex << " ";
+                                        } else {
+                                            stream << p_data[j] << Qt::hex << " ";
+                                        }
+                                        j++;
+                                    }
+                                    stream << Qt::endl;
+                                } while (j < sizeof(SEQ_chord_buffer_s));
+                            }
+
+
+                            raw_data.clear();
+                            raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+                            raw_data.push_back(MSG_CAT_PROJECT);
+                            raw_data.push_back(MSG_PROJECT_SEND_PATTERN);
+
+                            uint8_t project_index = 0;
+                            uint8_t seq_index = 0;
+                            uint8_t pattern_index = 4;
+
+                            raw_data.push_back(project_index);
+                            raw_data.push_back(seq_index * 16 + pattern_index);
+
+                            Nibblize(raw_data, (uint8_t*)&buf, sizeof(SEQ_chord_buffer_s));
+                            raw_data.push_back(0xF7);
+                            midi_out.sendRawMessage(raw_data);
                         }
                         else {
                             return;
@@ -350,6 +551,42 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
 
                         if (crc_check == buf.crc_check) {
                             qDebug() << "POLY received ok" << Qt::endl;
+
+                            QString voidfilename ="/Users/ManuelVr/Desktop/poly.txt";
+                            QFile file_void( voidfilename );
+                            if ( file_void.open(QIODevice::ReadWrite) )
+                            {
+                                int j = 0;
+                                uint8_t * p_data = (uint8_t*)&buf;
+                                QTextStream stream( &file_void );
+                                do {
+                                    for (int i=0; i< 32; i++){
+                                        if (p_data[j] < 0x10) {
+                                            stream << "0" << p_data[j] << Qt::hex << " ";
+                                        } else {
+                                            stream << p_data[j] << Qt::hex << " ";
+                                        }
+                                        j++;
+                                    }
+                                    stream << Qt::endl;
+                                } while (j < sizeof(SEQ_poly_buffer_s));
+                            }
+
+                            raw_data.clear();
+                            raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+                            raw_data.push_back(MSG_CAT_PROJECT);
+                            raw_data.push_back(MSG_PROJECT_SEND_PATTERN);
+
+                            uint8_t project_index = 0;
+                            uint8_t seq_index = 0;
+                            uint8_t pattern_index = 5;
+
+                            raw_data.push_back(project_index);
+                            raw_data.push_back(seq_index * 16 + pattern_index);
+
+                            Nibblize(raw_data, (uint8_t*)&buf, sizeof(SEQ_poly_buffer_s));
+                            raw_data.push_back(0xF7);
+                            midi_out.sendRawMessage(raw_data);
                         }
                         else {
                             return;
