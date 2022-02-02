@@ -268,7 +268,8 @@ typedef struct
 typedef struct {
     uint16_t length;
     char proj_name[PROJ_NAME_LEN];
-    uint16_t proj_num;
+    uint8_t proj_num;
+    uint8_t byte_align;
     uint16_t tempo;
     SEQ_Preset_s presets[4][ARR_PATTERN_NUM];
     uint8_t loaded_song;
@@ -276,22 +277,25 @@ typedef struct {
     CV_assign_s cv_assign;
     uint8_t loaded_preset[4];
     uint8_t active_seq[4];
+    uint8_t dummy_align_data[21];
     uint32_t crc_check;
 } PROJ_buffer_s;
+
 
 
 // PROJ 0.1.3
 typedef struct {
     uint16_t length;
     char proj_name[PROJ_NAME_LEN];
-    uint16_t proj_num;
+    uint8_t proj_num;
+    uint8_t byte_align;
     uint16_t tempo;
     SEQ_Preset_s presets[4][ARR_PATTERN_NUM];
     uint8_t loaded_song;
     ARR_Song_s songs[ARR_SONG_NUM];
     CV_assign_s cv_assign;
     uint8_t loaded_preset[4];
-    // uint8_t active_seq[4];
+    uint8_t dummy_align_data[21];
     uint32_t crc_check;
 } PROJ_buffer_0_1_3_s;
 

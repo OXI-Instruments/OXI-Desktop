@@ -304,20 +304,14 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
             case MSG_CAT_PROJECT:
                 switch (p_msg->getSysExData()[7])
                 {
-                case MSG_PROJECT_GET_PROJ_HEADER:
+                case MSG_PROJECT_SEND_PROJ_HEADER:
    {
                     std::vector<uint8_t>buffer;
                     std::vector<uint8_t>sysex_data = p_msg->getSysExData();
 
-                    uint16_t proj_index = sysex_data.at(8);
-                    uint16_t pattern_index = sysex_data.at(9);
-                    uint16_t seq_index = pattern_index / 16;
-                    pattern_index = pattern_index % 16;
+                    uint16_t proj_index = sysex_data.at(8) + 1;
 
                     DeNibblize2(buffer, sysex_data, 10);
-
-                    uint8_t seq_type = buffer.at(0);
-
 
                     void * p_void = malloc(buffer.size());
                     PROJ_buffer_s buf;
@@ -330,16 +324,29 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
 
                     uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(p_void), buf_len);
 
-                    if (crc_check == p_proj_buf->crc_check) {
+                    if (crc_check == p_proj_buf->crc_check)
+                    {
                         qDebug() << "PROJ received ok" << Qt::endl;
                     }
+                    raw_data.clear();
+                    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+                    raw_data.push_back(MSG_CAT_PROJECT);
+                    raw_data.push_back(MSG_PROJECT_SEND_PROJ_HEADER);
+
+                    raw_data.push_back(proj_index);
+                    raw_data.push_back(0);
+
+                    Nibblize(raw_data, (uint8_t*)p_void, sizeof(PROJ_buffer_s));
+
+                    raw_data.push_back(0xF7);
+                    midi_out.sendRawMessage(raw_data);
 
                     break;
                 }
-                case MSG_PROJECT_SEND_PROJ_HEADER:
+                case MSG_PROJECT_GET_PROJ_HEADER:
 
                     break;
-                case MSG_PROJECT_GET_PATTERN:
+                case MSG_PROJECT_SEND_PATTERN:
                 {
                     std::vector<uint8_t>buffer;
                     std::vector<uint8_t>sysex_data = p_msg->getSysExData();
@@ -594,7 +601,7 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     break;
                 }
-                case MSG_PROJECT_SEND_PATTERN:
+                case MSG_PROJECT_GET_PATTERN:
 
                     break;
                 case MSG_PROJECT_DELETE_PROJECT:
