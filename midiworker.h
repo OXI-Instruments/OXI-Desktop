@@ -1,5 +1,5 @@
-#ifndef WORKER_H
-#define WORKER_H
+#ifndef MIDIWORKER_H
+#define MIDIWORKER_H
 
 #include <QtWidgets>
 #include "qmidiin.h"
@@ -8,11 +8,11 @@
 
 
 
-class Worker : public QThread {
+class MidiWorker : public QThread {
     Q_OBJECT
 
 public:
-    explicit Worker(QObject *parent = 0, bool b = false);
+    explicit MidiWorker(QObject *parent = 0, bool b = false);
     void run();
 
     // if Stop = true, the thread will break
@@ -30,10 +30,17 @@ public:
     int port_in_index;
     bool wait_for_ack = true;
 
+    uint8_t project_index = 0;
+    uint8_t seq_index = 0;
+    uint8_t pattern_index = 0;
+
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
     void WorkerRefreshDevices(void);
     void onMidiReceive(QMidiMessage*);
+
+    void GetPattern(void);
+    void GetProject(void);
 //    void updateUpdateFile(QString update_file_name);
 
 signals:
@@ -47,7 +54,8 @@ private:
     int delay_time = 100;
     int sysex_ack_ = 0;
     QFile file;
+    QString desktop_path_;
 };
 
 
-#endif // WORKER_H
+#endif // MIDIWORKER_H

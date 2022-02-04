@@ -6,10 +6,11 @@
 #include "QFileDialog"
 
 #include "math.h"
-#include "worker.h"
+#include "midiworker.h"
 
 #include "SYSEX_PROJ.h"
 #include "MIDI.h"
+#include "Nibble.h"
 
 //uint8_t cmd[128]; // = {0xF0, 0x00, 0x22, 0x03, 0x00, 0x02, 0x7F, 0x00, 0xF7 };
 uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
@@ -23,11 +24,6 @@ QByteArray sysex_cmd((char*)goto_ble_bootloader, 1024);
 QByteArray sysex_file_buffer;
 
 std::vector<unsigned char> raw_data2;
-
-
-static uint8_t project_index = 0;
-static uint8_t seq_index = 0;
-static uint8_t pattern_index = 0;
 
 
 SYSEX_ProjInfo_s proj_info = {
@@ -57,18 +53,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
 
-    mWorker = new Worker(this);
+    midiWorker = new MidiWorker(this);
     connection_timer = new QTimer(this);
 
     // connect signal/slot
-    connect(mWorker, SIGNAL(ui_UpdateProgressBar(int)),
+    connect(midiWorker, SIGNAL(ui_UpdateProgressBar(int)),
             this, SLOT(updateProgressBar(int)));
 
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
-            mWorker, SLOT(ui_DelayTimeUpdated(int)));
+            midiWorker, SLOT(ui_DelayTimeUpdated(int)));
 
     connect(this, SIGNAL(WorkerRefreshDevices(void)),
-            mWorker, SLOT(WorkerRefreshDevices(void)));
+            midiWorker, SLOT(WorkerRefreshDevices(void)));
 
     //    connect(this, SIGNAL(WorkerRefreshDevices(void)),
     //    mWorker, SLOT(updateUpdateFile(QString)));
@@ -102,8 +98,8 @@ void MainWindow::ConnectionCheck(void)
 {
     //    emit WorkerRefreshDevices();
 
-    QStringList midi_out_list =  mWorker->midi_out.getPorts();
-    QStringList midi_in_list =  mWorker->midi_in.getPorts();
+    QStringList midi_out_list =  midiWorker->midi_out.getPorts();
+    QStringList midi_in_list =  midiWorker->midi_in.getPorts();
     QString oxi = QString("OXI");
 #if defined(__LINUX_ALSA__)
     QString port_in_str = QString(":0");
@@ -119,40 +115,40 @@ void MainWindow::ConnectionCheck(void)
 
     bool found = false;
     // Port already open, check changes in ports
-    if (mWorker->midi_out.isPortOpen()) {
+    if (midiWorker->midi_out.isPortOpen()) {
         for (int i = 0; i != midi_out_list.size(); ++i)
         {
-            if (mWorker->port_out_string == midi_out_list[i]) {
+            if (midiWorker->port_out_string == midi_out_list[i]) {
                 found = true;
                 break;
             }
         }
     }
 
-    if (!found && mWorker->port_out_string != "")
+    if (!found && midiWorker->port_out_string != "")
     {
-        mWorker->port_out_string = "";
+        midiWorker->port_out_string = "";
         ui->connection_status_label->setText("CONNECT YOUR OXI ONE");
     }
 
     // Port not open or has changed
-    if ((!mWorker->midi_out.isPortOpen()) || (found == false)) {
+    if ((!midiWorker->midi_out.isPortOpen()) || (found == false)) {
         for (int i = 0; i != midi_out_list.size(); ++i)
         {
             if ((midi_out_list[i].contains(port_out_str) || (midi_out_list[i].contains(fw_update))) &&
                     midi_out_list[i].contains(oxi))
             {
-                mWorker->midi_out.closePort();
+                midiWorker->midi_out.closePort();
 
                 try {
-                    mWorker->midi_out.openPort(i);
+                    midiWorker->midi_out.openPort(i);
                 }
                 catch ( RtMidiError &error ) {
                     error.printMessage();
                     return;
                 }
 
-                mWorker->port_out_string = midi_out_list[i];
+                midiWorker->port_out_string = midi_out_list[i];
                 ui->connection_status_label->setText("OXI ONE CONNECTED");
 
                 qDebug() << "Connected to " <<  midi_out_list[i] << Qt::endl;
@@ -164,29 +160,29 @@ void MainWindow::ConnectionCheck(void)
 
     found = false;
     // Port already open, check changes in ports
-    if (mWorker->midi_in.isPortOpen()) {
+    if (midiWorker->midi_in.isPortOpen()) {
         for (int i = 0; i != midi_in_list.size(); ++i)
         {
-            if (mWorker->port_in_string == midi_in_list[i]) {
+            if (midiWorker->port_in_string == midi_in_list[i]) {
                 found = true;
                 break;
             }
         }
     }
 
-    if (!found && mWorker->port_in_string != "") mWorker->port_in_string = "";
+    if (!found && midiWorker->port_in_string != "") midiWorker->port_in_string = "";
 
     // Port not open or has changed
-    if ((!mWorker->midi_in.isPortOpen()) || (!found)) {
+    if ((!midiWorker->midi_in.isPortOpen()) || (!found)) {
         for (int i = 0; i != midi_in_list.size(); ++i)
         {
             if ((midi_in_list[i].contains(port_in_str) || (midi_in_list[i].contains(fw_update))) &&
                     midi_in_list[i].contains(oxi))
             {
-                mWorker->midi_in.closePort();
+                midiWorker->midi_in.closePort();
 
                 try {
-                    mWorker->midi_in.openPort(i);
+                    midiWorker->midi_in.openPort(i);
                 }
                 catch ( RtMidiError &error ) {
                     error.printMessage();
@@ -194,7 +190,7 @@ void MainWindow::ConnectionCheck(void)
                 }
 
 
-                mWorker->port_in_string = midi_in_list[i];
+                midiWorker->port_in_string = midi_in_list[i];
 
                 qDebug() << "Connected to " <<  midi_in_list[i] << Qt::endl;
                 break;
@@ -207,12 +203,12 @@ void MainWindow::ConnectionCheck(void)
 void MainWindow::on_gotoBLEBootloaderButton_clicked()
 {
 #if 1
-    if ( mWorker->midi_out.isPortOpen()) {
+    if ( midiWorker->midi_out.isPortOpen()) {
 
         //        std::vector<unsigned char>
-        mWorker->raw_data.assign(&goto_ble_bootloader[0], &goto_ble_bootloader[sizeof(goto_ble_bootloader)]);
-        mWorker->midi_out.sendRawMessage( mWorker->raw_data);
-        mWorker->wait_for_ack = true;
+        midiWorker->raw_data.assign(&goto_ble_bootloader[0], &goto_ble_bootloader[sizeof(goto_ble_bootloader)]);
+        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
+        midiWorker->wait_for_ack = true;
     }
 #endif
 }
@@ -220,12 +216,12 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
 void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 {
 #if 1
-    if ( mWorker->midi_out.isPortOpen()) {
+    if ( midiWorker->midi_out.isPortOpen()) {
 
         //        std::vector<unsigned char>
-        mWorker->raw_data.assign(&goto_split_bootloader[0], &goto_split_bootloader[sizeof(goto_split_bootloader)]);
-        mWorker->midi_out.sendRawMessage( mWorker->raw_data);
-        mWorker->wait_for_ack = false;
+        midiWorker->raw_data.assign(&goto_split_bootloader[0], &goto_split_bootloader[sizeof(goto_split_bootloader)]);
+        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
+        midiWorker->wait_for_ack = false;
     }
 #endif
 }
@@ -233,12 +229,12 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 void MainWindow::on_gotoOXIBootloaderButton_clicked()
 {
 #if 1
-    if ( mWorker->midi_out.isPortOpen()) {
+    if ( midiWorker->midi_out.isPortOpen()) {
 
         //        std::vector<unsigned char>
-        mWorker->raw_data.assign(&goto_oxi_bootloader[0], &goto_oxi_bootloader[sizeof(goto_oxi_bootloader)]);
-        mWorker->midi_out.sendRawMessage( mWorker->raw_data);
-        mWorker->wait_for_ack = true;
+        midiWorker->raw_data.assign(&goto_oxi_bootloader[0], &goto_oxi_bootloader[sizeof(goto_oxi_bootloader)]);
+        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
+        midiWorker->wait_for_ack = true;
     }
 #endif
 }
@@ -246,11 +242,11 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
 void MainWindow::on_exitBootloaderButton_clicked()
 {
 #if 1
-    if ( mWorker->midi_out.isPortOpen()) {
+    if ( midiWorker->midi_out.isPortOpen()) {
 
         //        std::vector<unsigned char>
-        mWorker->raw_data.assign (&exit_bootloader[0], &exit_bootloader[sizeof(exit_bootloader)]);
-        mWorker->midi_out.sendRawMessage( mWorker->raw_data);
+        midiWorker->raw_data.assign (&exit_bootloader[0], &exit_bootloader[sizeof(exit_bootloader)]);
+        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
 
     }
 #endif
@@ -258,20 +254,20 @@ void MainWindow::on_exitBootloaderButton_clicked()
 
 void MainWindow::on_loadFileButton_clicked()
 {
-    mWorker->Stop = false;
-    mWorker->update_file_name_ = QFileDialog::getOpenFileName(
+    midiWorker->Stop = false;
+    midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
                 this,
                 tr("Select SYSEX"),
                 tr("/Users/ManuelVr/Desktop"),
                 tr("Sysex ( *.syx);All Files ( * )"));
 
-    mWorker->start();
+    midiWorker->start();
 }
 
 void MainWindow::on_stopButton_clicked()
 {
-    if (mWorker->isRunning()) {
-        mWorker->terminate();
+    if (midiWorker->isRunning()) {
+        midiWorker->terminate();
     }
     ui->progressBar->setValue(0);
 }
@@ -281,116 +277,100 @@ void MainWindow::on_stopButton_clicked()
 
 void MainWindow::on_sendProjectButton_clicked()
 {
-    std::snprintf(proj_info.song_name[0].name, PROJ_NAME_LEN, "%s", ui->lineEdit_projectName->text().toLocal8Bit().constData());
 
-    //    proj_info.song_name[0].name << ui->lineEdit_projectName->text().toLocal8Bit().constData();
-
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 16; j++) {
-            // sprintf(proj_info.pattern_name[i][j].name, "Pat %d Seq%d", j, i);
-        }
-    }
-    for (int j = 0; j < 16; j++) {
-        // sprintf(proj_info.song_name[j].name, "Song %d", j);
-    }
-    strcpy(proj_info.song_name[0].name, "Juntitos");
-    strcpy(proj_info.song_name[SONG_NUM - 1].name, "Muy Top");
-    sprintf(proj_info.pattern_name[0][0].name, "Main Lead");
-
-    for (uint16_t i = 0; i < (sizeof(SYSEX_ProjInfo_s) - 4); i++)
-    {
-        proj_info.checksum += ((uint8_t*)&proj_info)[i];
-    }
-
-    if ( mWorker->midi_out.isPortOpen()) {
-
-        //        std::vector<unsigned char>
-        std::vector<unsigned char>* p_data = &mWorker->raw_data;
-        uint8_t * p_project_array = (uint8_t*)&proj_info;
-
-        p_data->assign(&sysex_header[0], &sysex_header[sizeof(sysex_header)]);
-        p_data->push_back(MSG_CAT_PROJECT);
-        p_data->push_back(MSG_PROJECT_SEND_PROJ_HEADER);
-//        p_data->push_back(pack_len); // 4 chunks
-//        p_data->push_back(pack_num); // chunk number
-
-        uint8_t temp_buff[sizeof(SYSEX_ProjInfo_s) * 2 + 1];
-
-        for (uint16_t i = 0; i < sizeof(SYSEX_ProjInfo_s); i++)
-        {
-            temp_buff[i * 2] = p_project_array[i] >> 4;
-            temp_buff[i * 2 + 1] = p_project_array[i] & 0xf;
-        }
-        temp_buff[sizeof(SYSEX_ProjInfo_s) * 2] = 0xF7;
-
-        p_data->insert(p_data->end(), temp_buff, temp_buff + sizeof(SYSEX_ProjInfo_s) * 2 + 1);
-        mWorker->midi_out.sendRawMessage(*p_data);
+    if ( midiWorker->midi_out.isPortOpen()) {
 
     }
 }
 
 void MainWindow::on_getProjectButton_clicked()
-{
-    mWorker->raw_data.clear();
-    mWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    mWorker->raw_data.push_back(MSG_CAT_PROJECT);
-    mWorker->raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
-    mWorker->raw_data.push_back(project_index);
-    mWorker->raw_data.push_back(0);
-    mWorker->raw_data.push_back(0xF7);
-    mWorker->midi_out.sendRawMessage(mWorker->raw_data);
+{ 
+    midiWorker->GetProject();
 }
 
-void MainWindow::on_getProjectButton_2_clicked()
+void MainWindow::on_getPatternButton_clicked()
 {
-    mWorker->raw_data.clear();
-    mWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    mWorker->raw_data.push_back(MSG_CAT_PROJECT);
-    mWorker->raw_data.push_back(MSG_PROJECT_GET_PATTERN);
-    mWorker->raw_data.push_back(project_index);
-    mWorker->raw_data.push_back(seq_index * 16 + pattern_index);
-    mWorker->raw_data.push_back(0xF7);
-    mWorker->midi_out.sendRawMessage(mWorker->raw_data);
+    midiWorker->GetPattern();
 }
 
 void MainWindow::on_seq_index_valueChanged(double arg1)
 {
-    seq_index = static_cast<int>(arg1) - 1;
+    midiWorker->seq_index = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_project_index_valueChanged(double arg1)
 {
-    project_index = static_cast<int>(arg1) - 1;
+    midiWorker->project_index = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_pattern_index_valueChanged(double arg1)
 {
-     pattern_index = static_cast<int>(arg1) - 1;
+     midiWorker->pattern_index = static_cast<int>(arg1) - 1;
 }
 
 
 
 void MainWindow::on_deleteProjectButton_clicked()
 {
-    mWorker->raw_data.clear();
-    mWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    mWorker->raw_data.push_back(MSG_CAT_PROJECT);
-    mWorker->raw_data.push_back(MSG_PROJECT_DELETE_PROJECT);
-    mWorker->raw_data.push_back(project_index);
-    mWorker->raw_data.push_back(0);
-    mWorker->raw_data.push_back(0xF7);
-    mWorker->midi_out.sendRawMessage(mWorker->raw_data);
+    midiWorker->raw_data.clear();
+    midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    midiWorker->raw_data.push_back(MSG_CAT_PROJECT);
+    midiWorker->raw_data.push_back(MSG_PROJECT_DELETE_PROJECT);
+    midiWorker->raw_data.push_back(midiWorker->project_index);
+    midiWorker->raw_data.push_back(0);
+    midiWorker->raw_data.push_back(0xF7);
+    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
 }
 
 
 void MainWindow::on_deletePatternButton_clicked()
 {
-    mWorker->raw_data.clear();
-    mWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    mWorker->raw_data.push_back(MSG_CAT_PROJECT);
-    mWorker->raw_data.push_back(MSG_PROJECT_DELETE_PATTERN);
-    mWorker->raw_data.push_back(project_index);
-    mWorker->raw_data.push_back(seq_index * 16 + pattern_index);
-    mWorker->raw_data.push_back(0xF7);
-    mWorker->midi_out.sendRawMessage(mWorker->raw_data);
+    midiWorker->raw_data.clear();
+    midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    midiWorker->raw_data.push_back(MSG_CAT_PROJECT);
+    midiWorker->raw_data.push_back(MSG_PROJECT_DELETE_PATTERN);
+    midiWorker->raw_data.push_back(midiWorker->project_index);
+    midiWorker->raw_data.push_back(midiWorker->seq_index * 16 + midiWorker->pattern_index);
+    midiWorker->raw_data.push_back(0xF7);
+    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+}
+
+void MainWindow::on_getCalibDataButton_clicked()
+{
+    midiWorker->raw_data.clear();
+    midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);
+    midiWorker->raw_data.push_back(MSG_SYSTEM_GET_CALIB_DATA);
+    midiWorker->raw_data.push_back(0);
+    midiWorker->raw_data.push_back(0);
+    midiWorker->raw_data.push_back(0xF7);
+    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+}
+
+
+void MainWindow::on_sendCalibDataButton_clicked()
+{
+    midiWorker->raw_data.clear();
+    midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);
+    midiWorker->raw_data.push_back(MSG_SYSTEM_SEND_CALIB_DATA);
+
+
+    QString calib_data_file = QFileDialog::getOpenFileName(
+                this,
+                tr("Select CALIBRATION FILE"),
+                tr("/Users/ManuelVr/Desktop"),
+                tr("Sysex ( *.bin);All Files ( * )"));
+
+    QFile calib_file;
+    calib_file.setFileName(calib_data_file);
+    if (!calib_file.open(QIODevice::ReadOnly))
+        return;
+
+    QByteArray sysex_file_buffer = calib_file.readAll();
+
+
+    Nibblize(midiWorker->raw_data, (uint8_t*)sysex_file_buffer.data(), sysex_file_buffer.size());
+    midiWorker->raw_data.push_back(0xF7);
+    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
 }

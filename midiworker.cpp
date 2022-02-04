@@ -1,8 +1,10 @@
-#include "worker.h"
+#include "midiworker.h"
 #include "MIDI.h"
 #include "string.h"
 #include <QDebug>
 #include <mainwindow.h>
+#include <Nibble.h>
+#include <crc32.h>
 
 #include <QFile>
 #include <QTextStream>
@@ -14,78 +16,26 @@
 uint8_t seq_data_buffer[4096*2];
 
 
-uint32_t crc32(uint32_t * data, int data_len)
-{
-    const uint32_t POLY = 0x4C11DB7;
-    uint32_t init = 0XFFFFFFFF;
-    uint32_t crc_ = 0;
-    uint32_t data_ = 0;
-
-    for (int index = 0; index < data_len; index++) {
-        data_ = data[index];
-         crc_ = init ^ data_;
-        for (int i = 0; i < 32 ; i++) {
-            if ((0x80000000 & crc_) != 0) {
-                crc_ = (crc_ << 1) ^ POLY;
-            } else {
-                crc_ = (crc_ << 1);
-            }
-        }
-
-//        qDebug() << "Data[" << index << "]:  " << Qt::hex << data_ <<Qt::endl;
-//        qDebug() << "Crc: " << Qt::hex << crc_ <<Qt::endl;
-        init = crc_;
-    }
-
-    return crc_;
-}
 
 
-Worker::Worker(QObject *parent, bool b) :
+
+MidiWorker::MidiWorker(QObject *parent, bool b) :
     QThread(parent), Stop(b)
 {
     midi_in.setIgnoreTypes(false, true, true);
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
                      this, SLOT(onMidiReceive(QMidiMessage*))));
+
+    desktop_path_ = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
 }
 
 // run() will be called when a thread starts
-void Worker::run()
+void MidiWorker::run()
 {
-#if 0
-    int i = 0;
-    while(!this->Stop)
-    {
-        QMutex mutex;
-        // prevent other threads from changing the "Stop" value
-        mutex.lock();
-        if(this->Stop) break;
-        mutex.unlock();
-
-        // emit the signal for the count label
-        emit ui_UpdateProgressBar(i++);
-
-        if (i == 50) i = 0;
-        // slowdown the count change, msec
-        this->msleep(delay_time);
-    }
-    return;
-#endif
-
-#if 1
-    //        update_file_name_ = QFileDialog::getOpenFileName(
-    //                    (QWidget*)this,
-    //                    tr("Select SYSEX"),
-    //                    tr("/Users/ManuelVr/Desktop"),
-    //                    tr("Sysex ( *.syx);All Files ( * )"));
-    //    update_file_name_ = "/Users/ManuelVr/Desktop/midi_ble.syx";
-
     file.setFileName(update_file_name_);
     if (!file.open(QIODevice::ReadOnly))
         return;
 
-    //    QByteArray sysex_file_buffer;
-    //    sysex_file_buffer.setRawData(file.readAll(), file.size());
     int timeout = 0;
     int retries = 0;
     const int DELAY_TIME = 50;
@@ -191,10 +141,9 @@ EXIT:
     }
 
     file.close();
-#endif
 }
 
-void Worker::WorkerRefreshDevices(void)
+void MidiWorker::WorkerRefreshDevices(void)
 {
     //        QList<QString> midi_list = midi_out.devices().values();
 
@@ -206,79 +155,34 @@ void Worker::WorkerRefreshDevices(void)
     //        }
 }
 
-
-void DeNibblize(std::vector<uint8_t> &buf, std::vector<uint8_t> &sysex_data)
+void MidiWorker::GetProject(void)
 {
-    int count = 0;
-    for (auto it = sysex_data.begin(); it != sysex_data.end(); ++it)
-      {
-        uint8_t byte = static_cast<uint8_t>(*it);
-
-         if ((count & 1) == 0)
-         {
-             buf.push_back(byte & 0xf);
-         } else {
-             int size = buf.size();
-             buf[size] |= (byte << 4);
-         }
-         count++;
-      }
+    raw_data.clear();
+    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    raw_data.push_back(MSG_CAT_PROJECT);
+    raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
+    raw_data.push_back(project_index);
+    raw_data.push_back(0);
+    raw_data.push_back(0xF7);
+    midi_out.sendRawMessage(raw_data);
 }
 
-
-void DeNibblize2(std::vector<uint8_t> &buf, std::vector<uint8_t> &data, int offset)
+void MidiWorker::GetPattern(void)
 {
-    int count = 0;
-    for (uint32_t it = offset; it < data.size(); ++it)
-    {
-        uint8_t byte = data.at(it);
-
-        if ((count & 1) == 0)
-        {
-            uint8_t byte_ = (byte << 4) & 0xF0; // byte high
-            buf.push_back(byte_);
-        } else {
-            int size = buf.size() - 1;
-            buf[size] |= byte & 0xF;
-        }
-        count++;
-    }
+    raw_data.clear();
+    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    raw_data.push_back(MSG_CAT_PROJECT);
+    raw_data.push_back(MSG_PROJECT_GET_PATTERN);
+    raw_data.push_back(project_index);
+    raw_data.push_back(seq_index * 16 + pattern_index);
+    raw_data.push_back(0xF7);
+    midi_out.sendRawMessage(raw_data);
 }
 
-void Nibblize2(std::vector<uint8_t> &buf, std::vector<uint8_t> &data, int offset)
-{
-    int count = 0;
-    for (uint32_t it = offset; it < data.size(); ++it)
-    {
-
-        uint8_t byte = data.at(it);
-        uint8_t byte_h = (byte << 4) & 0xF0;
-        buf.push_back(byte_h);
-        uint8_t byte_l = byte & 0xF;
-        buf.push_back(byte_l);
-    }
-}
-
-void Nibblize(std::vector<uint8_t> &buf, uint8_t data[], int length)
-{
-    int count = 0;
-    for (int it = 0; it < length; ++it)
-    {
-
-        uint8_t byte = data[it];
-        uint8_t byte_h = (byte >> 4) & 0x0F;
-        buf.push_back(byte_h);
-        uint8_t byte_l = byte & 0xF;
-        buf.push_back(byte_l);
-    }
-}
-
-
-void Worker::onMidiReceive(QMidiMessage* p_msg)
+void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
 {
     if (p_msg->_status == MIDI_SYSEX)
     {
-        //        char * p_SysExData = p_msg->getSysExData().data();
         if (memcmp(p_msg->getSysExData().data(), sysex_header, 6) == 0)
         {
             switch (p_msg->getSysExData()[6])
@@ -301,6 +205,43 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                 }
 
                 break;
+            case MSG_CAT_SYSTEM:
+                switch (p_msg->getSysExData()[7])
+                {
+                case MSG_SYSTEM_SW_VERSION:
+                    break;
+                case MSG_SYSTEM_HW_VERSION:
+                    break;
+                case MSG_SYSTEM_SEND_CALIB_DATA:
+                {
+                    std::vector<uint8_t>buffer;
+                    std::vector<uint8_t>sysex_data = p_msg->getSysExData();
+
+                    DeNibblize(buffer, sysex_data, 9);
+
+                    QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+
+                    QDir system_dir;
+                    QString system_path = desktop_path_ + "/OXI_Files/System/";
+                    if (!system_dir.exists(system_path)) {
+
+                        system_dir.mkdir(system_path);
+                    }
+
+                    QString calib_filename = system_path + "/calibration_data.bin";
+                    QFile calib_file( calib_filename );
+                    if ( calib_file.open(QIODevice::ReadWrite) )
+                    {
+                        calib_file.write(raw_data);
+                    }
+                    calib_file.close();
+                }
+                    break;
+                default:
+                    break;
+                }
+
+                break;
             case MSG_CAT_PROJECT:
                 switch (p_msg->getSysExData()[7])
                 {
@@ -311,7 +252,7 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
 
                     uint16_t proj_index = sysex_data.at(8) + 1;
 
-                    DeNibblize2(buffer, sysex_data, 10);
+                    DeNibblize(buffer, sysex_data, 10);
 
                     void * p_void = malloc(buffer.size());
                     PROJ_buffer_s buf;
@@ -356,11 +297,31 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                     uint16_t seq_index = pattern_index / 16;
                     pattern_index = pattern_index % 16;
 
-                    DeNibblize2(buffer, sysex_data, 10);
+                    DeNibblize(buffer, sysex_data, 10);
 
                     uint8_t seq_type = buffer.at(0);
 
+                    DeNibblize(buffer, sysex_data, 9);
 
+                    QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+
+                    QDir system_dir;
+                    QString system_path = desktop_path_ + "/OXI_Files";
+                    if (!system_dir.exists(system_path)) {
+
+                        system_dir.mkdir(system_path);
+                    }
+
+                    QString calib_filename = system_path + "/calibration_data.bin";
+                    QFile calib_file( calib_filename );
+                    if ( calib_file.open(QIODevice::ReadWrite) )
+                    {
+                        calib_file.write(raw_data);
+                    }
+                    calib_file.close();
+
+
+#if 0
                     if (seq_type == SEQ_MULTITRACK) {
                         void * p_void = malloc(buffer.size());
                         SEQ_multi_buffer_s buf;
@@ -375,33 +336,6 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
 
                         if (crc_check == p_multi_buf->crc_check) {
                             qDebug() << "MULTI received ok" << Qt::endl;
-
-#if 0
-                            QString Hfilename="/Users/ManuelVr/Desktop/asdf.txt";
-                            QFile fileH( Hfilename );
-                            if ( fileH.open(QIODevice::ReadWrite) )
-                            {
-                                int j = 0;
-                                QTextStream stream( &fileH );
-                                do {
-                                    for (int i=0; i< 32; i++){
-                                        if (buffer[j] < 0x10) {
-                                            stream << "0" << buffer[j] << Qt::hex << " ";
-                                        } else {
-                                            stream << buffer[j] << Qt::hex << " ";
-                                        }
-
-//                                        stream << "1: " << Qt::showbase << buffer[i] << Qt::hex << " " << Qt::endl;
-//                                        stream << "2: " << QString::number(buffer[i], 16) << Qt::hex << " " << Qt::endl;
-//                                        stream << "3: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
-//                                        QString valueInHex= QString("%1").arg(buffer[i] , 0, 16);
-//                                        stream << "4: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
-                                        j++;
-                                    }
-                                    stream << Qt::endl;
-                                } while (j < buffer.size());
-                            }
-#endif
                             raw_data.clear();
                             raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
                             raw_data.push_back(MSG_CAT_PROJECT);
@@ -430,12 +364,6 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                                         } else {
                                             stream << p_data[j] << Qt::hex << " ";
                                         }
-
-//                                        stream << "1: " << Qt::showbase << buffer[i] << Qt::hex << " " << Qt::endl;
-//                                        stream << "2: " << QString::number(buffer[i], 16) << Qt::hex << " " << Qt::endl;
-//                                        stream << "3: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
-//                                        QString valueInHex= QString("%1").arg(buffer[i] , 0, 16);
-//                                        stream << "4: " << (void *)buffer[i] << Qt::hex << " " << Qt::endl;
                                         j++;
                                     }
                                     stream << Qt::endl;
@@ -445,12 +373,6 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                             raw_data.push_back(0xF7);
                             midi_out.sendRawMessage(raw_data);
 
-//                            QString s_file = QFileDialog::getOpenFileName( this->parent(),
-//                                        tr("Select bin"),
-//                                        tr("/"),
-//                                        tr("Sysex ( *.bin);All Files ( * )"));
-
-//                            QFile file;
                         }
                         else {
                             qDebug() << "CRC Invalid calculated:" << crc_check << " Received: "<< buf.crc_check << Qt::endl;
@@ -599,6 +521,7 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
                             return;
                         }
                     }
+#endif
                     break;
                 }
                 case MSG_PROJECT_GET_PATTERN:
@@ -621,10 +544,3 @@ void Worker::onMidiReceive(QMidiMessage* p_msg)
     }
 }
 
-//void Worker::sendProjec(void)
-
-
-//void Worker::updateUpdateFile(QString update_file_name)
-//{
-
-//}

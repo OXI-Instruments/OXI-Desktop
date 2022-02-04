@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <worker.h>
+#include <midiworker.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    Worker *mWorker;
+    MidiWorker *midiWorker;
     QTimer *connection_timer;
 
 //    QMidiIn midi_in;
@@ -48,11 +48,15 @@ private slots:
 
     void on_pattern_index_valueChanged(double arg1);
 
-    void on_getProjectButton_2_clicked();
+    void on_getPatternButton_clicked();
 
     void on_deleteProjectButton_clicked();
 
     void on_deletePatternButton_clicked();
+
+    void on_getCalibDataButton_clicked();
+
+    void on_sendCalibDataButton_clicked();
 
 signals:
     void updateWorkerDelayTime(int);

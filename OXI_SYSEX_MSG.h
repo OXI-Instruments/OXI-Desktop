@@ -49,11 +49,19 @@ typedef enum {
 } OXI_SYSEX_ANALOG_e;
 
 typedef enum {
-    MSG_SYSTEM_MEM_RESET = 0x0A,
+    MSG_SYSTEM_SW_VERSION = 0,
+    MSG_SYSTEM_HW_VERSION,
+    MSG_SYSTEM_GET_CALIB_DATA,
+    MSG_SYSTEM_SEND_CALIB_DATA,
+    MSG_SYSTEM_SIZE,
+
+    MSG_SYSTEM_ACK = 0x53,
+    MSG_SYSTEM_NACK = 0x54,
     MSG_SYSTEM_FACTORY_TEST = 0x55,
     MSG_SYSTEM_FACTORY_TEST_NOK = 0x56,
+
+    MSG_SYSTEM_MEM_RESET = 0xA0,
     /* ----- */
-    MSG_SYSTEM_SIZE,
 } OXI_SYSEX_SYSTEM_e;
 
 typedef enum {
@@ -99,6 +107,9 @@ typedef enum {
     MSG_PROJECT_DELETE_PATTERN = 5,
     /* ----- */
     MSG_PROJECT_SIZE,
+
+    MSG_PROJECT_ACK = 0x53,
+    MSG_PROJECT_NACK = 0x54,
 } OXI_SYSEX_PROJECT_e;
 
 

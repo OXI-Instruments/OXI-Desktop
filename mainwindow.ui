@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>523</width>
-    <height>642</height>
+    <width>468</width>
+    <height>417</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>OXI MIDI TOOL</string>
+   <string>OXI ONE TOOL</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="enabled">
@@ -85,23 +85,23 @@
             <number>5</number>
            </property>
            <item>
+            <widget class="QPushButton" name="gotoOXIBootloaderButton">
+             <property name="text">
+              <string>OXI ONE UPDATE</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="gotoBLEBootloaderButton">
              <property name="text">
-              <string>GOTO BLE BOOTLOADER</string>
+              <string>BLE UPDATE</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="gotoSPLITBootloaderButton">
              <property name="text">
-              <string>GOTO SPLIT BOOTLOADER</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="gotoOXIBootloaderButton">
-             <property name="text">
-              <string>GOTO OXI BOOTLOADER</string>
+              <string>OXI SPLIT UPDATE</string>
              </property>
             </widget>
            </item>
@@ -114,7 +114,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>EXIT BOOTLOADER</string>
+              <string>EXIT UPDATE</string>
              </property>
             </widget>
            </item>
@@ -147,8 +147,17 @@
            </item>
            <item>
             <widget class="QPushButton" name="stopButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>STOP</string>
+             </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -159,1697 +168,196 @@
          <attribute name="title">
           <string>PROJECT</string>
          </attribute>
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>20</y>
-            <width>461</width>
-            <height>311</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>1000</height>
-           </size>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>445</width>
-             <height>706</height>
-            </rect>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_13">
-            <item row="8" column="0">
-             <widget class="QToolBox" name="toolBox">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>600</height>
-               </size>
-              </property>
-              <property name="currentIndex">
-               <number>0</number>
-              </property>
-              <widget class="QWidget" name="page_3">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>0</y>
-                 <width>427</width>
-                 <height>540</height>
-                </rect>
-               </property>
-               <attribute name="label">
-                <string>Songs</string>
-               </attribute>
-               <widget class="QWidget" name="gridLayoutWidget_7">
-                <property name="geometry">
-                 <rect>
-                  <x>0</x>
-                  <y>0</y>
-                  <width>391</width>
-                  <height>411</height>
-                 </rect>
-                </property>
-                <layout class="QGridLayout" name="gridLayout_8">
-                 <item row="4" column="0">
-                  <widget class="QLabel" name="label_93">
-                   <property name="text">
-                    <string>Song 5</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song4">
-                   <property name="text">
-                    <string>Song 4</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="11" column="0">
-                  <widget class="QLabel" name="label_94">
-                   <property name="text">
-                    <string>Song 12</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="9" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song10">
-                   <property name="text">
-                    <string>Song 10</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="10" column="0">
-                  <widget class="QLabel" name="label_95">
-                   <property name="text">
-                    <string>Song 11</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_96">
-                   <property name="text">
-                    <string>Song 2</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="7" column="0">
-                  <widget class="QLabel" name="label_97">
-                   <property name="text">
-                    <string>Song 8</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QLabel" name="label_98">
-                   <property name="text">
-                    <string>Song 4</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song5">
-                   <property name="text">
-                    <string>Song 5</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="9" column="0">
-                  <widget class="QLabel" name="label_99">
-                   <property name="text">
-                    <string>Song 10</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song3">
-                   <property name="text">
-                    <string>Song 3</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song6">
-                   <property name="text">
-                    <string>Song 6</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="11" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song12">
-                   <property name="text">
-                    <string>Song 12</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song2">
-                   <property name="text">
-                    <string>Song 2</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="7" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song8">
-                   <property name="text">
-                    <string>Song 8</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_100">
-                   <property name="text">
-                    <string>Song 3</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_101">
-                   <property name="text">
-                    <string>Song 1</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="8" column="0">
-                  <widget class="QLabel" name="label_102">
-                   <property name="text">
-                    <string>Song 9</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="8" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song9">
-                   <property name="text">
-                    <string>Song 9</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song1">
-                   <property name="text">
-                    <string>Song 1</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="0">
-                  <widget class="QLabel" name="label_103">
-                   <property name="text">
-                    <string>Song 7</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="10" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song11">
-                   <property name="text">
-                    <string>Song 11</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="1">
-                  <widget class="QLineEdit" name="lineEdit_song7">
-                   <property name="text">
-                    <string>Song 7</string>
-                   </property>
-                   <property name="maxLength">
-                    <number>12</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="0">
-                  <widget class="QLabel" name="label_104">
-                   <property name="text">
-                    <string>Song 6</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </widget>
-              <widget class="QWidget" name="page_4">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>0</y>
-                 <width>100</width>
-                 <height>30</height>
-                </rect>
-               </property>
-               <attribute name="label">
-                <string>Patterns</string>
-               </attribute>
-               <widget class="QTabWidget" name="tabWidget_3">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>0</y>
-                  <width>411</width>
-                  <height>521</height>
-                 </rect>
-                </property>
-                <property name="currentIndex">
-                 <number>0</number>
-                </property>
-                <widget class="QWidget" name="tab_seq1">
-                 <attribute name="title">
-                  <string>SEQ 1</string>
-                 </attribute>
-                 <widget class="QWidget" name="gridLayoutWidget_8">
-                  <property name="geometry">
-                   <rect>
-                    <x>10</x>
-                    <y>10</y>
-                    <width>391</width>
-                    <height>476</height>
-                   </rect>
-                  </property>
-                  <layout class="QGridLayout" name="gridLayout_3">
-                   <item row="13" column="1">
-                    <widget class="QLineEdit" name="lineEdit_104">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="0">
-                    <widget class="QLabel" name="label_17">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq1_pattern2">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="0">
-                    <widget class="QLabel" name="label_18">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="13" column="0">
-                    <widget class="QLabel" name="label_105">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="1">
-                    <widget class="QLineEdit" name="lineEdit_17">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="1">
-                    <widget class="QLineEdit" name="lineEdit_18">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_19">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="label_7">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="label_20">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="1">
-                    <widget class="QLineEdit" name="lineEdit_19">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="0">
-                    <widget class="QLabel" name="label_21">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="0">
-                    <widget class="QLabel" name="label_22">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq1_pattern3">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="0">
-                    <widget class="QLabel" name="label_106">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq1_pattern1">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="0">
-                    <widget class="QLabel" name="label_23">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="1">
-                    <widget class="QLineEdit" name="lineEdit_105">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="1">
-                    <widget class="QLineEdit" name="lineEdit_106">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="1">
-                    <widget class="QLineEdit" name="lineEdit_21">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="0">
-                    <widget class="QLabel" name="label_107">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="1">
-                    <widget class="QLineEdit" name="lineEdit_22">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="1">
-                    <widget class="QLineEdit" name="lineEdit_107">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="0">
-                    <widget class="QLabel" name="label_24">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="0">
-                    <widget class="QLabel" name="label_108">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq1_pattern4">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                     <property name="frame">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="0">
-                    <widget class="QLabel" name="label_109">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq1_pattern5">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq1_pattern7">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="0">
-                    <widget class="QLabel" name="label_25">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq1_pattern6">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="0">
-                    <widget class="QLabel" name="label_26">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-                <widget class="QWidget" name="tab_seq2">
-                 <attribute name="title">
-                  <string>SEQ 2</string>
-                 </attribute>
-                 <widget class="QWidget" name="gridLayoutWidget_9">
-                  <property name="geometry">
-                   <rect>
-                    <x>10</x>
-                    <y>10</y>
-                    <width>391</width>
-                    <height>476</height>
-                   </rect>
-                  </property>
-                  <layout class="QGridLayout" name="gridLayout_9">
-                   <item row="13" column="1">
-                    <widget class="QLineEdit" name="lineEdit_108">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="0">
-                    <widget class="QLabel" name="label_110">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq2_pattern2">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="0">
-                    <widget class="QLabel" name="label_111">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="13" column="0">
-                    <widget class="QLabel" name="label_112">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="1">
-                    <widget class="QLineEdit" name="lineEdit_110">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="1">
-                    <widget class="QLineEdit" name="lineEdit_111">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_113">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="label_114">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="label_115">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="1">
-                    <widget class="QLineEdit" name="lineEdit_112">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="0">
-                    <widget class="QLabel" name="label_116">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="0">
-                    <widget class="QLabel" name="label_117">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq2_pattern3">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="0">
-                    <widget class="QLabel" name="label_118">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq2_pattern1">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="0">
-                    <widget class="QLabel" name="label_119">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="1">
-                    <widget class="QLineEdit" name="lineEdit_115">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="1">
-                    <widget class="QLineEdit" name="lineEdit_116">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq2_pattern7">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="0">
-                    <widget class="QLabel" name="label_120">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="1">
-                    <widget class="QLineEdit" name="lineEdit_118">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="1">
-                    <widget class="QLineEdit" name="lineEdit_119">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="0">
-                    <widget class="QLabel" name="label_121">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="0">
-                    <widget class="QLabel" name="label_122">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq2_pattern4">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                     <property name="frame">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="0">
-                    <widget class="QLabel" name="label_123">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq2_pattern5">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="1">
-                    <widget class="QLineEdit" name="lineEdit_122">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="0">
-                    <widget class="QLabel" name="label_124">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq2_pattern6">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="0">
-                    <widget class="QLabel" name="label_125">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-                <widget class="QWidget" name="tab_seq3">
-                 <attribute name="title">
-                  <string>SEQ 3</string>
-                 </attribute>
-                 <widget class="QWidget" name="gridLayoutWidget_10">
-                  <property name="geometry">
-                   <rect>
-                    <x>10</x>
-                    <y>10</y>
-                    <width>391</width>
-                    <height>476</height>
-                   </rect>
-                  </property>
-                  <layout class="QGridLayout" name="gridLayout_10">
-                   <item row="13" column="1">
-                    <widget class="QLineEdit" name="lineEdit_124">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="0">
-                    <widget class="QLabel" name="label_126">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq3_pattern2">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="0">
-                    <widget class="QLabel" name="label_127">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="13" column="0">
-                    <widget class="QLabel" name="label_128">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="1">
-                    <widget class="QLineEdit" name="lineEdit_126">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="1">
-                    <widget class="QLineEdit" name="lineEdit_127">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_129">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="label_130">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="label_131">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="1">
-                    <widget class="QLineEdit" name="lineEdit_128">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="0">
-                    <widget class="QLabel" name="label_132">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="0">
-                    <widget class="QLabel" name="label_133">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq3_pattern3">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="0">
-                    <widget class="QLabel" name="label_134">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq3_pattern1">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="0">
-                    <widget class="QLabel" name="label_135">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="1">
-                    <widget class="QLineEdit" name="lineEdit_131">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="1">
-                    <widget class="QLineEdit" name="lineEdit_132">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="1">
-                    <widget class="QLineEdit" name="lineEdit_133">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="0">
-                    <widget class="QLabel" name="label_136">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="1">
-                    <widget class="QLineEdit" name="lineEdit_134">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="1">
-                    <widget class="QLineEdit" name="lineEdit_135">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="0">
-                    <widget class="QLabel" name="label_137">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="0">
-                    <widget class="QLabel" name="label_138">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="QLineEdit" name="lineEdit_136">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                     <property name="frame">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="0">
-                    <widget class="QLabel" name="label_139">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="1">
-                    <widget class="QLineEdit" name="lineEdit_137">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="1">
-                    <widget class="QLineEdit" name="lineEdit_138">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="0">
-                    <widget class="QLabel" name="label_140">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="1">
-                    <widget class="QLineEdit" name="lineEdit_139">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="0">
-                    <widget class="QLabel" name="label_141">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-                <widget class="QWidget" name="tab_seq4">
-                 <attribute name="title">
-                  <string>SEQ 4</string>
-                 </attribute>
-                 <widget class="QWidget" name="gridLayoutWidget_11">
-                  <property name="geometry">
-                   <rect>
-                    <x>10</x>
-                    <y>10</y>
-                    <width>391</width>
-                    <height>476</height>
-                   </rect>
-                  </property>
-                  <layout class="QGridLayout" name="gridLayout_11">
-                   <item row="13" column="1">
-                    <widget class="QLineEdit" name="lineEdit_140">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="0">
-                    <widget class="QLabel" name="label_142">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq4_pattern2">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="0">
-                    <widget class="QLabel" name="label_143">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="13" column="0">
-                    <widget class="QLabel" name="label_144">
-                     <property name="text">
-                      <string>Pattern 14</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="1">
-                    <widget class="QLineEdit" name="lineEdit_142">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="1">
-                    <widget class="QLineEdit" name="lineEdit_143">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_145">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="label_146">
-                     <property name="text">
-                      <string>Pattern 2</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="label_147">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="1">
-                    <widget class="QLineEdit" name="lineEdit_144">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="10" column="0">
-                    <widget class="QLabel" name="label_148">
-                     <property name="text">
-                      <string>Pattern 11</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="0">
-                    <widget class="QLabel" name="label_149">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq4_pattern3">
-                     <property name="text">
-                      <string>Pattern 3</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="0">
-                    <widget class="QLabel" name="label_150">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq4_pattern1">
-                     <property name="text">
-                      <string>Pattern 1</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="0">
-                    <widget class="QLabel" name="label_151">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="1">
-                    <widget class="QLineEdit" name="lineEdit_147">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="1">
-                    <widget class="QLineEdit" name="lineEdit_148">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="1">
-                    <widget class="QLineEdit" name="lineEdit_149">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="11" column="0">
-                    <widget class="QLabel" name="label_152">
-                     <property name="text">
-                      <string>Pattern 12</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="1">
-                    <widget class="QLineEdit" name="lineEdit_150">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="15" column="1">
-                    <widget class="QLineEdit" name="lineEdit_151">
-                     <property name="text">
-                      <string>Pattern 16</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="0">
-                    <widget class="QLabel" name="label_153">
-                     <property name="text">
-                      <string>Pattern 7</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="12" column="0">
-                    <widget class="QLabel" name="label_154">
-                     <property name="text">
-                      <string>Pattern 13</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq4_pattern4">
-                     <property name="text">
-                      <string>Pattern 4</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                     <property name="frame">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="14" column="0">
-                    <widget class="QLabel" name="label_155">
-                     <property name="text">
-                      <string>Pattern 15</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="1">
-                    <widget class="QLineEdit" name="lineEdit_seq4_pattern5">
-                     <property name="text">
-                      <string>Pattern 5</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="1">
-                    <widget class="QLineEdit" name="lineEdit_154">
-                     <property name="text">
-                      <string>Pattern 10</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="0">
-                    <widget class="QLabel" name="label_156">
-                     <property name="text">
-                      <string>Pattern 9</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="1">
-                    <widget class="QLineEdit" name="lineEdit_155">
-                     <property name="text">
-                      <string>Pattern 6</string>
-                     </property>
-                     <property name="maxLength">
-                      <number>12</number>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="0">
-                    <widget class="QLabel" name="label_157">
-                     <property name="text">
-                      <string>Pattern 8</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-               </widget>
-              </widget>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout">
-              <property name="sizeConstraint">
-               <enum>QLayout::SetFixedSize</enum>
-              </property>
-              <item>
-               <widget class="QLabel" name="label_2">
-                <property name="maximumSize">
-                 <size>
-                  <width>40</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Name</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="lineEdit_projectName">
-                <property name="maximumSize">
-                 <size>
-                  <width>200</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Project</string>
-                </property>
-                <property name="maxLength">
-                 <number>12</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_4">
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Tempo</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="doubleSpinBox_tempo">
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="decimals">
-                 <number>1</number>
-                </property>
-                <property name="minimum">
-                 <double>20.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>300.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="1" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QLabel" name="label_3">
-                <property name="minimumSize">
-                 <size>
-                  <width>60</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>40</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>PROJECT</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="project_index">
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="decimals">
-                 <number>0</number>
-                </property>
-                <property name="minimum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>15.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="seq_index_label">
-                <property name="maximumSize">
-                 <size>
-                  <width>40</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>SEQ</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="seq_index">
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="decimals">
-                 <number>0</number>
-                </property>
-                <property name="minimum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>4.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_5">
-                <property name="minimumSize">
-                 <size>
-                  <width>65</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>40</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>PATTERN</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="pattern_index">
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="decimals">
-                 <number>0</number>
-                </property>
-                <property name="minimum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>16.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_project_num">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Project 1</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </widget>
          <widget class="QWidget" name="verticalLayoutWidget_2">
           <property name="geometry">
            <rect>
-            <x>20</x>
-            <y>340</y>
-            <width>451</width>
-            <height>171</height>
+            <x>10</x>
+            <y>10</y>
+            <width>411</width>
+            <height>231</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>PROJECT</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="project_index">
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="decimals">
+                <number>0</number>
+               </property>
+               <property name="minimum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>15.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="seq_index_label">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>SEQ</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="seq_index">
+               <property name="maximumSize">
+                <size>
+                 <width>100</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="decimals">
+                <number>0</number>
+               </property>
+               <property name="minimum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>4.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="minimumSize">
+                <size>
+                 <width>65</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>PATTERN</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="pattern_index">
+               <property name="maximumSize">
+                <size>
+                 <width>100</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="decimals">
+                <number>0</number>
+               </property>
+               <property name="minimum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>16.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetFixedSize</enum>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Name</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_projectName">
+               <property name="maximumSize">
+                <size>
+                 <width>200</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Project</string>
+               </property>
+               <property name="maxLength">
+                <number>12</number>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_4">
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Tempo</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_tempo">
+               <property name="maximumSize">
+                <size>
+                 <width>100</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="decimals">
+                <number>1</number>
+               </property>
+               <property name="minimum">
+                <double>20.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>300.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item>
             <widget class="QPushButton" name="sendProjectButton">
              <property name="sizePolicy">
@@ -1877,7 +385,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="getProjectButton_2">
+            <widget class="QPushButton" name="getPatternButton">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -1914,6 +422,62 @@
               <string>DELETE PATTERN</string>
              </property>
             </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="system">
+         <attribute name="title">
+          <string>SYSTEM</string>
+         </attribute>
+         <widget class="QWidget" name="verticalLayoutWidget_3">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>10</y>
+            <width>411</width>
+            <height>301</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QPushButton" name="getCalibDataButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>GET CALIBRATION</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="sendCalibDataButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>SEND CALIBRATION</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>

@@ -13,7 +13,7 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    worker.cpp
+    midiworker.cpp
 
 #INCLUDEPATH += "/usr/local/include/libusb-1.0"
 INCLUDEPATH += "QMidi"
@@ -23,12 +23,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 HEADERS += \
+    Nibble.h \
     OXI_SYSEX_MSG.h \
     SYSEX_APP.h \
     SYSEX_PROJ.h \
+    crc32.h \
     mainwindow.h \
     MIDI.h \
-    worker.h
+    midiworker.h \
+    midiworker_copy.cpp_
 
 FORMS += \
     mainwindow.ui
