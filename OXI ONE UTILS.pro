@@ -45,3 +45,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 include (QMidi/QMidi.pri)
 
 DISTFILES +=
+
+RESOURCES += \
+    fonts.qrc

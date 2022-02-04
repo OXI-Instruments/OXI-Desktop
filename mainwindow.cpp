@@ -374,3 +374,15 @@ void MainWindow::on_sendCalibDataButton_clicked()
     midiWorker->raw_data.push_back(0xF7);
     midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
 }
+
+void MainWindow::on_eraseMemButton_clicked()
+{
+    midiWorker->raw_data.clear();
+    midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);
+    midiWorker->raw_data.push_back(MSG_SYSTEM_MEM_RESET);
+    midiWorker->raw_data.push_back(MSG_SYSTEM_MEM_RESET);
+    midiWorker->raw_data.push_back(MSG_SYSTEM_MEM_RESET);
+    midiWorker->raw_data.push_back(0xF7);
+    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+}

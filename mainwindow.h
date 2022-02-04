@@ -58,6 +58,8 @@ private slots:
 
     void on_sendCalibDataButton_clicked();
 
+    void on_eraseMemButton_clicked();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerRefreshDevices(void);

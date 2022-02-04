@@ -250,38 +250,30 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     std::vector<uint8_t>buffer;
                     std::vector<uint8_t>sysex_data = p_msg->getSysExData();
 
-                    uint16_t proj_index = sysex_data.at(8) + 1;
-
                     DeNibblize(buffer, sysex_data, 10);
 
-                    void * p_void = malloc(buffer.size());
-                    PROJ_buffer_s buf;
-                    PROJ_buffer_s * p_proj_buf = static_cast<PROJ_buffer_s *>(p_void);
-                    uint8_t * p_buf = reinterpret_cast<uint8_t*>(&buf);
-                    std::copy(buffer.begin(), buffer.end(), (uint8_t*)p_void);
+                    QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
-                    int buf_len = (sizeof(PROJ_buffer_s));
-                    buf_len = (buf_len - 4) / 4;
+                    QDir system_dir;
+                    project_path_ = desktop_path_ + "/OXI_Files/Projects//Project " + QString::number(project_index + 1);
+                    if (!system_dir.exists(project_path_)) {
 
-                    uint32_t crc_check = crc32(reinterpret_cast<uint32_t*>(p_void), buf_len);
-
-                    if (crc_check == p_proj_buf->crc_check)
-                    {
-                        qDebug() << "PROJ received ok" << Qt::endl;
+                        system_dir.mkdir(project_path_);
                     }
-                    raw_data.clear();
-                    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-                    raw_data.push_back(MSG_CAT_PROJECT);
-                    raw_data.push_back(MSG_PROJECT_SEND_PROJ_HEADER);
 
-                    raw_data.push_back(proj_index);
-                    raw_data.push_back(0);
+                    QString proj_filename = project_path_ + "/Project " + QString::number(project_index + 1) + ".bin";
+                    qDebug() << proj_filename;
 
-                    Nibblize(raw_data, (uint8_t*)p_void, sizeof(PROJ_buffer_s));
+                    QFile proj_file( proj_filename );
+                    if ( proj_file.open(QIODevice::ReadWrite) )
+                    {
+                        proj_file.write(raw_data);
+                    }
+                    proj_file.close();
 
-                    raw_data.push_back(0xF7);
-                    midi_out.sendRawMessage(raw_data);
+                    pattern_index = 0;
 
+                    GetPattern();
                     break;
                 }
                 case MSG_PROJECT_GET_PROJ_HEADER:
@@ -292,33 +284,30 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     std::vector<uint8_t>buffer;
                     std::vector<uint8_t>sysex_data = p_msg->getSysExData();
 
-                    uint16_t proj_index = sysex_data.at(8);
-                    uint16_t pattern_index = sysex_data.at(9);
-                    uint16_t seq_index = pattern_index / 16;
-                    pattern_index = pattern_index % 16;
-
                     DeNibblize(buffer, sysex_data, 10);
-
-                    uint8_t seq_type = buffer.at(0);
-
-                    DeNibblize(buffer, sysex_data, 9);
 
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
                     QDir system_dir;
-                    QString system_path = desktop_path_ + "/OXI_Files";
-                    if (!system_dir.exists(system_path)) {
+                    if (!system_dir.exists(project_path_)) {
 
-                        system_dir.mkdir(system_path);
+                        system_dir.mkdir(project_path_);
                     }
 
-                    QString calib_filename = system_path + "/calibration_data.bin";
-                    QFile calib_file( calib_filename );
-                    if ( calib_file.open(QIODevice::ReadWrite) )
+                    QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+                    qDebug() << patt_filename;
+
+                    QFile patt_file( patt_filename );
+                    if ( patt_file.open(QIODevice::ReadWrite) )
                     {
-                        calib_file.write(raw_data);
+                        patt_file.write(raw_data);
                     }
-                    calib_file.close();
+                    patt_file.close();
+
+                    pattern_index ++;
+
+                    GetPattern();
+                    break;
 
 
 #if 0

@@ -60,7 +60,7 @@ typedef enum {
     MSG_SYSTEM_FACTORY_TEST = 0x55,
     MSG_SYSTEM_FACTORY_TEST_NOK = 0x56,
 
-    MSG_SYSTEM_MEM_RESET = 0xA0,
+    MSG_SYSTEM_MEM_RESET = 0x61,
     /* ----- */
 } OXI_SYSEX_SYSTEM_e;
 

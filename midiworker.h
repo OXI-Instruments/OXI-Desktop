@@ -23,6 +23,7 @@ public:
     QMidiOut midi_out;
     std::vector<unsigned char> raw_data;
     QString update_file_name_;
+    QString project_path_;
 
     QString port_in_string;
     QString port_out_string;
