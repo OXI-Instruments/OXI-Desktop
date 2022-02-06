@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>468</width>
-    <height>417</height>
+    <height>456</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@ font-size: 14px;
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_fw_update">
          <attribute name="title">
@@ -66,9 +66,9 @@ font-size: 14px;
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>10</y>
+            <y>20</y>
             <width>401</width>
-            <height>278</height>
+            <height>295</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -93,34 +93,21 @@ font-size: 14px;
            <item>
             <widget class="QPushButton" name="gotoOXIBootloaderButton">
              <property name="text">
-              <string>OXI ONE UPDATE</string>
+              <string>OXI ONE FIRMWARE</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="gotoBLEBootloaderButton">
              <property name="text">
-              <string>BLE UPDATE</string>
+              <string>BLUETOOTH FIRMWARE</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="gotoSPLITBootloaderButton">
              <property name="text">
-              <string>OXI SPLIT UPDATE</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="exitBootloaderButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>EXIT UPDATE</string>
+              <string>OXI SPLIT FIRMWARE</string>
              </property>
             </widget>
            </item>
@@ -138,16 +125,37 @@ font-size: 14px;
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="loadFileButton">
-             <property name="text">
-              <string>LOAD FILE</string>
+            <widget class="QProgressBar" name="progressBar">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="baseSize">
+              <size>
+               <width>0</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="value">
+              <number>24</number>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QProgressBar" name="progressBar">
-             <property name="value">
-              <number>24</number>
+            <widget class="QPushButton" name="exitBootloaderButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>EXIT UPDATE</string>
              </property>
             </widget>
            </item>
@@ -167,6 +175,16 @@ font-size: 14px;
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QLabel" name="process_status">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </widget>
@@ -178,9 +196,9 @@ font-size: 14px;
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>10</y>
+            <y>20</y>
             <width>411</width>
-            <height>245</height>
+            <height>281</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -257,7 +275,7 @@ font-size: 14px;
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_5">
+              <widget class="QLabel" name="pattern_index_label">
                <property name="minimumSize">
                 <size>
                  <width>65</width>
@@ -291,74 +309,6 @@ font-size: 14px;
                </property>
                <property name="maximum">
                 <double>16.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <property name="sizeConstraint">
-              <enum>QLayout::SetFixedSize</enum>
-             </property>
-             <item>
-              <widget class="QLabel" name="label_2">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>24</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Name</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit_projectName">
-               <property name="maximumSize">
-                <size>
-                 <width>200</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Project</string>
-               </property>
-               <property name="maxLength">
-                <number>12</number>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_4">
-               <property name="maximumSize">
-                <size>
-                 <width>50</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Tempo</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_tempo">
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="decimals">
-                <number>1</number>
-               </property>
-               <property name="minimum">
-                <double>20.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>300.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -429,6 +379,32 @@ font-size: 14px;
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="Line" name="line">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QProgressBar" name="midiProgressBar">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>20</height>
+              </size>
+             </property>
+             <property name="value">
+              <number>24</number>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </widget>
@@ -440,7 +416,7 @@ font-size: 14px;
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>10</y>
+            <y>20</y>
             <width>401</width>
             <height>181</height>
            </rect>

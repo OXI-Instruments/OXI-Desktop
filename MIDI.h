@@ -1,5 +1,8 @@
 #include <Qt>
 
+namespace  MidiMsg {
+
+
 /*! Enumeration of MIDI types */
 typedef enum
 {
@@ -25,6 +28,7 @@ typedef enum
     SystemReset           = 0xFF,    ///< System Real Time - System Reset
 } MIDI_Msg_e;
 
+}
 //#define OXI_INSTRUMENTS_MIDI_ID	0x00, 0x22, 0x03,
 //#define OXI_ONE_ID	0x00, 0x02,
 //#define OXI_ONE_BLUETOOTH_ID	0x00, 0x02,

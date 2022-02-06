@@ -25,14 +25,15 @@ public:
 private slots:
 
     void updateProgressBar(int value);
+    void updateMidiProgressBar(int value);
+    void updateStatusLabel(QString text);
+    void updateError(void);
 
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoSPLITBootloaderButton_clicked();
     void on_gotoOXIBootloaderButton_clicked();
 
     void on_exitBootloaderButton_clicked();
-
-    void on_loadFileButton_clicked();
 
     void on_stopButton_clicked();
 

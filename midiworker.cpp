@@ -26,7 +26,40 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
                      this, SLOT(onMidiReceive(QMidiMessage*))));
 
-    desktop_path_ = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString desktop_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+
+    QDir system_dir;
+    oxi_path_ = desktop_path + "/OXI_Files";
+    qDebug() << oxi_path_ << Qt::endl;
+    if (!system_dir.exists(oxi_path_)) {
+
+        system_dir.mkdir(oxi_path_);
+    }
+
+    projects_path_ = oxi_path_ + "/Projects";
+    if (!system_dir.exists(projects_path_)) {
+
+        system_dir.mkdir(projects_path_);
+    }
+}
+
+void MidiWorker::LoadFile(void)
+{
+    update_file_name_ = QFileDialog::getOpenFileName(
+                nullptr,
+                tr("Select SYSEX"),
+                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                tr("Sysex ( *.syx);All Files ( * )"));
+}
+
+void MidiWorker::SendBootExit(void)
+{
+    raw_data.clear();
+    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    raw_data.push_back(MSG_CAT_FW_UPDATE);
+    raw_data.push_back(MSG_FW_UPDT_EXIT);
+    raw_data.push_back(0xF7);
+    midi_out.sendRawMessage(raw_data);
 }
 
 // run() will be called when a thread starts
@@ -41,6 +74,23 @@ void MidiWorker::run()
     const int DELAY_TIME = 50;
     const int TIMEOUT_TIME = 1000;
     bool success = false;
+    bool wait_for_ack = false;
+
+    switch (this->updated_device_){
+    case OXI_ONE_UPDATE:
+        wait_for_ack = true;
+        break;
+    case OXI_SPLIT_UPDATE:
+        wait_for_ack = false;
+        break;
+    case OXI_ONE_BLE_UPDATE:
+        wait_for_ack = true;
+        break;
+    default:
+        break;
+
+    }
+
 
     QByteArray sysex_file_buffer = file.readAll();
 
@@ -78,10 +128,11 @@ LOOP:
 
         if (package_num >= packages.size() - 2) {
             success = true;
+            emit ui_updateStatusLabel("SUCESS!");
             goto EXIT;
         }
 
-        if (this->wait_for_ack) {
+        if (wait_for_ack) {
             while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
             {
                 this->msleep(DELAY_TIME);
@@ -136,11 +187,30 @@ SEND_RESET:
 EXIT:
     if (success) {
         emit ui_UpdateProgressBar(100);
+
+        switch (this->updated_device_){
+        case OXI_ONE_UPDATE:
+
+            break;
+        case OXI_SPLIT_UPDATE:
+            SendBootExit();
+            break;
+        case OXI_ONE_BLE_UPDATE:
+            SendBootExit();
+            break;
+        default:
+            break;
+
+        }
+
     } else {
         emit ui_UpdateProgressBar(0);
+        emit ui_UpdateError();
     }
 
     file.close();
+    this->quit();
+//    this->terminate();
 }
 
 void MidiWorker::WorkerRefreshDevices(void)
@@ -191,8 +261,10 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                 switch (p_msg->getSysExData()[7])
                 {
                 case MSG_FW_UPDT_READY:
-                    this->Stop = false;
-                    this->start();
+//                    this->start();
+                    break;
+                case MSG_FW_UPDT_STARTED:
+//                    this->start();
                     break;
                 case MSG_FW_UPDT_ACK:
                     sysex_ack_ = MSG_FW_UPDT_ACK;
@@ -222,7 +294,8 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
                     QDir system_dir;
-                    QString system_path = desktop_path_ + "/OXI_Files/System/";
+                    QString system_path = oxi_path_ + "/System";
+                    qDebug() << system_path << Qt::endl;
                     if (!system_dir.exists(system_path)) {
 
                         system_dir.mkdir(system_path);
@@ -235,6 +308,8 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                         calib_file.write(raw_data);
                     }
                     calib_file.close();
+
+                    emit ui_UpdateMidiProgressBar(100);
                 }
                     break;
                 default:
@@ -246,7 +321,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                 switch (p_msg->getSysExData()[7])
                 {
                 case MSG_PROJECT_SEND_PROJ_HEADER:
-   {
+                {
                     std::vector<uint8_t>buffer;
                     std::vector<uint8_t>sysex_data = p_msg->getSysExData();
 
@@ -255,14 +330,14 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
                     QDir system_dir;
-                    project_path_ = desktop_path_ + "/OXI_Files/Projects//Project " + QString::number(project_index + 1);
+                    project_path_ = oxi_path_ + "/Projects/Project " + QString::number(project_index + 1);
                     if (!system_dir.exists(project_path_)) {
 
                         system_dir.mkdir(project_path_);
                     }
 
                     QString proj_filename = project_path_ + "/Project " + QString::number(project_index + 1) + ".bin";
-                    qDebug() << proj_filename;
+                    qDebug() << proj_filename << Qt::endl;;
 
                     QFile proj_file( proj_filename );
                     if ( proj_file.open(QIODevice::ReadWrite) )
@@ -307,6 +382,8 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     pattern_index ++;
 
                     GetPattern();
+
+                    emit ui_UpdateMidiProgressBar(100 * pattern_index / 64);
                     break;
 
 
