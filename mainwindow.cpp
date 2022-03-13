@@ -15,9 +15,9 @@
 
 
 
-uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
-uint8_t goto_split_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_SPLIT, 0xF7 };
-uint8_t goto_oxi_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_ONE, 0xF7 };
+const uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
+const uint8_t goto_split_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_SPLIT, 0xF7 };
+const uint8_t goto_oxi_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_ONE, 0xF7 };
 
 QByteArray sysex_cmd((char*)goto_ble_bootloader, 1024);
 QByteArray sysex_file_buffer;
@@ -55,14 +55,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(WorkerRefreshDevices(void)),
             midiWorker, SLOT(WorkerRefreshDevices(void)));
     
-    //    connect(this, SIGNAL(WorkerRefreshDevices(void)),
-    //    mWorker, SLOT(updateUpdateFile(QString)));
     
     connect(connection_timer, SIGNAL(timeout()), this, SLOT(ConnectionCheck()));
     
     connection_timer->start(500);
-    
-    //    connect(&mWorker->midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),mWorker, SLOT(onMidiReceive(QMidiMessage*)));
     
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
@@ -101,8 +97,6 @@ void MainWindow::updateError(void)
 
 void MainWindow::ConnectionCheck(void)
 {
-    //    emit WorkerRefreshDevices();
-    
     QStringList midi_out_list =  midiWorker->midi_out.getPorts();
     QStringList midi_in_list =  midiWorker->midi_in.getPorts();
     QString oxi = QString("OXI");
@@ -342,7 +336,7 @@ void MainWindow::on_sendProjectButton_clicked()
 {
     
     if ( midiWorker->midi_out.isPortOpen()) {
-        
+        // TODO
     }
 }
 

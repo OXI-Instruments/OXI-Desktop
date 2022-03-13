@@ -28,6 +28,7 @@ HEADERS += \
     SYSEX_APP.h \
     SYSEX_PROJ.h \
     crc32.h \
+    delay.h \
     mainwindow.h \
     MIDI.h \
     midiworker.h \

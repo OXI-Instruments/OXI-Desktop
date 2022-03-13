@@ -49,3 +49,5 @@ app.*.map.json
 /ios/build/
 /Debug/
 /Release/
+/ReleaseQt16
+/DebugQt16
