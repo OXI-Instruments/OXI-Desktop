@@ -334,10 +334,7 @@ void MainWindow::on_stopButton_clicked()
 
 void MainWindow::on_sendProjectButton_clicked()
 {
-    
-    if ( midiWorker->midi_out.isPortOpen()) {
-        // TODO
-    }
+    midiWorker->SendProject();
 }
 
 void MainWindow::on_getProjectButton_clicked()

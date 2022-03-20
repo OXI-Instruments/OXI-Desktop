@@ -56,7 +56,7 @@ font-size: 14px;
          </sizepolicy>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab_fw_update">
          <attribute name="title">
@@ -227,9 +227,12 @@ font-size: 14px;
               <widget class="QDoubleSpinBox" name="project_index">
                <property name="maximumSize">
                 <size>
-                 <width>50</width>
+                 <width>75</width>
                  <height>16777215</height>
                 </size>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
                </property>
                <property name="decimals">
                 <number>0</number>
@@ -242,80 +245,13 @@ font-size: 14px;
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QLabel" name="seq_index_label">
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>24</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>SEQ</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="seq_index">
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="decimals">
-                <number>0</number>
-               </property>
-               <property name="minimum">
-                <double>1.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>4.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="pattern_index_label">
-               <property name="minimumSize">
-                <size>
-                 <width>65</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>40</width>
-                 <height>24</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>PATTERN</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="pattern_index">
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="decimals">
-                <number>0</number>
-               </property>
-               <property name="minimum">
-                <double>1.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>16.000000000000000</double>
-               </property>
-              </widget>
-             </item>
             </layout>
            </item>
            <item>
             <widget class="QPushButton" name="sendProjectButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -323,7 +259,7 @@ font-size: 14px;
               </sizepolicy>
              </property>
              <property name="text">
-              <string>SEND</string>
+              <string>SEND PROJECT</string>
              </property>
             </widget>
            </item>
@@ -341,19 +277,6 @@ font-size: 14px;
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="getPatternButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>GET PATTERN</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QPushButton" name="deleteProjectButton">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -367,17 +290,17 @@ font-size: 14px;
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="deletePatternButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
              </property>
-             <property name="text">
-              <string>DELETE PATTERN</string>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>60</height>
+              </size>
              </property>
-            </widget>
+            </spacer>
            </item>
            <item>
             <widget class="Line" name="line">
@@ -482,6 +405,9 @@ font-size: 14px;
            </item>
            <item>
             <widget class="QPushButton" name="eraseMemButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                <horstretch>0</horstretch>

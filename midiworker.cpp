@@ -225,6 +225,18 @@ void MidiWorker::WorkerRefreshDevices(void)
     //        }
 }
 
+void MidiWorker::SendProject(void)
+{
+//    raw_data.clear();
+//    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+//    raw_data.push_back(MSG_CAT_PROJECT);
+//    raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
+//    raw_data.push_back(project_index);
+//    raw_data.push_back(0);
+//    raw_data.push_back(0xF7);
+//    midi_out.sendRawMessage(raw_data);
+}
+
 void MidiWorker::GetProject(void)
 {
     raw_data.clear();

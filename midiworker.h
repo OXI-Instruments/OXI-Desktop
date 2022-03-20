@@ -50,6 +50,7 @@ public slots:
     void SendBootExit(void);
 
     void GetPattern(void);
+    void SendProject(void);
     void GetProject(void);
 //    void updateUpdateFile(QString update_file_name);
 
