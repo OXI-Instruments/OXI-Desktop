@@ -23,7 +23,7 @@ QMidiMessage::QMidiMessage(const QMidiMessage &other)
     _rawMessage = other._rawMessage;
 }
 
-QMidiMessage *QMidiMessage::clear()
+void QMidiMessage::clear()
 {
     _status = MIDI_UNKNOWN;
     _channel = 1;

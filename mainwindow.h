@@ -28,6 +28,7 @@ private slots:
     void updateMidiProgressBar(int value);
     void updateStatusLabel(QString text);
     void updateError(void);
+    void connectionError(void);
 
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoSPLITBootloaderButton_clicked();

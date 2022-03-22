@@ -43,13 +43,25 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
     }
 }
 
+void MidiWorker::SendRaw(void)
+{
+    try {
+        midi_out.sendRawMessage(raw_data);
+    }
+    catch ( RtMidiError &error ) {
+        error.printMessage();
+         emit ui_ConnectionError();
+    }
+}
+
+
 void MidiWorker::LoadFile(void)
 {
-    update_file_name_ = QFileDialog::getOpenFileName(
-                nullptr,
-                tr("Select SYSEX"),
-                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-                tr("Sysex ( *.syx);All Files ( * )"));
+//    update_file_name_ = QFileDialog::getOpenFileName(
+//                this,
+//                tr("Select SYSEX"),
+//                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+//                tr("Sysex ( *.syx);All Files ( * )"));
 }
 
 void MidiWorker::SendBootExit(void)
@@ -59,16 +71,56 @@ void MidiWorker::SendBootExit(void)
     raw_data.push_back(MSG_CAT_FW_UPDATE);
     raw_data.push_back(MSG_FW_UPDT_EXIT);
     raw_data.push_back(0xF7);
-    midi_out.sendRawMessage(raw_data);
+    try {
+        midi_out.sendRawMessage(raw_data);
+    }
+    catch ( RtMidiError &error ) {
+        error.printMessage();
+    }
+}
+
+void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
+{
+    raw_data.clear();
+    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    raw_data.push_back(MSG_CAT_FW_UPDATE);
+    raw_data.push_back(device_cmd);
+    raw_data.push_back(0xF7);
+    try {
+        midi_out.sendRawMessage(raw_data);
+    }
+    catch ( RtMidiError &error ) {
+        error.printMessage();
+        emit ui_UpdateError();
+    }
+}
+
+bool MidiWorker::WaitForOXIUpdate(void)
+{
+    // when receiving the ack from bootloader, the update should start
+QString fw_update = QString("FW Update");
+    int retries = 10;
+
+    while (((midi_out.isPortOpen() == false) ||
+           (midi_in.isPortOpen() == false) ||
+           (port_out_string.contains(fw_update) == false) ||
+           (port_in_string.contains(fw_update) == false)) &&
+           (retries > 0))
+    {
+        QThread::msleep(500);
+        retries--;
+    }
+
+    if (retries > 0) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
 void MidiWorker::run()
 {
-    file.setFileName(update_file_name_);
-    if (!file.open(QIODevice::ReadOnly))
-        return;
-
     int timeout = 0;
     int retries = 0;
     const int DELAY_TIME = 50;
@@ -76,19 +128,33 @@ void MidiWorker::run()
     bool success = false;
     bool wait_for_ack = false;
 
+    file.setFileName(update_file_name_);
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+
     switch (this->updated_device_){
     case OXI_ONE_UPDATE:
         wait_for_ack = true;
+        SendGotoBoot(MSG_FW_UPDT_OXI_ONE);
+
+        if (WaitForOXIUpdate() == false) {
+            emit ui_UpdateError();
+            return;
+        }
+
         break;
     case OXI_SPLIT_UPDATE:
         wait_for_ack = false;
+        SendGotoBoot(MSG_FW_UPDT_OXI_SPLIT);
+        QThread::msleep(500);
         break;
     case OXI_ONE_BLE_UPDATE:
         wait_for_ack = true;
+        SendGotoBoot(MSG_FW_UPDT_OXI_BLE);
+        QThread::msleep(500);
         break;
     default:
         break;
-
     }
 
 
@@ -225,6 +291,18 @@ void MidiWorker::WorkerRefreshDevices(void)
     //        }
 }
 
+void MidiWorker::SendProject(void)
+{
+//    raw_data.clear();
+//    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+//    raw_data.push_back(MSG_CAT_PROJECT);
+//    raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
+//    raw_data.push_back(project_index);
+//    raw_data.push_back(0);
+//    raw_data.push_back(0xF7);
+//    midi_out.sendRawMessage(raw_data);
+}
+
 void MidiWorker::GetProject(void)
 {
     raw_data.clear();
@@ -234,7 +312,12 @@ void MidiWorker::GetProject(void)
     raw_data.push_back(project_index);
     raw_data.push_back(0);
     raw_data.push_back(0xF7);
-    midi_out.sendRawMessage(raw_data);
+    try {
+        midi_out.sendRawMessage(raw_data);
+    }
+    catch ( RtMidiError &error ) {
+        error.printMessage();
+    }
 }
 
 void MidiWorker::GetPattern(void)
@@ -246,7 +329,12 @@ void MidiWorker::GetPattern(void)
     raw_data.push_back(project_index);
     raw_data.push_back(seq_index * 16 + pattern_index);
     raw_data.push_back(0xF7);
-    midi_out.sendRawMessage(raw_data);
+    try {
+        midi_out.sendRawMessage(raw_data);
+    }
+    catch ( RtMidiError &error ) {
+        error.printMessage();
+    }
 }
 
 void MidiWorker::onMidiReceive(QMidiMessage* p_msg)

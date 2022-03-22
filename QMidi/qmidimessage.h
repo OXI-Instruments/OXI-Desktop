@@ -46,7 +46,7 @@ public:
     ~QMidiMessage();
     QMidiMessage(const QMidiMessage &other);
 
-    QMidiMessage* clear();
+    void clear();
     QMidiStatus getStatus();
     unsigned int getChannel();
     unsigned int getPitch();

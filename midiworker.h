@@ -47,9 +47,16 @@ public slots:
     void WorkerRefreshDevices(void);
     void onMidiReceive(QMidiMessage*);
     void LoadFile(void);
+
+    void SendRaw(void);
+
+
     void SendBootExit(void);
+    void SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd);
+    bool WaitForOXIUpdate(void);
 
     void GetPattern(void);
+    void SendProject(void);
     void GetProject(void);
 //    void updateUpdateFile(QString update_file_name);
 
@@ -58,6 +65,7 @@ signals:
     // we need to emit a signal
     void ui_UpdateProgressBar(int);
     void ui_UpdateError(void);
+    void ui_ConnectionError(void);
     void ui_UpdateMidiProgressBar(int);
     void ui_updateStatusLabel(QString);
     void finished();

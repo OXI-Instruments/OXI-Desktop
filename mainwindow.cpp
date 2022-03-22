@@ -17,7 +17,6 @@
 
 const uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
 const uint8_t goto_split_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_SPLIT, 0xF7 };
-const uint8_t goto_oxi_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_ONE, 0xF7 };
 
 QByteArray sysex_cmd((char*)goto_ble_bootloader, 1024);
 QByteArray sysex_file_buffer;
@@ -48,6 +47,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(midiWorker, SIGNAL(ui_UpdateError(void)),
             this, SLOT(updateError(void)));
+
+    connect(midiWorker, SIGNAL(ui_ConnectionError(void)),
+            this, SLOT(connectionError(void)));
     
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
@@ -91,6 +93,11 @@ void MainWindow::updateStatusLabel(QString text)
 void MainWindow::updateError(void)
 {
     QMessageBox::warning(0, QString("Error"), QString("Update error"), QMessageBox::Ok);
+}
+
+void MainWindow::connectionError(void)
+{
+    QMessageBox::warning(0, QString("Error"), QString("Connection error"), QMessageBox::Ok);
 }
 
 
@@ -145,6 +152,8 @@ void MainWindow::ConnectionCheck(void)
             if ((midi_out_list[i].contains(port_out_str) || (midi_out_list[i].contains(fw_update))) &&
                     midi_out_list[i].contains(oxi))
             {
+                midiWorker->port_out_string = "";
+
                 try {
                     midiWorker->midi_out.closePort();
                 }
@@ -192,7 +201,15 @@ void MainWindow::ConnectionCheck(void)
             if ((midi_in_list[i].contains(port_in_str) || (midi_in_list[i].contains(fw_update))) &&
                     midi_in_list[i].contains(oxi))
             {
-                midiWorker->midi_in.closePort();
+                midiWorker->port_in_string = "";
+
+                try {
+                    midiWorker->midi_in.closePort();
+                }
+                catch ( RtMidiError &error ) {
+                    error.printMessage();
+                    return;
+                }
                 
                 try {
                     midiWorker->midi_in.openPort(i);
@@ -285,16 +302,20 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        ui->process_status->setText("UPDATING");
         midiWorker->updated_device_ = midiWorker->OXI_ONE_UPDATE;
-        midiWorker->LoadFile();
+
+        midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
+                    this,
+                    tr("Select SYSEX"),
+                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                    tr("Sysex ( *.syx);All Files ( * )"));
+
+        qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
+        ui->process_status->setText("UPDATING");
+        qDebug() << "file selected" << Qt::endl;
 
-        midiWorker->raw_data.assign(&goto_oxi_bootloader[0], &goto_oxi_bootloader[sizeof(goto_oxi_bootloader)]);
-        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
-        // when receiving the ack from bootloader, the update should start
-        QThread::msleep(500);
         // launch worker
         if (!midiWorker->isRunning()) {
             midiWorker->start();
@@ -312,7 +333,11 @@ void MainWindow::on_exitBootloaderButton_clicked()
     if ( midiWorker->midi_out.isPortOpen()) {
         
         midiWorker->SendBootExit();
-        
+
+        if (midiWorker->isRunning()) {
+            midiWorker->terminate();
+            ui->progressBar->setValue(0);
+        }
     }
     else {
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
@@ -334,10 +359,7 @@ void MainWindow::on_stopButton_clicked()
 
 void MainWindow::on_sendProjectButton_clicked()
 {
-    
-    if ( midiWorker->midi_out.isPortOpen()) {
-        // TODO
-    }
+    midiWorker->SendProject();
 }
 
 void MainWindow::on_getProjectButton_clicked()
@@ -376,7 +398,8 @@ void MainWindow::on_deleteProjectButton_clicked()
     midiWorker->raw_data.push_back(midiWorker->project_index);
     midiWorker->raw_data.push_back(0);
     midiWorker->raw_data.push_back(0xF7);
-    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+
+    midiWorker->SendRaw();
 }
 
 
@@ -389,7 +412,8 @@ void MainWindow::on_deletePatternButton_clicked()
     midiWorker->raw_data.push_back(midiWorker->project_index);
     midiWorker->raw_data.push_back(midiWorker->seq_index * 16 + midiWorker->pattern_index);
     midiWorker->raw_data.push_back(0xF7);
-    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+
+    midiWorker->SendRaw();
 }
 
 void MainWindow::on_getCalibDataButton_clicked()
@@ -401,7 +425,8 @@ void MainWindow::on_getCalibDataButton_clicked()
     midiWorker->raw_data.push_back(0);
     midiWorker->raw_data.push_back(0);
     midiWorker->raw_data.push_back(0xF7);
-    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+
+    midiWorker->SendRaw();
     
     ui->midiProgressBar->setValue(0);
 }
@@ -432,7 +457,8 @@ void MainWindow::on_sendCalibDataButton_clicked()
     
     Nibblize(midiWorker->raw_data, (uint8_t*)sysex_file_buffer.data(), sysex_file_buffer.size());
     midiWorker->raw_data.push_back(0xF7);
-    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+
+     midiWorker->SendRaw();
     
     ui->midiProgressBar->setValue(0);
 }
@@ -446,7 +472,8 @@ void MainWindow::on_eraseMemButton_clicked()
     midiWorker->raw_data.push_back(MSG_SYSTEM_MEM_RESET);
     midiWorker->raw_data.push_back(MSG_SYSTEM_MEM_RESET);
     midiWorker->raw_data.push_back(0xF7);
-    midiWorker->midi_out.sendRawMessage(midiWorker->raw_data);
+
+    midiWorker->SendRaw();
     
     ui->midiProgressBar->setValue(0);
 }
