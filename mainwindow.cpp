@@ -107,16 +107,7 @@ void MainWindow::ConnectionCheck(void)
     QStringList midi_out_list =  midiWorker->midi_out.getPorts();
     QStringList midi_in_list =  midiWorker->midi_in.getPorts();
     QString oxi = QString("OXI");
-#if defined(__LINUX_ALSA__)
-    QString port_in_str = QString(":0");
-    QString port_out_str = QString(":0");
-#elif defined(__WINDOWS_MM__)
-    QString port_in_str = QString("0");
-    QString port_out_str = QString("1");
-#elif defined(__MACOSX_CORE__)
-    QString port_in_str = QString("1");
-    QString port_out_str = QString("1");
-#endif
+    QString one = QString("ONE");
     QString fw_update = QString("FW Update");
     
     bool found = false;
@@ -149,7 +140,7 @@ void MainWindow::ConnectionCheck(void)
     if ((!midiWorker->midi_out.isPortOpen()) || (found == false)) {
         for (int i = 0; i != midi_out_list.size(); ++i)
         {
-            if ((midi_out_list[i].contains(port_out_str) || (midi_out_list[i].contains(fw_update))) &&
+            if ((midi_out_list[i].contains(one) || (midi_out_list[i].contains(fw_update))) &&
                     midi_out_list[i].contains(oxi))
             {
                 midiWorker->port_out_string = "";
@@ -198,7 +189,7 @@ void MainWindow::ConnectionCheck(void)
     if ((!midiWorker->midi_in.isPortOpen()) || (!found)) {
         for (int i = 0; i != midi_in_list.size(); ++i)
         {
-            if ((midi_in_list[i].contains(port_in_str) || (midi_in_list[i].contains(fw_update))) &&
+            if ((midi_in_list[i].contains(one) || (midi_in_list[i].contains(fw_update))) &&
                     midi_in_list[i].contains(oxi))
             {
                 midiWorker->port_in_string = "";
