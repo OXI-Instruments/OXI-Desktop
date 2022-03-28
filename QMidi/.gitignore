@@ -1,0 +1,7 @@
+*build-*
+*.pro.user*
+*.DS_Store
+/scripts/
+/examples/
+/.travis.yml
+/LICENSE
