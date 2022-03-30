@@ -59,12 +59,12 @@ MainWindow::MainWindow(QWidget *parent)
     
     
     connect(connection_timer, SIGNAL(timeout()), this, SLOT(ConnectionCheck()));
-    
     connection_timer->start(500);
     
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
     
+    qDebug() << "Main window successfully created";
 }
 
 

@@ -2,13 +2,13 @@
 #define MIDIWORKER_H
 
 #include <QtWidgets>
+#include "oxi_core_global.h"
 #include "qmidiin.h"
 #include "qmidiout.h"
 #include "OXI_SYSEX_MSG.h"
 
 
-
-class MidiWorker : public QThread {
+class OXI_CORE_EXPORT MidiWorker : public QThread {
     Q_OBJECT
 
 public:

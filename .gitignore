@@ -1,53 +1,54 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
+# C++ objects and libs
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
+*.so
+*.so.*
+*.dll
+*.dylib
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Qt-es
+object_script.*.Release
+object_script.*.Debug
+*_plugin_import.cpp
+/.qmake.cache
+/.qmake.stash
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+Makefile*
+*build-*
+*.qm
+*.prl
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# Qt unit tests
+target_wrapper.*
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-/build/
+# QtCreator
+*.autosave
 
-# Web related
-lib/generated_plugin_registrant.dart
+# QtCreator Qml
+*.qmlproject.user
+*.qmlproject.user.*
 
-# Symbolication related
-app.*.symbols
+# QtCreator CMake
+CMakeLists.txt.user*
 
-# Obfuscation related
-app.*.map.json
+# QtCreator 4.8< compilation database
+compile_commands.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# QtCreator local machine specific files for imported projects
+*creator.user*
 
-#iOS specifics
-/ios/build/
-/Debug/
-/Release/
-/ReleaseQt16
-/DebugQt16
+*_qmlcache.qrc
