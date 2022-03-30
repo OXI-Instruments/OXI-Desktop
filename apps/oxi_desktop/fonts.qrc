@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/new/font">
+    <qresource prefix="/fonts">
         <file>Oswald.ttf</file>
     </qresource>
 </RCC>

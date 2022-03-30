@@ -2,7 +2,6 @@
 #include "MIDI.h"
 #include "string.h"
 #include <QDebug>
-#include <mainwindow.h>
 #include <Nibble.h>
 #include <crc32.h>
 

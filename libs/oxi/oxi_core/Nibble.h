@@ -1,9 +1,9 @@
 #ifndef NIBBLE_H
 #define NIBBLE_H
 
+#include <stdint.h>
+#include <vector>
 #pragma once
-
-#include <mainwindow.h>
 
 inline void DeNibblize(std::vector<uint8_t> &buf, std::vector<uint8_t> &data, int offset)
 {

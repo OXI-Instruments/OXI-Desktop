@@ -1,0 +1,9 @@
+[submodule "libs/googletest"]
+	path = libs/googletest
+	url = https://github.com/google/googletest.git
+[submodule "libs/QMidi"]
+	path = libs/QMidi
+	url = https://github.com/eberlid/QMidi.git
+[submodule "libs/rtmidi"]
+	path = libs/rtmidi
+	url = https://github.com/thestk/rtmidi.git

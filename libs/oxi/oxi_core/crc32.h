@@ -1,9 +1,9 @@
 #ifndef CRC32_H
 #define CRC32_H
 
-#pragma once
+#include <stdint.h>
 
-#include <mainwindow.h>
+#pragma once
 
 inline uint32_t crc32(uint32_t * data, int data_len)
 {
