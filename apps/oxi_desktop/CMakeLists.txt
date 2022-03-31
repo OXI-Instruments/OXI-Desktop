@@ -64,5 +64,5 @@ set_target_properties(oxi_desktop PROPERTIES
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(oxi_desktop)
+    qt6_finalize_target(oxi_desktop)
 endif()
