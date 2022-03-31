@@ -7,3 +7,7 @@ Development Environment
 -----------------------
 
 For **Windows 10** and **Ubuntu** the current development environment is **QtCreator 7.0.0** based on **Qt 6.2.x**.
+
+The following dependencies must be installed:
+- Ubuntu: `libjack-dev` and `libasound2-dev`
+- MacOs: ?
