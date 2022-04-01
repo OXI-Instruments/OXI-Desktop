@@ -22,10 +22,10 @@ void customMessageOutput(QtMsgType type, const QMessageLogContext &context, cons
         QTextStream ts(&outFile);
         ts << txt << Qt::endl;
         outFile.close();
-    } else {
-        fprintf(stderr, "%s %s %s (%s:%u, %s)\n", formattedTimeMsg.constData(), logLevelMsg.constData(), localMsg.constData(), context.file, context.line, context.function);
-        fflush(stderr);
     }
+
+    fprintf(stderr, "%s %s %s (%s:%u, %s)\n", formattedTimeMsg.constData(), logLevelMsg.constData(), localMsg.constData(), context.file, context.line, context.function);
+    fflush(stderr);
 
     if (type == QtFatalMsg)
         abort();
