@@ -160,6 +160,8 @@ bool OxiDiscovery::DiscoverInPort(){
             }
             qInfo() << "Port opened to " + inPorts[oxiInIdx];
             _in_idx = oxiInIdx;
+            // TODO     should also emit a signal to indicate that updates the UI.
+            //          But then both IN/OUT states may collide because they must not be the same.
         }
     }
 
