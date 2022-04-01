@@ -31,9 +31,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     
-    
-    midiWorker = new MidiWorker(this);
-    discovery = new OxiDiscovery(midiWorker);
+    discovery = new OxiDiscovery();
+    midiWorker = new MidiWorker(discovery, this);
+
     connection_timer = new QTimer(this);
     
     // connect signal/slot

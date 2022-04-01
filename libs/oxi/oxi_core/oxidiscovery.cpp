@@ -5,23 +5,29 @@ const QString OxiDiscovery::oxi = QString("OXI");
 const QString OxiDiscovery::one = QString("ONE");
 const QString OxiDiscovery::fw_update = QString("FW Update");
 
-OxiDiscovery::OxiDiscovery(MidiWorker *midiWorker)
+OxiDiscovery::OxiDiscovery()
 {
     _in_idx = -1;
     _out_idx = -1;
-    _midiWorker = midiWorker;
 }
 
 QStringList OxiDiscovery::GetOutPorts(){
-    return _midiWorker->midi_out.getPorts();
+    return _midi_out.getPorts();
 }
 
 QStringList OxiDiscovery::GetInPorts(){
-    return _midiWorker->midi_in.getPorts();
+    return _midi_in.getPorts();
+}
+
+bool OxiDiscovery::IsOxiFwUpdatePort(QStringList portNames, int index){
+    return IsOxiPort(portNames, index)
+            && portNames[index].contains(fw_update);
 }
 
 bool OxiDiscovery::IsOxiPort(QStringList portNames, int index){
-    return index < portNames.length() && IsOxiPort(portNames[index]);
+    return index >= 0
+            && index < portNames.length()
+            && IsOxiPort(portNames[index]);
 }
 
 bool OxiDiscovery::IsOxiPort(QString portName){
@@ -59,19 +65,21 @@ int OxiDiscovery::GetOxiInIndex(QStringList portNames)
 }
 
 QString OxiDiscovery::GetOxiOutDeviceName(int index){
-    return _midiWorker->midi_out.getPorts()[index];
+    return _midi_out.getPorts()[index];
 }
 
 QString OxiDiscovery::GetOxiInDeviceName(int index){
-    return _midiWorker->midi_in.getPorts()[index];
+    return _midi_in.getPorts()[index];
 }
 
 bool OxiDiscovery::IsInFwUpdate(){
-    return _midiWorker->port_in_string.contains(OxiDiscovery::fw_update);
+    QStringList inPorts = _midi_in.getPorts();
+    return IsOxiFwUpdatePort(inPorts, _in_idx);
 }
 
 bool OxiDiscovery::IsOutFwUpdate(){
-    return _midiWorker->port_out_string.contains(OxiDiscovery::fw_update);
+    QStringList inPorts = _midi_in.getPorts();
+    return IsOxiFwUpdatePort(inPorts, _in_idx);
 }
 
 void OxiDiscovery::Discover(std::function<void(QString)> uiCallback)
@@ -81,19 +89,18 @@ void OxiDiscovery::Discover(std::function<void(QString)> uiCallback)
 }
 
 void OxiDiscovery::DiscoverOutPort(std::function<void(QString)> uiCallback){
-    QStringList outPorts = _midiWorker->midi_out.getPorts();
+    QStringList outPorts = _midi_out.getPorts();
     if (_out_idx >= 0)
     {
         bool isOxiPort = IsOxiPort(outPorts, _out_idx);
-        bool isOpen = _midiWorker->midi_out.isPortOpen();
+        bool isOpen = _midi_out.isPortOpen();
 
         if (!isOxiPort || !isOpen){
             qDebug() << "MIDI OUT port index: " << _out_idx;
             qDebug() << "MIDI OUT ports: " << outPorts;
             qWarning() << "MIDI OUT port is not an OXI port and will be closed";
             _out_idx = -1;
-            _midiWorker->port_out_string = "";
-            _midiWorker->midi_out.closePort();
+            _midi_out.closePort();
             qInfo() << "The port has been closed";
         }
     }
@@ -101,30 +108,28 @@ void OxiDiscovery::DiscoverOutPort(std::function<void(QString)> uiCallback){
         uiCallback("CONNECT YOUR OXI ONE");
         int oxiOutIdx = GetOxiOutIndex(outPorts);
         if (oxiOutIdx >= 0){
-            qInfo() << "Discovered MIDI OUT port" + outPorts[oxiOutIdx] + " and will open";
-            _midiWorker->midi_out.openPort(oxiOutIdx);
+            qInfo() << "Discovered MIDI OUT port " + outPorts[oxiOutIdx] + " and will open";
+            _midi_out.openPort(oxiOutIdx);
             qInfo() << "Port opened to " + outPorts[oxiOutIdx];
             _out_idx = oxiOutIdx;
-            _midiWorker->port_out_string = outPorts[oxiOutIdx];
             uiCallback("OXI ONE CONNECTED");
         }
     }
 }
 
 void OxiDiscovery::DiscoverInPort(){
-    QStringList inPorts = _midiWorker->midi_in.getPorts();
+    QStringList inPorts = _midi_in.getPorts();
     if (_in_idx >= 0)
     {
         bool isOxiPort = IsOxiPort(inPorts, _in_idx);
-        bool isOpen = _midiWorker->midi_in.isPortOpen();
+        bool isOpen = _midi_in.isPortOpen();
 
         if (!isOxiPort || !isOpen){
             qDebug() << "MIDI IN port index: " << _in_idx;
             qDebug() << "MIDI IN ports: " << inPorts;
             qWarning() << "MIDI IN port is not an OXI port and will be closed";
             _in_idx = -1;
-            _midiWorker->port_in_string = "";
-            _midiWorker->midi_in.closePort();
+            _midi_in.closePort();
             qInfo() << "The port has been closed";
         }
     }
@@ -132,10 +137,9 @@ void OxiDiscovery::DiscoverInPort(){
         int oxiInIdx = GetOxiInIndex(inPorts);
         if (oxiInIdx >= 0){
             qInfo() << "Discovered MIDI IN port" + inPorts[oxiInIdx] + " and will open";
-            _midiWorker->midi_in.openPort(oxiInIdx);
+            _midi_in.openPort(oxiInIdx);
             qInfo() << "Port opened to " + inPorts[oxiInIdx];
             _in_idx = oxiInIdx;
-            _midiWorker->port_in_string = inPorts[oxiInIdx];
         }
     }
 }

@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <Nibble.h>
 #include <crc32.h>
+#include "oxidiscovery.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -14,13 +15,10 @@
 
 uint8_t seq_data_buffer[4096*2];
 
-
-
-
-
-MidiWorker::MidiWorker(QObject *parent, bool b) :
+MidiWorker::MidiWorker(OxiDiscovery *discovery, QObject *parent, bool b) :
     QThread(parent), Stop(b)
 {
+    _discovery = discovery;
     midi_in.setIgnoreTypes(false, true, true);
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
                      this, SLOT(onMidiReceive(QMidiMessage*))));
@@ -102,8 +100,8 @@ QString fw_update = QString("FW Update");
 
     while (((midi_out.isPortOpen() == false) ||
            (midi_in.isPortOpen() == false) ||
-           (port_out_string.contains(fw_update) == false) ||
-           (port_in_string.contains(fw_update) == false)) &&
+           (!_discovery->IsOutFwUpdate()) ||
+           (!_discovery->IsInFwUpdate())) &&
            (retries > 0))
     {
         QThread::msleep(500);
