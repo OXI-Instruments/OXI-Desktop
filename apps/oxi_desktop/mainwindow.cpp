@@ -163,10 +163,6 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
 
-        midiWorker->raw_data.assign(&goto_split_bootloader[0], &goto_split_bootloader[sizeof(goto_split_bootloader)]);
-        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
-
-        QThread::msleep(500);
         // launch worker
         if (!midiWorker->isRunning()) {
             midiWorker->start();
