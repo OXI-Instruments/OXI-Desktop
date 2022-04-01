@@ -203,6 +203,9 @@ void MainWindow::ConnectionCheck(void)
                 }
                 
                 try {
+                    // Messages across multiple buffers currently not implemented.
+                    // https://www.music.mcgill.ca/~gary/rtmidi/classRtMidiIn.html#a7bf07fe12fa6588db8e772f0fc56f70d
+                    midiWorker->midi_in.setBufferSize(20000, 1);
                     midiWorker->midi_in.openPort(i);
                 }
                 catch ( RtMidiError &error ) {
