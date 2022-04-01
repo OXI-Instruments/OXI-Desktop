@@ -19,13 +19,20 @@ add_library(oxi_core SHARED
   oxi_core_global.h
   midiworker.cpp
   midiworker.h
+  Nibble.h
+  delay.h
+  crc32.h
+  oxidiscovery.h
+  oxidiscovery.cpp
+  Parser.h
+  Project.cpp
+  Project.h
+  ProjectData.h
+  ProjectVersion.h
   OXI_SYSEX_MSG.h
   MIDI.h
-  Nibble.h
-  crc32.h
   SYSEX_APP.h
   SYSEX_PROJ.h
-  delay.h
 )
 
 target_include_directories(oxi_core PUBLIC ${PROJECT_SOURCE_DIR})

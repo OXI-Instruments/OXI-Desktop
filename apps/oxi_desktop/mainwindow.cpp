@@ -31,8 +31,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-
     midiWorker = new MidiWorker(this);
+    OxiDiscovery *discovery = midiWorker->GetDiscovery();
+
     connection_timer = new QTimer(this);
 
     // connect signal/slot
@@ -45,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(midiWorker, SIGNAL(ui_updateStatusLabel(QString)),
             this, SLOT(updateStatusLabel(QString)));
 
-    connect(midiWorker, SIGNAL(ui_UpdateConnectionLabel(QString)),
+    connect(discovery, SIGNAL(ui_UpdateConnectionLabel(QString)),
             this, SLOT(updateConnectionLabel(QString)));
 
     connect(midiWorker, SIGNAL(ui_UpdateError(void)),
@@ -57,8 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
 
-
-    connect(connection_timer, SIGNAL(timeout()), midiWorker, SLOT(WorkerRefreshDevices()));
+    connect(connection_timer, SIGNAL(timeout()), discovery, SLOT(Discover()));
 
     connection_timer->start(500);
 
@@ -67,13 +67,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
-
-
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
+void MainWindow::updateUiStatus(QString statusMessage){
+    ui->connection_status_label->setText(statusMessage);
+}
 
 void MainWindow::updateProgressBar(int value)
 {
@@ -104,15 +105,6 @@ void MainWindow::connectionError(void)
 {
     QMessageBox::warning(0, QString("Error"), QString("Connection error"), QMessageBox::Ok);
 }
-
-
-#if 0
-void MainWindow::ConnectionCheck(void)
-{
-
-
-}
-#endif
 
 // BLE
 void MainWindow::on_gotoBLEBootloaderButton_clicked()
@@ -258,7 +250,6 @@ void MainWindow::on_sendProjectButton_clicked()
     else {
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
     }
-
 }
 
 void MainWindow::on_getProjectButton_clicked()

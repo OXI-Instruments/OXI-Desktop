@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "oxidiscovery.h"
 #include <QMainWindow>
 #include "midiworker.h"
 
@@ -16,6 +17,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     MidiWorker *midiWorker;
+    OxiDiscovery *discovery;
     QTimer *connection_timer;
 
 //    QMidiIn midi_in;
@@ -68,5 +70,6 @@ signals:
 private:
 //public:
     Ui::MainWindow *ui;
+    void updateUiStatus(QString statusMessage);
 };
 #endif // MAINWINDOW_H

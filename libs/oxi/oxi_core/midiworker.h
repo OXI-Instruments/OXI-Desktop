@@ -6,15 +6,17 @@
 #include "qmidiin.h"
 #include "qmidiout.h"
 #include "OXI_SYSEX_MSG.h"
+#include "oxidiscovery.h"
+#include "Project.h"
 
 #include "Project.h"
 
 
-class MidiWorker : public QThread {
+class OXI_CORE_EXPORT MidiWorker : public QThread {
     Q_OBJECT
 
 public:
-    explicit MidiWorker(QObject *parent = 0, bool b = false) ;
+    explicit MidiWorker(QObject *parent = 0, bool b = false);
     void run();
 
     // if Stop = true, the thread will break
@@ -29,13 +31,7 @@ public:
     QString oxi_path_;
     QString project_path_;
     QString projects_path_;
-
     QString project_file_;
-
-    QString port_in_string;
-    QString port_out_string;
-    int port_out_index;
-    int port_in_index;
 
     typedef enum  {
         OXI_ONE_UPDATE, OXI_ONE_BLE_UPDATE, OXI_SPLIT_UPDATE,
@@ -47,9 +43,10 @@ public:
     uint8_t seq_index = 0;
     uint8_t pattern_index = 0;
 
+    OxiDiscovery *GetDiscovery();
+
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
-    void WorkerRefreshDevices(void);
     void onMidiReceive(QMidiMessage*);
     void LoadFile(void);
 
@@ -73,9 +70,7 @@ signals:
     void ui_UpdateError(void);
     void ui_ConnectionError(void);
     void ui_UpdateMidiProgressBar(int);
-    void ui_UpdateConnectionLabel(QString);
     void ui_updateStatusLabel(QString);
-    void ui_updateConnectionLabel(QString);
     void finished();
     void error(QString err);
 
@@ -84,6 +79,7 @@ private:
     int sysex_ack_ = 0;
     QFile file;
     Project project_;
+    OxiDiscovery* _discovery;
 };
 
 
