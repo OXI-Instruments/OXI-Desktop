@@ -46,6 +46,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(midiWorker, SIGNAL(ui_updateStatusLabel(QString)),
             this, SLOT(updateStatusLabel(QString)));
 
+    connect(discovery, SIGNAL(ui_UpdateConnectionLabel(QString)),
+            this, SLOT(updateConnectionLabel(QString)));
+
     connect(midiWorker, SIGNAL(ui_UpdateError(void)),
             this, SLOT(updateError(void)));
 
@@ -76,8 +79,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::ConnectionCheck(){
-    using namespace std::placeholders;
-    discovery->Discover(std::bind(&MainWindow::updateUiStatus, this, _1));
+    discovery->Discover();
 }
 
 void MainWindow::updateUiStatus(QString statusMessage){
@@ -97,6 +99,11 @@ void MainWindow::updateMidiProgressBar(int value)
 void MainWindow::updateStatusLabel(QString text)
 {
     ui->process_status->setText(text);
+}
+
+void MainWindow::updateConnectionLabel(QString text)
+{
+    ui->connection_status_label->setText(text);
 }
 
 void MainWindow::updateError(void)
