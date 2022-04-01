@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <OxiDiscovery.h>
+#include "oxidiscovery.h"
 #include <QMainWindow>
 #include "midiworker.h"
 
