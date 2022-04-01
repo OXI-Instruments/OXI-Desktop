@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     
     
     midiWorker = new MidiWorker(this);
+    discovery = new OxiDiscovery(midiWorker);
     connection_timer = new QTimer(this);
     
     // connect signal/slot
@@ -58,9 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
             midiWorker, SLOT(WorkerRefreshDevices(void)));
     
     
-    connect(connection_timer, SIGNAL(timeout()), this, SLOT(ConnectionCheck()));
+    connect(connection_timer, SIGNAL(timeout()), this, SLOT(ConnectionCheck(void)));
     connection_timer->start(500);
-    
+
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
     
@@ -74,6 +75,14 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::ConnectionCheck(){
+    using namespace std::placeholders;
+    discovery->Discover(std::bind(&MainWindow::updateUiStatus, this, _1));
+}
+
+void MainWindow::updateUiStatus(QString statusMessage){
+    ui->connection_status_label->setText(statusMessage);
+}
 
 void MainWindow::updateProgressBar(int value)
 {
@@ -98,127 +107,6 @@ void MainWindow::updateError(void)
 void MainWindow::connectionError(void)
 {
     QMessageBox::warning(0, QString("Error"), QString("Connection error"), QMessageBox::Ok);
-}
-
-
-
-void MainWindow::ConnectionCheck(void)
-{
-    QStringList midi_out_list =  midiWorker->midi_out.getPorts();
-    QStringList midi_in_list =  midiWorker->midi_in.getPorts();
-    QString oxi = QString("OXI");
-    QString one = QString("ONE");
-    QString fw_update = QString("FW Update");
-    
-    bool found = false;
-    // Port already open, check changes in ports
-    if (midiWorker->midi_out.isPortOpen()) {
-        for (int i = 0; i != midi_out_list.size(); ++i)
-        {
-            if (midiWorker->port_out_string == midi_out_list[i]) {
-                found = true;
-                break;
-            }
-        }
-    }
-    
-    if (!found && midiWorker->port_out_string != "")
-    {
-        midiWorker->port_out_string = "";
-        ui->connection_status_label->setText("CONNECT YOUR OXI ONE");
-
-        try {
-            midiWorker->midi_out.closePort();
-        }
-        catch ( RtMidiError &error ) {
-            error.printMessage();
-            return;
-        }
-    }
-    
-    // Port not open or has changed
-    if ((!midiWorker->midi_out.isPortOpen()) || (found == false)) {
-        for (int i = 0; i != midi_out_list.size(); ++i)
-        {
-            if ((midi_out_list[i].contains(one) || (midi_out_list[i].contains(fw_update))) &&
-                    midi_out_list[i].contains(oxi))
-            {
-                midiWorker->port_out_string = "";
-
-                try {
-                    midiWorker->midi_out.closePort();
-                }
-                catch ( RtMidiError &error ) {
-                    error.printMessage();
-                    return;
-                }
-                
-                try {
-                    midiWorker->midi_out.openPort(i);
-                }
-                catch ( RtMidiError &error ) {
-                    error.printMessage();
-                    return;
-                }
-                
-                midiWorker->port_out_string = midi_out_list[i];
-                ui->connection_status_label->setText("OXI ONE CONNECTED");
-                
-                qDebug() << "Connected to " <<  midi_out_list[i] << Qt::endl;
-                break;
-            }
-        }
-    }
-    
-    
-    found = false;
-    // Port already open, check changes in ports
-    if (midiWorker->midi_in.isPortOpen()) {
-        for (int i = 0; i != midi_in_list.size(); ++i)
-        {
-            if (midiWorker->port_in_string == midi_in_list[i]) {
-                found = true;
-                break;
-            }
-        }
-    }
-    
-    if (!found && midiWorker->port_in_string != "") midiWorker->port_in_string = "";
-    
-    // Port not open or has changed
-    if ((!midiWorker->midi_in.isPortOpen()) || (!found)) {
-        for (int i = 0; i != midi_in_list.size(); ++i)
-        {
-            if ((midi_in_list[i].contains(one) || (midi_in_list[i].contains(fw_update))) &&
-                    midi_in_list[i].contains(oxi))
-            {
-                midiWorker->port_in_string = "";
-
-                try {
-                    midiWorker->midi_in.closePort();
-                }
-                catch ( RtMidiError &error ) {
-                    error.printMessage();
-                    return;
-                }
-                
-                try {
-                    midiWorker->midi_in.openPort(i);
-                }
-                catch ( RtMidiError &error ) {
-                    error.printMessage();
-                    return;
-                }
-                
-                
-                midiWorker->port_in_string = midi_in_list[i];
-                
-                qDebug() << "Connected to " <<  midi_in_list[i] << Qt::endl;
-                break;
-            }
-        }
-    }
-    
 }
 
 // BLE
