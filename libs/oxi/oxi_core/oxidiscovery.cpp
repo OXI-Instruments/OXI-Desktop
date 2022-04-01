@@ -82,13 +82,13 @@ bool OxiDiscovery::IsOutFwUpdate(){
     return IsOxiFwUpdatePort(inPorts, _in_idx);
 }
 
-void OxiDiscovery::Discover(std::function<void(QString)> uiCallback)
+void OxiDiscovery::Discover()
 {
-    DiscoverOutPort(uiCallback);
+    DiscoverOutPort();
     DiscoverInPort();
 }
 
-void OxiDiscovery::DiscoverOutPort(std::function<void(QString)> uiCallback){
+void OxiDiscovery::DiscoverOutPort(){
     QStringList outPorts = _midi_out.getPorts();
     if (_out_idx >= 0)
     {
@@ -105,14 +105,14 @@ void OxiDiscovery::DiscoverOutPort(std::function<void(QString)> uiCallback){
         }
     }
     else {
-        uiCallback("CONNECT YOUR OXI ONE");
+        emit ui_UpdateConnectionLabel("CONNECT YOUR OXI ONE");
         int oxiOutIdx = GetOxiOutIndex(outPorts);
         if (oxiOutIdx >= 0){
             qInfo() << "Discovered MIDI OUT port " + outPorts[oxiOutIdx] + " and will open";
             _midi_out.openPort(oxiOutIdx);
             qInfo() << "Port opened to " + outPorts[oxiOutIdx];
             _out_idx = oxiOutIdx;
-            uiCallback("OXI ONE CONNECTED");
+            emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
         }
     }
 }

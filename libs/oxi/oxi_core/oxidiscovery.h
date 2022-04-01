@@ -6,8 +6,8 @@
 #include "qmidiin.h"
 #include "qmidiout.h"
 
-class OXI_CORE_EXPORT OxiDiscovery
-{
+class OXI_CORE_EXPORT OxiDiscovery : public QObject {
+    Q_OBJECT
 private:
     const static QString oxi;
     const static QString one;
@@ -21,13 +21,12 @@ private:
     bool IsOxiPort(QString portName);
     bool IsOxiPort(QStringList portNames, int index);
     bool IsOxiFwUpdatePort(QStringList portNames, int index);
-    void DiscoverOutPort(std::function<void (QString)> uiCallback);
+    void DiscoverOutPort();
     void DiscoverInPort();
 
 public:
-    OxiDiscovery();
+    explicit OxiDiscovery();
 
-    void Discover(std::function<void (QString)> uiCallback);
     int GetOxiOutIndex(QStringList portNames);
     int GetOxiInIndex(QStringList portNames);
     QString GetOxiInDeviceName(int index);
@@ -36,6 +35,12 @@ public:
     bool IsOutFwUpdate();
     QStringList GetOutPorts();
     QStringList GetInPorts();
+
+signals:
+    void ui_UpdateConnectionLabel(QString);
+
+public slots:
+    void Discover(void);
 };
 
 #endif // OXIDISCOVERY_H

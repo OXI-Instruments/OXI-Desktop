@@ -29,6 +29,7 @@ private slots:
     void updateProgressBar(int value);
     void updateMidiProgressBar(int value);
     void updateStatusLabel(QString text);
+    void updateConnectionLabel(QString text);
     void updateError(void);
     void connectionError(void);
 
@@ -61,11 +62,9 @@ private slots:
     void on_sendCalibDataButton_clicked();
 
     void on_eraseMemButton_clicked();
-    void ConnectionCheck();
 
 signals:
     void updateWorkerDelayTime(int);
-    void WorkerRefreshDevices(void);
     void WorkerUpdateFile(QString);
 
 private:

@@ -30,54 +30,46 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    
+
     discovery = new OxiDiscovery();
     midiWorker = new MidiWorker(discovery, this);
 
     connection_timer = new QTimer(this);
-    
+
     // connect signal/slot
     connect(midiWorker, SIGNAL(ui_UpdateProgressBar(int)),
             this, SLOT(updateProgressBar(int)));
-    
+
     connect(midiWorker, SIGNAL(ui_UpdateMidiProgressBar(int)),
             this, SLOT(updateMidiProgressBar(int)));
-    
+
     connect(midiWorker, SIGNAL(ui_updateStatusLabel(QString)),
             this, SLOT(updateStatusLabel(QString)));
+
+    connect(discovery, SIGNAL(ui_UpdateConnectionLabel(QString)),
+            this, SLOT(updateConnectionLabel(QString)));
 
     connect(midiWorker, SIGNAL(ui_UpdateError(void)),
             this, SLOT(updateError(void)));
 
     connect(midiWorker, SIGNAL(ui_ConnectionError(void)),
             this, SLOT(connectionError(void)));
-    
+
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
-    
-    connect(this, SIGNAL(WorkerRefreshDevices(void)),
-            midiWorker, SLOT(WorkerRefreshDevices(void)));
-    
-    
-    connect(connection_timer, SIGNAL(timeout()), this, SLOT(ConnectionCheck(void)));
+
+    connect(connection_timer, SIGNAL(timeout()), discovery, SLOT(Discover()));
+
     connection_timer->start(500);
 
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
-    
-    qDebug() << "Main window successfully created";
+
 }
-
-
 
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::ConnectionCheck(){
-    using namespace std::placeholders;
-    discovery->Discover(std::bind(&MainWindow::updateUiStatus, this, _1));
 }
 
 void MainWindow::updateUiStatus(QString statusMessage){
@@ -97,6 +89,11 @@ void MainWindow::updateMidiProgressBar(int value)
 void MainWindow::updateStatusLabel(QString text)
 {
     ui->process_status->setText(text);
+}
+
+void MainWindow::updateConnectionLabel(QString text)
+{
+    ui->connection_status_label->setText(text);
 }
 
 void MainWindow::updateError(void)
@@ -125,10 +122,6 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
 
-        midiWorker->raw_data.assign(&goto_ble_bootloader[0], &goto_ble_bootloader[sizeof(goto_ble_bootloader)]);
-        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
-
-        QThread::msleep(500);
         // launch worker
         if (!midiWorker->isRunning()) {
             midiWorker->start();
@@ -156,10 +149,6 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
 
-        midiWorker->raw_data.assign(&goto_split_bootloader[0], &goto_split_bootloader[sizeof(goto_split_bootloader)]);
-        midiWorker->midi_out.sendRawMessage( midiWorker->raw_data);
-
-        QThread::msleep(500);
         // launch worker
         if (!midiWorker->isRunning()) {
             midiWorker->start();
@@ -210,7 +199,7 @@ void MainWindow::on_exitBootloaderButton_clicked()
 {
 #if 1
     if ( midiWorker->midi_out.isPortOpen()) {
-        
+
         midiWorker->SendBootExit();
 
         if (midiWorker->isRunning()) {
@@ -238,11 +227,33 @@ void MainWindow::on_stopButton_clicked()
 
 void MainWindow::on_sendProjectButton_clicked()
 {
-    midiWorker->SendProject();
+    if ( midiWorker->midi_out.isPortOpen())
+    {
+        if (midiWorker->isRunning()) {
+            midiWorker->terminate();
+        }
+
+        midiWorker->project_file_ =  QFileDialog::getOpenFileName(
+                    this,
+                    tr("Select project FILE"),
+                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                    tr("Sysex ( *.bin);All Files ( * )"));
+
+
+        qDebug() << midiWorker->project_file_ << Qt::endl;
+        if (midiWorker->project_file_ == "" ) return;
+        ui->process_status->setText("SENDING");
+
+        // launch worker
+        midiWorker->SendProject();
+    }
+    else {
+        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
+    }
 }
 
 void MainWindow::on_getProjectButton_clicked()
-{ 
+{
     midiWorker->GetProject();
 }
 
@@ -306,7 +317,7 @@ void MainWindow::on_getCalibDataButton_clicked()
     midiWorker->raw_data.push_back(0xF7);
 
     midiWorker->SendRaw();
-    
+
     ui->midiProgressBar->setValue(0);
 }
 
@@ -317,28 +328,28 @@ void MainWindow::on_sendCalibDataButton_clicked()
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);
     midiWorker->raw_data.push_back(MSG_SYSTEM_SEND_CALIB_DATA);
-    
+
     ui->process_status->setText("");
-    
+
     QString calib_data_file = QFileDialog::getOpenFileName(
                 this,
                 tr("Select CALIBRATION FILE"),
-                tr("/Users/ManuelVr/Desktop"),
+                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
                 tr("Sysex ( *.bin);All Files ( * )"));
-    
+
     QFile calib_file;
     calib_file.setFileName(calib_data_file);
     if (!calib_file.open(QIODevice::ReadOnly))
         return;
-    
+
     QByteArray sysex_file_buffer = calib_file.readAll();
-    
-    
+
+
     Nibblize(midiWorker->raw_data, (uint8_t*)sysex_file_buffer.data(), sysex_file_buffer.size());
     midiWorker->raw_data.push_back(0xF7);
 
      midiWorker->SendRaw();
-    
+
     ui->midiProgressBar->setValue(0);
 }
 
@@ -353,7 +364,7 @@ void MainWindow::on_eraseMemButton_clicked()
     midiWorker->raw_data.push_back(0xF7);
 
     midiWorker->SendRaw();
-    
+
     ui->midiProgressBar->setValue(0);
 }
 

@@ -48,6 +48,7 @@ typedef struct {
     int8_t shape; // def: 0
     int8_t amount; // def: -1 == 0xFF
     uint8_t dest; // def: 0
+    int8_t offset;
     // uint8_t align; ?¿?¿?
 //	int8_t retrigger_mode;
 } SEQ_Lfo_s;
@@ -265,8 +266,12 @@ typedef struct
 } CV_assign_s;
 
 // PROJ
+#pragma pack(push,1)
 typedef struct {
-    uint16_t length;
+//	uint16_t length;
+//    char proj_version;
+//    char proj_version2;
+    uint16_t proj_version;
     char proj_name[PROJ_NAME_LEN];
     uint8_t proj_num;
     uint8_t byte_align;
@@ -277,9 +282,11 @@ typedef struct {
     CV_assign_s cv_assign;
     uint8_t loaded_preset[4];
     uint8_t active_seq[4];
-    uint8_t dummy_align_data[21];
+    uint8_t arr_launch_master;
+    uint8_t dummy_align_data[20];
     uint32_t crc_check;
 } PROJ_buffer_s;
+#pragma pack(pop)
 
 
 
