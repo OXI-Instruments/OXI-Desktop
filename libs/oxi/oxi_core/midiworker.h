@@ -9,6 +9,8 @@
 #include "oxidiscovery.h"
 #include "Project.h"
 
+#include "Project.h"
+
 
 class OXI_CORE_EXPORT MidiWorker : public QThread {
     Q_OBJECT

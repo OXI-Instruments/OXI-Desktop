@@ -27,7 +27,6 @@ private:
 public:
     explicit OxiDiscovery();
 
-    void Discover();
     int GetOxiOutIndex(QStringList portNames);
     int GetOxiInIndex(QStringList portNames);
     QString GetOxiInDeviceName(int index);
@@ -39,6 +38,9 @@ public:
 
 signals:
     void ui_UpdateConnectionLabel(QString);
+
+public slots:
+    void Discover(void);
 };
 
 #endif // OXIDISCOVERY_H
