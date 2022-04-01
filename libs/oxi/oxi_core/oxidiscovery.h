@@ -13,8 +13,8 @@ private:
     const static QString one;
     const static QString fw_update;
 
-    QMidiIn _midi_in;
-    QMidiOut _midi_out;
+    QMidiIn* _midi_in;
+    QMidiOut* _midi_out;
     int _in_idx;
     int _out_idx;
 
@@ -25,7 +25,7 @@ private:
     void DiscoverInPort();
 
 public:
-    explicit OxiDiscovery();
+    explicit OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut);
 
     int GetOxiOutIndex(QStringList portNames);
     int GetOxiInIndex(QStringList portNames);

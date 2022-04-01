@@ -16,7 +16,7 @@ class OXI_CORE_EXPORT MidiWorker : public QThread {
     Q_OBJECT
 
 public:
-    explicit MidiWorker(OxiDiscovery *discovery, QObject *parent = 0, bool b = false);
+    explicit MidiWorker(QObject *parent = 0, bool b = false);
     void run();
 
     // if Stop = true, the thread will break
@@ -42,6 +42,8 @@ public:
     uint8_t project_index = 0;
     uint8_t seq_index = 0;
     uint8_t pattern_index = 0;
+
+    OxiDiscovery *GetDiscovery();
 
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
@@ -77,7 +79,7 @@ private:
     int sysex_ack_ = 0;
     QFile file;
     Project project_;
-    OxiDiscovery *_discovery;
+    OxiDiscovery* _discovery;
 };
 
 

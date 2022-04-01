@@ -15,10 +15,10 @@
 
 uint8_t seq_data_buffer[4096*2];
 
-MidiWorker::MidiWorker(OxiDiscovery *discovery, QObject *parent, bool b) :
+MidiWorker::MidiWorker(QObject *parent, bool b) :
     QThread(parent), Stop(b)
 {
-    _discovery = discovery;
+    _discovery = new OxiDiscovery(&midi_in, &midi_out);
     midi_in.setIgnoreTypes(false, true, true);
     midi_in_2.setIgnoreTypes(false, true, true);
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
@@ -44,6 +44,10 @@ MidiWorker::MidiWorker(OxiDiscovery *discovery, QObject *parent, bool b) :
 
         system_dir.mkdir(projects_path_);
     }
+}
+
+OxiDiscovery* MidiWorker::GetDiscovery(){
+    return _discovery;
 }
 
 void MidiWorker::SendRaw(void)

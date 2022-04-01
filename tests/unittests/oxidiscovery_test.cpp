@@ -6,7 +6,9 @@ using namespace testing;
 
 TEST(OxiDiscovery, oxiOutIndexTest)
 {
-    OxiDiscovery discovery = OxiDiscovery();
+    QMidiIn midi_in;
+    QMidiOut midi_out;
+    OxiDiscovery discovery = OxiDiscovery(&midi_in, &midi_out);
     int outIndex = discovery.GetOxiOutIndex(discovery.GetOutPorts());
     QString outDevName = discovery.GetOxiOutDeviceName(outIndex);
     qDebug() << "OUT Port Index: " << outIndex;
@@ -16,7 +18,9 @@ TEST(OxiDiscovery, oxiOutIndexTest)
 
 TEST(OxiDiscovery, oxiInIndexTest)
 {
-    OxiDiscovery discovery = OxiDiscovery();
+    QMidiIn midi_in;
+    QMidiOut midi_out;
+    OxiDiscovery discovery = OxiDiscovery(&midi_in, &midi_out);
     int inIndex = discovery.GetOxiInIndex(discovery.GetInPorts());
     QString inDevName = discovery.GetOxiInDeviceName(inIndex);
     qDebug() << "IN Port Index: " << inIndex;
