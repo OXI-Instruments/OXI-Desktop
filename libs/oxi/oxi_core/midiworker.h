@@ -13,7 +13,7 @@ class OXI_CORE_EXPORT MidiWorker : public QThread {
     Q_OBJECT
 
 public:
-    explicit MidiWorker(OxiDiscovery *discovery, QObject *parent = 0, bool b = false) ;
+    explicit MidiWorker(OxiDiscovery *discovery, QObject *parent = 0, bool b = false);
     void run();
 
     // if Stop = true, the thread will break
