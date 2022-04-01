@@ -7,6 +7,7 @@
 #include "qmidiout.h"
 #include "OXI_SYSEX_MSG.h"
 #include "oxidiscovery.h"
+#include "Project.h"
 
 
 class OXI_CORE_EXPORT MidiWorker : public QThread {
@@ -21,12 +22,14 @@ public:
     bool Stop;
 
     QMidiIn midi_in;
+    QMidiIn midi_in_2;
     QMidiOut midi_out;
     std::vector<unsigned char> raw_data;
     QString update_file_name_;
     QString oxi_path_;
     QString project_path_;
     QString projects_path_;
+    QString project_file_;
 
     typedef enum  {
         OXI_ONE_UPDATE, OXI_ONE_BLE_UPDATE, OXI_SPLIT_UPDATE,
@@ -45,6 +48,7 @@ public slots:
     void LoadFile(void);
 
     void SendRaw(void);
+    void SendACK(void);
 
 
     void SendBootExit(void);
@@ -71,6 +75,7 @@ private:
     int delay_time = 100;
     int sysex_ack_ = 0;
     QFile file;
+    Project project_;
     OxiDiscovery *_discovery;
 };
 
