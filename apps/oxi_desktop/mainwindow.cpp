@@ -241,7 +241,29 @@ void MainWindow::on_stopButton_clicked()
 
 void MainWindow::on_sendProjectButton_clicked()
 {
-    midiWorker->SendProject();
+    if ( midiWorker->midi_out.isPortOpen())
+    {
+        if (midiWorker->isRunning()) {
+            midiWorker->terminate();
+        }
+
+        midiWorker->project_file_ =  QFileDialog::getOpenFileName(
+                    this,
+                    tr("Select project FILE"),
+                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                    tr("Sysex ( *.bin);All Files ( * )"));
+
+
+        qDebug() << midiWorker->project_file_ << Qt::endl;
+        if (midiWorker->project_file_ == "" ) return;
+        ui->process_status->setText("SENDING");
+
+        // launch worker
+        midiWorker->SendProject();
+    }
+    else {
+        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
+    }
 }
 
 void MainWindow::on_getProjectButton_clicked()
