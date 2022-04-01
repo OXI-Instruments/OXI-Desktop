@@ -9,7 +9,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(ENV{GOOGLETEST_DIR} "C:/work/OXI/Oxi-Dev/libs/googletest/")
+set(ENV{GOOGLETEST_DIR} "${CMAKE_SOURCE_DIR}/libs/googletest/")
 
 option(BUILD_TESTS "Build unit tests." ON)
 
@@ -17,3 +17,4 @@ add_subdirectory(libs/rtmidi)
 add_subdirectory(libs/QMidi)
 add_subdirectory(libs/oxi/oxi_core)
 add_subdirectory(apps/oxi_desktop)
+add_subdirectory(tests/unittests)
