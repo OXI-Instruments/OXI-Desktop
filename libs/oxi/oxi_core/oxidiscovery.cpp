@@ -137,6 +137,9 @@ void OxiDiscovery::DiscoverInPort(){
         int oxiInIdx = GetOxiInIndex(inPorts);
         if (oxiInIdx >= 0){
             qInfo() << "Discovered MIDI IN port" + inPorts[oxiInIdx] + " and will open";
+            // Messages across multiple buffers currently not implemented.
+            // https://www.music.mcgill.ca/~gary/rtmidi/classRtMidiIn.html#a7bf07fe12fa6588db8e772f0fc56f70d
+            _midi_in.setBufferSize(20000, 1);
             _midi_in.openPort(oxiInIdx);
             qInfo() << "Port opened to " + inPorts[oxiInIdx];
             _in_idx = oxiInIdx;
