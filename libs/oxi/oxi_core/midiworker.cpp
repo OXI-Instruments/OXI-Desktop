@@ -290,18 +290,6 @@ EXIT:
 //    this->terminate();
 }
 
-void MidiWorker::WorkerRefreshDevices(void)
-{
-    //        QList<QString> midi_list = midi_out.devices().values();
-
-    //        ui->comboBox->clear();
-
-    //        for (int i = 0; i != midi_out.devices().size(); ++i)
-    //        {
-    //            ui->comboBox->addItem(midi_list[i], i);
-    //        }
-}
-
 void MidiWorker::SendProject(void)
 {
 //    raw_data.clear();

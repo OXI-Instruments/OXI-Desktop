@@ -43,7 +43,6 @@ public:
 
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
-    void WorkerRefreshDevices(void);
     void onMidiReceive(QMidiMessage*);
     void LoadFile(void);
 
