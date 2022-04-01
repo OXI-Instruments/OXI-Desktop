@@ -31,8 +31,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    discovery = new OxiDiscovery();
-    midiWorker = new MidiWorker(discovery, this);
+    midiWorker = new MidiWorker(this);
+    OxiDiscovery *discovery = midiWorker->GetDiscovery();
 
     connection_timer = new QTimer(this);
 
