@@ -86,11 +86,12 @@ bool OxiDiscovery::IsOutFwUpdate(){
 
 void OxiDiscovery::Discover()
 {
-    DiscoverOutPort();
-    DiscoverInPort();
+    if(DiscoverOutPort() || DiscoverInPort()){
+		emit ui_PortAlreadyInUse();
+    }
 }
 
-void OxiDiscovery::DiscoverOutPort(){
+bool OxiDiscovery::DiscoverOutPort(){
     QStringList outPorts = _midi_out->getPorts();
     if (_out_idx >= 0)
     {
@@ -111,15 +112,23 @@ void OxiDiscovery::DiscoverOutPort(){
         int oxiOutIdx = GetOxiOutIndex(outPorts);
         if (oxiOutIdx >= 0){
             qInfo() << "Discovered MIDI OUT port " + outPorts[oxiOutIdx] + " and will open";
-            _midi_out->openPort(oxiOutIdx);
+            try{
+                _midi_out->openPort(oxiOutIdx);
+            }
+            catch ( RtMidiError &error ) {
+                qWarning() << &error.getMessage();
+                return true;
+            }
             qInfo() << "Port opened to " + outPorts[oxiOutIdx];
             _out_idx = oxiOutIdx;
             emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
         }
     }
+
+    return false;
 }
 
-void OxiDiscovery::DiscoverInPort(){
+bool OxiDiscovery::DiscoverInPort(){
     QStringList inPorts = _midi_in->getPorts();
     if (_in_idx >= 0)
     {
@@ -139,12 +148,20 @@ void OxiDiscovery::DiscoverInPort(){
         int oxiInIdx = GetOxiInIndex(inPorts);
         if (oxiInIdx >= 0){
             qInfo() << "Discovered MIDI IN port" + inPorts[oxiInIdx] + " and will open";
-            // Messages across multiple buffers currently not implemented.
-            // https://www.music.mcgill.ca/~gary/rtmidi/classRtMidiIn.html#a7bf07fe12fa6588db8e772f0fc56f70d
-            _midi_in->setBufferSize(20000, 1);
-            _midi_in->openPort(oxiInIdx);
+            try{
+                // Messages across multiple buffers currently not implemented.
+                // https://www.music.mcgill.ca/~gary/rtmidi/classRtMidiIn.html#a7bf07fe12fa6588db8e772f0fc56f70d
+                _midi_in->setBufferSize(20000, 1);
+                _midi_in->openPort(oxiInIdx);
+            }
+            catch ( RtMidiError &error ) {
+                qWarning() << &error.getMessage();
+                return true;
+            }
             qInfo() << "Port opened to " + inPorts[oxiInIdx];
             _in_idx = oxiInIdx;
         }
     }
+
+    return false;
 }

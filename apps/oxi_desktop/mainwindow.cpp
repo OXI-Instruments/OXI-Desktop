@@ -49,6 +49,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(discovery, SIGNAL(ui_UpdateConnectionLabel(QString)),
             this, SLOT(updateConnectionLabel(QString)));
 
+    connect(discovery, SIGNAL(ui_PortAlreadyInUse(void)),
+            this, SLOT(uiPortAlreadyInUse()));
+
     connect(midiWorker, SIGNAL(ui_UpdateError(void)),
             this, SLOT(updateError(void)));
 
@@ -70,6 +73,12 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::uiPortAlreadyInUse(){
+    connection_timer->stop();
+    QMessageBox::information(this, tr("Port Already in Use"),
+    tr("Another process is already using the MIDI port.\n\nPlease ensure the port is not in use and restart OXI Desktop."));
 }
 
 void MainWindow::updateUiStatus(QString statusMessage){

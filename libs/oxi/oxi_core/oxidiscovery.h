@@ -21,8 +21,8 @@ private:
     bool IsOxiPort(QString portName);
     bool IsOxiPort(QStringList portNames, int index);
     bool IsOxiFwUpdatePort(QStringList portNames, int index);
-    void DiscoverOutPort();
-    void DiscoverInPort();
+    bool DiscoverOutPort();
+    bool DiscoverInPort();
 
 public:
     explicit OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut);
@@ -38,6 +38,7 @@ public:
 
 signals:
     void ui_UpdateConnectionLabel(QString);
+    void ui_PortAlreadyInUse(void);
 
 public slots:
     void Discover(void);

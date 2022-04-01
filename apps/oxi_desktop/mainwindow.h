@@ -32,6 +32,7 @@ private slots:
     void updateConnectionLabel(QString text);
     void updateError(void);
     void connectionError(void);
+    void uiPortAlreadyInUse(void);
 
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoSPLITBootloaderButton_clicked();
