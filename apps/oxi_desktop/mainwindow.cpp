@@ -330,7 +330,7 @@ void MainWindow::on_sendCalibDataButton_clicked()
     QString calib_data_file = QFileDialog::getOpenFileName(
                 this,
                 tr("Select CALIBRATION FILE"),
-                tr("/Users/ManuelVr/Desktop"),
+                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
                 tr("Sysex ( *.bin);All Files ( * )"));
     
     QFile calib_file;
