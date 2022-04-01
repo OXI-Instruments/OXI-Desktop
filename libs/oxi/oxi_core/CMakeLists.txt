@@ -26,6 +26,8 @@ add_library(oxi_core SHARED
   SYSEX_APP.h
   SYSEX_PROJ.h
   delay.h
+  oxidiscovery.h
+  oxidiscovery.cpp
 )
 
 target_include_directories(oxi_core PUBLIC ${PROJECT_SOURCE_DIR})

@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <OxiDiscovery.h>
 #include <QMainWindow>
 #include "midiworker.h"
 
@@ -16,6 +17,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     MidiWorker *midiWorker;
+    OxiDiscovery *discovery;
     QTimer *connection_timer;
 
 //    QMidiIn midi_in;
@@ -40,8 +42,6 @@ private slots:
 
     void on_sendProjectButton_clicked();
 
-    void ConnectionCheck(void);;
-
     void on_getProjectButton_clicked();
 
     void on_seq_index_valueChanged(double arg1);
@@ -61,6 +61,7 @@ private slots:
     void on_sendCalibDataButton_clicked();
 
     void on_eraseMemButton_clicked();
+    void ConnectionCheck();
 
 signals:
     void updateWorkerDelayTime(int);
@@ -70,5 +71,6 @@ signals:
 private:
 //public:
     Ui::MainWindow *ui;
+    void updateUiStatus(QString statusMessage);
 };
 #endif // MAINWINDOW_H
