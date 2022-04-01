@@ -2,6 +2,7 @@
 #include "MIDI.h"
 #include "string.h"
 #include <QDebug>
+
 #include <Nibble.h>
 #include <crc32.h>
 
@@ -16,13 +17,27 @@ uint8_t seq_data_buffer[4096*2];
 
 
 
-
+void MidiWorker::SendACK(void)
+{
+    raw_data.clear();
+    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    raw_data.push_back(MSG_CAT_FW_UPDATE);
+    raw_data.push_back(MSG_FW_UPDT_ACK);
+    raw_data.push_back(0xF7);
+    SendRaw();
+}
 
 MidiWorker::MidiWorker(QObject *parent, bool b) :
     QThread(parent), Stop(b)
 {
     midi_in.setIgnoreTypes(false, true, true);
+    midi_in_2.setIgnoreTypes(false, true, true);
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
+                     this, SLOT(onMidiReceive(QMidiMessage*))));
+
+    // Listen to both OXI MIDI Ports just in case?
+    // If so Receive msgs in the same callback
+    Q_ASSUME(connect(&midi_in_2, SIGNAL(midiMessageReceived(QMidiMessage*)),
                      this, SLOT(onMidiReceive(QMidiMessage*))));
 
     QString desktop_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
@@ -49,18 +64,18 @@ void MidiWorker::SendRaw(void)
     }
     catch ( RtMidiError &error ) {
         error.printMessage();
-         emit ui_ConnectionError();
+        emit ui_ConnectionError();
     }
 }
 
 
 void MidiWorker::LoadFile(void)
 {
-//    update_file_name_ = QFileDialog::getOpenFileName(
-//                this,
-//                tr("Select SYSEX"),
-//                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-//                tr("Sysex ( *.syx);All Files ( * )"));
+    //    update_file_name_ = QFileDialog::getOpenFileName(
+    //                this,
+    //                tr("Select SYSEX"),
+    //                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+    //                tr("Sysex ( *.syx);All Files ( * )"));
 }
 
 void MidiWorker::SendBootExit(void)
@@ -97,13 +112,13 @@ void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
 bool MidiWorker::WaitForOXIUpdate(void)
 {
     // when receiving the ack from bootloader, the update should start
-QString fw_update = QString("FW Update");
+    QString fw_update = QString("FW Update");
     int retries = 10;
 
     while (((midi_out.isPortOpen() == false) ||
-           (midi_in.isPortOpen() == false) ||
-           (port_out_string.contains(fw_update) == false) ||
-           (port_in_string.contains(fw_update) == false)) &&
+            (midi_in.isPortOpen() == false) ||
+            (port_out_string.contains(fw_update) == false) ||
+            (port_in_string.contains(fw_update) == false)) &&
            (retries > 0))
     {
         QThread::msleep(500);
@@ -155,7 +170,6 @@ void MidiWorker::run()
     default:
         break;
     }
-
 
     QByteArray sysex_file_buffer = file.readAll();
 
@@ -275,31 +289,154 @@ EXIT:
 
     file.close();
     this->quit();
-//    this->terminate();
+    //    this->terminate();
 }
 
+// OXI ONE detection Logic.
+// OXI One outs messages from port 1 . So we should listen at least to this port.
+// Otherwise we could try to listen to both ports. With midi_in_2
 void MidiWorker::WorkerRefreshDevices(void)
 {
-    //        QList<QString> midi_list = midi_out.devices().values();
+    QStringList midi_out_list =  midi_out.getPorts();
+    QStringList midi_in_list =  midi_in.getPorts();
+    QString oxi = QString("OXI");
+    QString one = QString("ONE");
+    QString fw_update = QString("FW Update");
 
-    //        ui->comboBox->clear();
+    bool found_out = false;
+    bool found_in = false;
 
-    //        for (int i = 0; i != midi_out.devices().size(); ++i)
-    //        {
-    //            ui->comboBox->addItem(midi_list[i], i);
-    //        }
+    // OUT
+    // Port OUT already open, check changes in ports
+    if (midi_out.isPortOpen()) {
+        for (int i = 0; i != midi_out_list.size(); ++i)
+        {
+            if (port_out_string == midi_out_list[i]) {
+                found_out = true;
+                break;
+            }
+        }
+    }
+
+    if (!found_out && port_out_string != "")
+    {
+        port_out_string = "";
+        emit ui_UpdateConnectionLabel("CONNECT YOUR OXI ONE");
+        qDebug() << "Disconnected " << Qt::endl;
+
+        try {
+            midi_out.closePort();
+        }
+        catch ( RtMidiError &error ) {
+            error.printMessage();
+            return;
+        }
+    }
+
+    // Port OUT not open or has changed
+    if ((!midi_out.isPortOpen()) || (found_out == false)) {
+        for (int i = 0; i != midi_out_list.size(); ++i)
+        {
+            if ((midi_out_list[i].contains(one) || (midi_out_list[i].contains(fw_update))) &&
+                    midi_out_list[i].contains(oxi))
+            {
+                port_out_string = "";
+
+                try {
+                    midi_out.closePort();
+                }
+                catch ( RtMidiError &error ) {
+                    error.printMessage();
+                    return;
+                }
+
+                try {
+                    midi_out.openPort(i);
+                }
+                catch ( RtMidiError &error ) {
+                    error.printMessage();
+                    return;
+                }
+
+                port_out_string = midi_out_list[i];
+               emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
+
+                qDebug() << "Connected to OUT " <<  midi_out_list[i] << Qt::endl;
+                break;
+            }
+        }
+    }
+
+
+    found_in = false;
+
+    // IN
+    // Port IN already open, check changes in ports
+    if (midi_in.isPortOpen()) {
+        for (int i = 0; i != midi_in_list.size(); ++i)
+        {
+            if (port_in_string == midi_in_list[i]) {
+                found_in = true;
+                break;
+            }
+        }
+    }
+
+    if (!found_in && port_in_string != "") port_in_string = "";
+
+    // Port IN not open or has changed
+    if ((!midi_in.isPortOpen()) || (!found_in)) {
+        for (int i = 0; i != midi_in_list.size(); ++i)
+        {
+            if ((midi_in_list[i].contains(one) || (midi_in_list[i].contains(fw_update))) &&
+                    midi_in_list[i].contains(oxi))
+            {
+                port_in_string = "";
+
+                try {
+                    midi_in.closePort();
+                }
+                catch ( RtMidiError &error ) {
+                    error.printMessage();
+                    return;
+                }
+
+                try {
+                    midi_in.openPort(i);
+                }
+                catch ( RtMidiError &error ) {
+                    error.printMessage();
+                    return;
+                }
+
+                port_in_string = midi_in_list[i];
+
+                qDebug() << "Connected to IN " <<  midi_in_list[i] << Qt::endl;
+
+                // Check connection
+                SendACK();
+
+
+                break;
+            }
+        }
+    }
+
+
 }
 
 void MidiWorker::SendProject(void)
 {
-//    raw_data.clear();
-//    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-//    raw_data.push_back(MSG_CAT_PROJECT);
-//    raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
-//    raw_data.push_back(project_index);
-//    raw_data.push_back(0);
-//    raw_data.push_back(0xF7);
-//    midi_out.sendRawMessage(raw_data);
+    QFile projectFile( project_file_ );
+    if ( projectFile.open(QIODevice::ReadOnly) )
+    {
+        QByteArray buff = projectFile.readAll();
+        project_.readProject(buff);
+        qDebug() << "Project: " << project_.project_data_.proj_name << Qt::endl;;
+    }
+    else {
+         emit ui_updateStatusLabel("PROJECT ERROR");
+    }
 }
 
 void MidiWorker::GetProject(void)
@@ -348,15 +485,17 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                 switch (p_msg->getSysExData()[7])
                 {
                 case MSG_FW_UPDT_READY:
-//                    this->start();
+                    //                    this->start();
                     break;
                 case MSG_FW_UPDT_STARTED:
-//                    this->start();
+                    //                    this->start();
                     break;
                 case MSG_FW_UPDT_ACK:
+                    qDebug() << "ACK!!" << Qt::endl;
                     sysex_ack_ = MSG_FW_UPDT_ACK;
                     break;
                 case MSG_FW_UPDT_NACK:
+                    qDebug() << "NOT ACK" << Qt::endl;
                     sysex_ack_ = MSG_FW_UPDT_NACK;
                     break;
                 default:
@@ -490,6 +629,14 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                 break;
             }
         }
+    }
+    else if (p_msg->_status == MIDI_NOTE_ON)
+    {
+        qDebug() << "NOTE ON, ch: " <<  p_msg->_channel << "note: " << p_msg->_pitch << Qt::endl;
+    }
+    else if (p_msg->_status == MIDI_NOTE_OFF)
+    {
+        qDebug() << "NOTE OFF, ch: " <<  p_msg->_channel << "note: " << p_msg->_pitch << Qt::endl;
     }
 }
 

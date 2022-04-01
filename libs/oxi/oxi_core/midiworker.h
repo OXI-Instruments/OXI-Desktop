@@ -7,8 +7,10 @@
 #include "qmidiout.h"
 #include "OXI_SYSEX_MSG.h"
 
+#include "Project.h"
 
-class OXI_CORE_EXPORT MidiWorker : public QThread {
+
+class MidiWorker : public QThread {
     Q_OBJECT
 
 public:
@@ -20,12 +22,15 @@ public:
     bool Stop;
 
     QMidiIn midi_in;
+    QMidiIn midi_in_2;
     QMidiOut midi_out;
     std::vector<unsigned char> raw_data;
     QString update_file_name_;
     QString oxi_path_;
     QString project_path_;
     QString projects_path_;
+
+    QString project_file_;
 
     QString port_in_string;
     QString port_out_string;
@@ -49,6 +54,7 @@ public slots:
     void LoadFile(void);
 
     void SendRaw(void);
+    void SendACK(void);
 
 
     void SendBootExit(void);
@@ -67,7 +73,9 @@ signals:
     void ui_UpdateError(void);
     void ui_ConnectionError(void);
     void ui_UpdateMidiProgressBar(int);
+    void ui_UpdateConnectionLabel(QString);
     void ui_updateStatusLabel(QString);
+    void ui_updateConnectionLabel(QString);
     void finished();
     void error(QString err);
 
@@ -75,6 +83,7 @@ private:
     int delay_time = 100;
     int sysex_ack_ = 0;
     QFile file;
+    Project project_;
 };
 
 

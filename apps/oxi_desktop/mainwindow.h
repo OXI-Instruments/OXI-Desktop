@@ -27,6 +27,7 @@ private slots:
     void updateProgressBar(int value);
     void updateMidiProgressBar(int value);
     void updateStatusLabel(QString text);
+    void updateConnectionLabel(QString text);
     void updateError(void);
     void connectionError(void);
 
@@ -39,8 +40,6 @@ private slots:
     void on_stopButton_clicked();
 
     void on_sendProjectButton_clicked();
-
-    void ConnectionCheck(void);;
 
     void on_getProjectButton_clicked();
 
@@ -64,7 +63,6 @@ private slots:
 
 signals:
     void updateWorkerDelayTime(int);
-    void WorkerRefreshDevices(void);
     void WorkerUpdateFile(QString);
 
 private:
