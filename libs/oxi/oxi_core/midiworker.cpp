@@ -89,7 +89,7 @@ bool MidiWorker::WaitProjectACK(void) {
     int timeout = 0;
     const int TIMEOUT_TIME = 5000;
     const int DELAY_TIME = 100;
-    oxi_ack_ = 0;
+
     while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
     {
 //        this->msleep(DELAY_TIME);
@@ -167,8 +167,27 @@ bool MidiWorker::WaitForOXIUpdate(void)
     }
 }
 
-
 void MidiWorker::run()
+{
+    switch (this->run_process_) {
+    case OXI_ONE_UPDATE:
+    case OXI_SPLIT_UPDATE:
+    case OXI_ONE_BLE_UPDATE:
+        qDebug() << "Thread START: FW Update";
+        runFWUpdate();
+        break;
+    case PROJECT_SEND:
+        qDebug() << "Thread START: Send Project RAW";
+        runSendProjectRAW();
+        break;
+    default:
+        break;
+    }
+}
+
+
+// UPDATE PROCESS
+void MidiWorker::runFWUpdate()
 {
     int timeout = 0;
     int retries = 0;
@@ -181,7 +200,7 @@ void MidiWorker::run()
     if (!file.open(QIODevice::ReadOnly))
         return;
 
-    switch (this->updated_device_){
+    switch (this->run_process_){
     case OXI_ONE_UPDATE:
         wait_for_ack = true;
         SendGotoBoot(MSG_FW_UPDT_OXI_ONE);
@@ -190,7 +209,6 @@ void MidiWorker::run()
             emit ui_UpdateError();
             return;
         }
-
         break;
     case OXI_SPLIT_UPDATE:
         wait_for_ack = false;
@@ -302,7 +320,7 @@ EXIT:
     if (success) {
         emit ui_UpdateProgressBar(100);
 
-        switch (this->updated_device_){
+        switch (this->run_process_){
         case OXI_ONE_UPDATE:
 
             break;
@@ -328,7 +346,7 @@ EXIT:
 }
 
 /* SEND RAW DATA WITHOUT PARSING */
-void MidiWorker::SendProject(void)
+void MidiWorker::runSendProjectRAW(void)
 {
 
     QFile projectFile( project_file_ );
@@ -341,10 +359,13 @@ void MidiWorker::SendProject(void)
         // sysex end command
         raw_data.push_back(0xF7);
 
+        oxi_ack_ = 0;
+
         SendRaw();
         // TODO wait for OXI's reply instead
 
         if (WaitProjectACK() != true) {
+            qDebug() << "SEND PROJECT ERROR" << Qt::endl;
             return;
         }
 
@@ -365,6 +386,9 @@ void MidiWorker::SendProject(void)
                 SetPatternHeader(project_index_, pattern_index);
                 Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
                 raw_data.push_back(0xF7);
+
+                oxi_ack_ = 0;
+
                 SendRaw();
 
                 if (WaitProjectACK() != true) {

@@ -125,7 +125,7 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_ONE_BLE_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_ONE_BLE_UPDATE;
         ui->process_status->setText("");
         midiWorker->LoadFile();
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -152,7 +152,7 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_SPLIT_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_SPLIT_UPDATE;
         ui->process_status->setText("");
         midiWorker->LoadFile();
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -179,7 +179,7 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_ONE_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
 
         midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
                     this,
@@ -241,6 +241,7 @@ void MainWindow::on_sendProjectButton_clicked()
         if (midiWorker->isRunning()) {
             midiWorker->terminate();
         }
+        midiWorker->run_process_ = midiWorker->PROJECT_SEND;
 
         midiWorker->project_file_ =  QFileDialog::getOpenFileName(
                     this,
@@ -254,7 +255,9 @@ void MainWindow::on_sendProjectButton_clicked()
         ui->process_status->setText("SENDING");
 
         // launch worker
-        midiWorker->SendProject();
+        if (!midiWorker->isRunning()) {
+            midiWorker->start();
+        }
     }
     else {
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);

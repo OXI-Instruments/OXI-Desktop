@@ -18,6 +18,8 @@ class OXI_CORE_EXPORT MidiWorker : public QThread {
 public:
     explicit MidiWorker(QObject *parent = 0, bool b = false);
     void run();
+    void runSendProjectRAW(void);
+    void runFWUpdate(void);
 
     // if Stop = true, the thread will break
     // out of the loop, and will be disposed
@@ -36,10 +38,14 @@ public:
     QString project_file_;
 
     typedef enum  {
-        OXI_ONE_UPDATE, OXI_ONE_BLE_UPDATE, OXI_SPLIT_UPDATE,
-    } updated_device_e;
+        OXI_ONE_UPDATE,
+        OXI_ONE_BLE_UPDATE,
+        OXI_SPLIT_UPDATE,
 
-    updated_device_e updated_device_;
+        PROJECT_SEND,
+    } process_e;
+
+    process_e run_process_;
 
     uint8_t project_index_ = 0;
     uint8_t seq_index_ = 0;
@@ -69,7 +75,7 @@ public slots:
     bool WaitProjectACK(void);
 
     void GetPattern(void);
-    void SendProject(void);
+//    void runSendProjectRAW(void);
     void ReadProjectFromFiles(void);
     void GetProject(void);
 
