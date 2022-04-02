@@ -38,8 +38,8 @@ build_and_test:
         - cmake .
         - make
         # until we have no deployable artifact to run tests on we just test here
-        - ./tests/unittests/oxi_unittests --gtest_filter=unit* --gtest_output=xml:report.xml
+        - ./tests/unittests/oxi_unittests --gtest_filter=unit* --gtest_output=xml:test_report.xml
     artifacts:
         when: always
         reports:
-            junit: /builds/**/tests/**/report.xml
+            junit: /builds/**/test_report.xml
