@@ -52,13 +52,55 @@ OxiDiscovery* MidiWorker::GetDiscovery(){
 
 void MidiWorker::SendRaw(void)
 {
-    try {
-        midi_out.sendRawMessage(raw_data);
+#define CHUNK_SIZE 4096
+    int raw_data_len = raw_data.size();
+
+    if (raw_data_len > CHUNK_SIZE) {
+
+        for (int ibegin = 0; ibegin < raw_data_len; ibegin += CHUNK_SIZE) {
+            int iend = ibegin + CHUNK_SIZE;
+            if (iend > raw_data_len) iend = raw_data_len;
+            data_chunk.assign(raw_data.begin() + ibegin, raw_data.begin() + iend);
+
+
+            try {
+                midi_out.sendRawMessage(data_chunk);
+            }
+            catch ( RtMidiError &error ) {
+                error.printMessage();
+                emit ui_ConnectionError();
+            }
+
+            QThread::msleep(100);
+        }
     }
-    catch ( RtMidiError &error ) {
-        error.printMessage();
-        emit ui_ConnectionError();
+    else {
+        try {
+            midi_out.sendRawMessage(raw_data);
+        }
+        catch ( RtMidiError &error ) {
+            error.printMessage();
+            emit ui_ConnectionError();
+        }
     }
+}
+
+bool MidiWorker::WaitProjectACK(void) {
+    int timeout = 0;
+    const int TIMEOUT_TIME = 5000;
+    const int DELAY_TIME = 100;
+    oxi_ack_ = 0;
+    while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
+    {
+//        this->msleep(DELAY_TIME);
+        QThread::msleep(DELAY_TIME);
+        timeout += DELAY_TIME;
+    }
+    if (timeout >= TIMEOUT_TIME) {
+        qDebug() << "TIMEOUT ERROR";
+        return false;
+    }
+    return true;
 }
 
 
@@ -182,7 +224,7 @@ LOOP:
     for (package_num = 0; package_num < packages.size(); )
     {
         timeout = 0;
-        sysex_ack_ = 0;
+        oxi_ack_ = 0;
 
         raw_data.assign(packages[package_num].constData(), packages[package_num].constData() + packages[package_num].size());
 
@@ -205,7 +247,7 @@ LOOP:
         }
 
         if (wait_for_ack) {
-            while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
+            while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
             {
                 this->msleep(DELAY_TIME);
                 timeout += DELAY_TIME;
@@ -214,13 +256,13 @@ LOOP:
             if (timeout >= TIMEOUT_TIME) {
                 goto SEND_RESET;
             }
-            else if (sysex_ack_ == MSG_FW_UPDT_ACK) {
-                sysex_ack_ = 0;
+            else if (oxi_ack_ == MSG_FW_UPDT_ACK) {
+                oxi_ack_ = 0;
                 retries = 0;
 
                 package_num ++;
             }
-            else if (sysex_ack_ == MSG_FW_UPDT_NACK) {
+            else if (oxi_ack_ == MSG_FW_UPDT_NACK) {
                 goto SEND_RESET;
             }
         }
@@ -288,6 +330,7 @@ EXIT:
 /* SEND RAW DATA WITHOUT PARSING */
 void MidiWorker::SendProject(void)
 {
+
     QFile projectFile( project_file_ );
     if ( projectFile.open(QIODevice::ReadOnly) )
     {
@@ -300,7 +343,10 @@ void MidiWorker::SendProject(void)
 
         SendRaw();
         // TODO wait for OXI's reply instead
-        QThread::msleep(100);
+
+        if (WaitProjectACK() != true) {
+            return;
+        }
 
         QFileInfo fi(project_file_);
         QString project_folder = fi.absolutePath();
@@ -310,19 +356,20 @@ void MidiWorker::SendProject(void)
         {
             QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
 
-            qDebug() << pattern_file_ << Qt::endl;
-
             QFile patternFile(pattern_file_);
             if ( patternFile.open(QIODevice::ReadOnly) )
             {
+                qDebug() << "open: " << pattern_file_ << Qt::endl;
                 buff = patternFile.readAll();
 
                 SetPatternHeader(project_index_, pattern_index);
                 Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
                 raw_data.push_back(0xF7);
                 SendRaw();
-                // TODO wait for OXI's reply instead
-                QThread::msleep(100);
+
+                if (WaitProjectACK() != true) {
+                    return;
+                }
             }
         }
     }
@@ -416,11 +463,11 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     break;
                 case MSG_FW_UPDT_ACK:
                     qDebug() << "ACK!!" << Qt::endl;
-                    sysex_ack_ = MSG_FW_UPDT_ACK;
+                    oxi_ack_ = MSG_FW_UPDT_ACK;
                     break;
                 case MSG_FW_UPDT_NACK:
                     qDebug() << "NOT ACK" << Qt::endl;
-                    sysex_ack_ = MSG_FW_UPDT_NACK;
+                    oxi_ack_ = MSG_FW_UPDT_NACK;
                     break;
                 default:
                     break;
@@ -544,6 +591,14 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     break;
                 case MSG_PROJECT_DELETE_PATTERN:
 
+                    break;
+                case MSG_PROJECT_ACK:
+                     qDebug() << "PROJECT ACK" << Qt::endl;
+                     oxi_ack_ = MSG_PROJECT_ACK;
+                    break;
+                case MSG_PROJECT_NACK:
+                    qDebug() << "PROJECT NOT ACK" << Qt::endl;
+                    oxi_ack_ = MSG_PROJECT_NACK;
                     break;
                 default:
                     break;

@@ -27,6 +27,8 @@ public:
     QMidiIn midi_in_2;
     QMidiOut midi_out;
     std::vector<unsigned char> raw_data;
+    std::vector<unsigned char> data_chunk;
+
     QString update_file_name_;
     QString oxi_path_;
     QString project_path_;
@@ -64,6 +66,7 @@ public slots:
     void SendBootExit(void);
     void SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd);
     bool WaitForOXIUpdate(void);
+    bool WaitProjectACK(void);
 
     void GetPattern(void);
     void SendProject(void);
@@ -110,7 +113,7 @@ signals:
 
 private:
     int delay_time = 100;
-    int sysex_ack_ = 0;
+    int oxi_ack_ = 0;
     QFile file;
     Project project_;
     OxiDiscovery* _discovery;
