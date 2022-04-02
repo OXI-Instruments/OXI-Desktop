@@ -34,7 +34,7 @@ build_and_test:
       GIT_SUBMODULE_STRATEGY: recursive
 
     script:
-        - cd /builds/eberlid/Oxi-Desktop-App
+        - cd /builds/manuwind5/Oxi-Desktop-App
         - cmake .
         - make
         # until we have no deployable artifact to run tests on we just test here
