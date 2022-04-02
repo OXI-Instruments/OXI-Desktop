@@ -23,18 +23,18 @@ QStringList OxiDiscovery::GetInPorts(){
 
 bool OxiDiscovery::IsOxiFwUpdatePort(QStringList portNames, int index){
     return IsOxiPort(portNames, index)
-            && portNames[index].contains(fw_update);
+           && portNames[index].contains(fw_update);
 }
 
 bool OxiDiscovery::IsOxiPort(QStringList portNames, int index){
     return index >= 0
-            && index < portNames.length()
-            && IsOxiPort(portNames[index]);
+           && index < portNames.length()
+           && IsOxiPort(portNames[index]);
 }
 
 bool OxiDiscovery::IsOxiPort(QString portName){
     bool isOxiPortName = (portName.contains(one) || (portName.contains(fw_update))) &&
-            portName.contains(oxi);
+                         portName.contains(oxi);
     return isOxiPortName;
 }
 
@@ -87,7 +87,7 @@ bool OxiDiscovery::IsOutFwUpdate(){
 void OxiDiscovery::Discover()
 {
     if(DiscoverOutPort() || DiscoverInPort()){
-		emit ui_PortAlreadyInUse();
+        emit ui_PortAlreadyInUse();
     }
 }
 
