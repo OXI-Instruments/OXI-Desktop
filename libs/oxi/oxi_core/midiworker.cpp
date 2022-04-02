@@ -61,15 +61,6 @@ void MidiWorker::SendRaw(void)
     }
 }
 
-void MidiWorker::SendACK(void)
-{
-    raw_data.clear();
-    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    raw_data.push_back(MSG_CAT_FW_UPDATE);
-    raw_data.push_back(MSG_FW_UPDT_ACK);
-    raw_data.push_back(0xF7);
-    SendRaw();
-}
 
 void MidiWorker::LoadFile(void)
 {
@@ -294,17 +285,81 @@ EXIT:
 //    this->terminate();
 }
 
+/* SEND RAW DATA WITHOUT PARSING */
 void MidiWorker::SendProject(void)
 {
     QFile projectFile( project_file_ );
     if ( projectFile.open(QIODevice::ReadOnly) )
     {
         QByteArray buff = projectFile.readAll();
-        project_.readProject(buff);
-        qDebug() << "Project: " << project_.project_data_.proj_name << Qt::endl;;
+
+        SetProjectHeader(project_index_);
+        Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
+        // sysex end command
+        raw_data.push_back(0xF7);
+
+        SendRaw();
+        // TODO wait for OXI's reply instead
+        QThread::msleep(100);
+
+        QFileInfo fi(project_file_);
+        QString project_folder = fi.absolutePath();
+        qDebug() << project_folder << Qt::endl;
+
+        for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
+        {
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+
+            qDebug() << pattern_file_ << Qt::endl;
+
+            QFile patternFile(pattern_file_);
+            if ( patternFile.open(QIODevice::ReadOnly) )
+            {
+                buff = patternFile.readAll();
+
+                SetPatternHeader(project_index_, pattern_index);
+                Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
+                raw_data.push_back(0xF7);
+                SendRaw();
+                // TODO wait for OXI's reply instead
+                QThread::msleep(100);
+            }
+        }
     }
     else {
          emit ui_updateStatusLabel("PROJECT ERROR");
+    }
+}
+
+void MidiWorker::ReadProjectFromFiles(void)
+{
+    QFile projectFile( project_file_ );
+    if ( projectFile.open(QIODevice::ReadOnly) )
+    {
+        QByteArray buff = projectFile.readAll();
+        project_.readProject(buff);
+        qDebug() << "Project: " << project_.project_data_.proj_name << Qt::endl;
+
+        QFileInfo fi(project_file_);
+        QString project_folder = fi.absolutePath();
+        qDebug() << project_folder << Qt::endl;
+
+        for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
+        {
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+
+            qDebug() << pattern_file_ << Qt::endl;
+
+            QFile patternFile(pattern_file_);
+            if ( patternFile.open(QIODevice::ReadOnly) )
+            {
+                buff = patternFile.readAll();
+                project_.readPattern(buff, pattern_index);
+            }
+        }
+    }
+    else {
+        emit ui_updateStatusLabel("PROJECT ERROR");
     }
 }
 
@@ -314,7 +369,7 @@ void MidiWorker::GetProject(void)
     raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     raw_data.push_back(MSG_CAT_PROJECT);
     raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
-    raw_data.push_back(project_index);
+    raw_data.push_back(project_index_);
     raw_data.push_back(0);
     raw_data.push_back(0xF7);
     try {
@@ -331,8 +386,8 @@ void MidiWorker::GetPattern(void)
     raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     raw_data.push_back(MSG_CAT_PROJECT);
     raw_data.push_back(MSG_PROJECT_GET_PATTERN);
-    raw_data.push_back(project_index);
-    raw_data.push_back(seq_index * 16 + pattern_index);
+    raw_data.push_back(project_index_);
+    raw_data.push_back(seq_index_ * 16 + pattern_index_);
     raw_data.push_back(0xF7);
     try {
         midi_out.sendRawMessage(raw_data);
@@ -425,13 +480,13 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
                     QDir system_dir;
-                    project_path_ = oxi_path_ + "/Projects/Project " + QString::number(project_index + 1);
+                    project_path_ = oxi_path_ + "/Projects/Project " + QString::number(project_index_ + 1);
                     if (!system_dir.exists(project_path_)) {
 
                         system_dir.mkdir(project_path_);
                     }
 
-                    QString proj_filename = project_path_ + "/Project " + QString::number(project_index + 1) + ".bin";
+                    QString proj_filename = project_path_ + "/Project " + QString::number(project_index_ + 1) + ".bin";
                     qDebug() << proj_filename << Qt::endl;;
 
                     QFile proj_file( proj_filename );
@@ -441,7 +496,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     proj_file.close();
 
-                    pattern_index = 0;
+                    pattern_index_ = 0;
 
                     GetPattern();
                     break;
@@ -464,7 +519,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                         system_dir.mkdir(project_path_);
                     }
 
-                    QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+                    QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_index_ + 1) + ".bin";
                     qDebug() << patt_filename;
 
                     QFile patt_file( patt_filename );
@@ -474,11 +529,11 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     patt_file.close();
 
-                    pattern_index ++;
+                    pattern_index_ ++;
 
                     GetPattern();
 
-                    emit ui_UpdateMidiProgressBar(100 * pattern_index / 64);
+                    emit ui_UpdateMidiProgressBar(100 * pattern_index_ / 64);
                     break;
                 }
                 case MSG_PROJECT_GET_PATTERN:

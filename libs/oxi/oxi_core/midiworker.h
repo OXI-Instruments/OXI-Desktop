@@ -9,7 +9,7 @@
 #include "oxidiscovery.h"
 #include "Project.h"
 
-#include "Project.h"
+#include "MIDI.h"
 
 
 class OXI_CORE_EXPORT MidiWorker : public QThread {
@@ -39,9 +39,9 @@ public:
 
     updated_device_e updated_device_;
 
-    uint8_t project_index = 0;
-    uint8_t seq_index = 0;
-    uint8_t pattern_index = 0;
+    uint8_t project_index_ = 0;
+    uint8_t seq_index_ = 0;
+    uint8_t pattern_index_ = 0;
 
     OxiDiscovery *GetDiscovery();
 
@@ -51,7 +51,14 @@ public slots:
     void LoadFile(void);
 
     void SendRaw(void);
-    void SendACK(void);
+    void SendACK(void) {
+        raw_data.clear();
+        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+        raw_data.push_back(MSG_CAT_FW_UPDATE);
+        raw_data.push_back(MSG_FW_UPDT_ACK);
+        raw_data.push_back(0xF7);
+        SendRaw();
+    };
 
 
     void SendBootExit(void);
@@ -60,7 +67,34 @@ public slots:
 
     void GetPattern(void);
     void SendProject(void);
+    void ReadProjectFromFiles(void);
     void GetProject(void);
+
+    void SetProjectHeader(uint16_t proj_index) {
+        // clear sysex buffer
+        raw_data.clear();
+        // add OXI ONE sysex header
+        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+        // add command ids
+        raw_data.push_back(MSG_CAT_PROJECT);
+        raw_data.push_back(MSG_PROJECT_SEND_PROJ_HEADER);
+
+        // add project slot index, OXI One will save project header and patterns in that slot
+        raw_data.push_back(proj_index);
+        // UNUSED in this case
+        raw_data.push_back(0);
+    };
+
+    void SetPatternHeader(uint16_t proj_index, uint16_t patt_index) {
+        // SET COMMAND HEADER
+        raw_data.clear();
+        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+        raw_data.push_back(MSG_CAT_PROJECT);
+        raw_data.push_back(MSG_PROJECT_SEND_PATTERN);
+        raw_data.push_back(proj_index);
+        // pattern slot, from 0 to 63
+        raw_data.push_back(patt_index);
+    };
 //    void updateUpdateFile(QString update_file_name);
 
 signals:

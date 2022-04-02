@@ -1,5 +1,7 @@
 #include <Qt>
 
+#pragma once
+
 namespace  MidiMsg {
 
 
