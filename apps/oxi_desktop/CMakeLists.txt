@@ -63,6 +63,13 @@ set_target_properties(oxi_desktop PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+if(WINDOWS)
+    add_custom_command(TARGET oxi_desktop POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:oxi_desktop> $<TARGET_FILE_DIR:oxi_desktop>
+      COMMAND_EXPAND_LISTS
+    )
+endif()
+
 if(QT_VERSION_MAJOR EQUAL 6)
     qt6_finalize_target(oxi_desktop)
 endif()
