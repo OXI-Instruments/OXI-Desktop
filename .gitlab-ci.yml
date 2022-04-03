@@ -22,7 +22,7 @@ docker-build:
     # All other branches are tagged with the escaped branch name (commit ref slug)
     script:
         - tag=":$CI_COMMIT_TAG"  
-        - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}" .
+        - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}" -f docker/ubuntu/Dockerfile .
         - docker push "$CI_REGISTRY_IMAGE${tag}"
     rules:
         - if: '$CI_COMMIT_TAG =~ /^docker-\d+\.\d+\.\d+$/'
