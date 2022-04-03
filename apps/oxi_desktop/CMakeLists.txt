@@ -63,6 +63,7 @@ set_target_properties(oxi_desktop PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+message("iswindows??? ${WIN32}")
 if(WINDOWS)
     add_custom_command(TARGET oxi_desktop POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:oxi_desktop> $<TARGET_FILE_DIR:oxi_desktop>
