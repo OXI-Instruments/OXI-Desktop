@@ -25,10 +25,25 @@ set(PROJECT_SOURCES
         fonts.qrc
 )
 
+# NOTE: Don't include the path in MACOSX_BUNDLE_ICON_FILE -- this is
+# the property added to Info.plist
+#set(MACOSX_BUNDLE_ICON_FILE oxiupdater.icns)
+
+# And this part tells CMake where to find and install the file itself
+set(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/oxiupdater.icns)
+set_source_files_properties(${APP_ICON_MACOSX} PROPERTIES
+    MACOSX_PACKAGE_LOCATION "Resources")
+
+#add_executable(oxi_desktop MACOSX_BUNDLE main.cpp ${APP_ICON_MACOSX})
+
+
+#set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/qt5app.rc")
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(oxi_desktop
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+#        ${APP_ICON_MACOSX}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET oxi_desktop APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

@@ -352,6 +352,8 @@ void MidiWorker::runSendProjectRAW(void)
     QFile projectFile( project_file_ );
     if ( projectFile.open(QIODevice::ReadOnly) )
     {
+        emit ui_updateStatusLabel("SENDING");
+
         QByteArray buff = projectFile.readAll();
 
         SetProjectHeader(project_index_);
@@ -405,10 +407,10 @@ void MidiWorker::runSendProjectRAW(void)
         }
 
         emit ui_UpdateProjectProgressBar(100);
-        emit ui_updateProjectStatusLabel("SUCESS!");
+        emit ui_updateStatusLabel("SUCESS!");
     }
     else {
-         emit ui_updateProjectStatusLabel("PROJECT ERROR");
+         emit ui_updateStatusLabel("PROJECT ERROR");
     }
 }
 

@@ -114,7 +114,6 @@ signals:
     void ui_ConnectionError(void);
     void ui_UpdateProjectProgressBar(int);
     void ui_updateStatusLabel(QString);
-    void ui_updateProjectStatusLabel(QString);
     void finished();
     void error(QString err);
 

@@ -257,7 +257,6 @@ void MainWindow::on_sendProjectButton_clicked()
 
         qDebug() << midiWorker->project_file_ << Qt::endl;
         if (midiWorker->project_file_ == "" ) return;
-        ui->process_status->setText("SENDING");
 
         // launch worker
         if (!midiWorker->isRunning()) {
