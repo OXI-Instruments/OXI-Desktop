@@ -362,12 +362,15 @@ void MidiWorker::runSendProjectRAW(void)
         oxi_ack_ = 0;
 
         SendRaw();
-        // TODO wait for OXI's reply instead
 
+        // wait for OXI's ACK
         if (WaitProjectACK() != true) {
             qDebug() << "SEND PROJECT ERROR" << Qt::endl;
+            emit ui_UpdateProgressBar(0);
+            emit ui_UpdateError();
             return;
         }
+        emit ui_UpdateProjectProgressBar(1);
 
         QFileInfo fi(project_file_);
         QString project_folder = fi.absolutePath();
@@ -392,13 +395,20 @@ void MidiWorker::runSendProjectRAW(void)
                 SendRaw();
 
                 if (WaitProjectACK() != true) {
+                    emit ui_UpdateProgressBar(0);
+                    emit ui_UpdateError();
                     return;
                 }
+
+                emit ui_UpdateProjectProgressBar(100 * pattern_index / 64);
             }
         }
+
+        emit ui_UpdateProjectProgressBar(100);
+        emit ui_updateProjectStatusLabel("SUCESS!");
     }
     else {
-         emit ui_updateStatusLabel("PROJECT ERROR");
+         emit ui_updateProjectStatusLabel("PROJECT ERROR");
     }
 }
 
@@ -530,7 +540,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     calib_file.close();
 
-                    emit ui_UpdateMidiProgressBar(100);
+                    emit ui_UpdateProjectProgressBar(100);
                 }
                     break;
                 default:
@@ -604,7 +614,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
 
                     GetPattern();
 
-                    emit ui_UpdateMidiProgressBar(100 * pattern_index_ / 64);
+                    emit ui_UpdateProjectProgressBar(100 * pattern_index_ / 64);
                     break;
                 }
                 case MSG_PROJECT_GET_PATTERN:
