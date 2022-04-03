@@ -17,6 +17,8 @@ private:
     QMidiOut* _midi_out;
     int _in_idx;
     int _out_idx;
+    QString _oxi_port_name_in;
+    QString _oxi_port_name_out;
 
     bool IsOxiPort(QString portName);
     bool IsOxiPort(QStringList portNames, int index);

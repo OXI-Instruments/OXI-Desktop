@@ -40,6 +40,8 @@ bool OxiDiscovery::IsOxiPort(QString portName){
 
 int OxiDiscovery::GetOxiOutIndex(QStringList portNames)
 {
+    // TODO portNames is a list, which is not properly printed.
+    // TODO GetOxiOutIndex and GetOxiInIndex are redundant methods
     qDebug() << "OUT ports are: " << portNames;
     for (int i = 0; i != portNames.size(); ++i)
     {
@@ -54,6 +56,7 @@ int OxiDiscovery::GetOxiOutIndex(QStringList portNames)
 
 int OxiDiscovery::GetOxiInIndex(QStringList portNames)
 {
+    // TODO portNames is a list, which is not properly printed.
     qDebug() << "IN ports are: " << portNames;
     for (int i = 0; i != portNames.size(); ++i)
     {
@@ -93,12 +96,20 @@ void OxiDiscovery::Discover()
 
 bool OxiDiscovery::DiscoverOutPort(){
     QStringList outPorts = _midi_out->getPorts();
+
+    int oxiOutIdx = GetOxiOutIndex(outPorts);
+
     if (_out_idx >= 0)
     {
         bool isOxiPort = IsOxiPort(outPorts, _out_idx);
         bool isOpen = _midi_out->isPortOpen();
 
-        if (!isOxiPort || !isOpen){
+        QString oxi_port_name_current = "";
+        if (oxiOutIdx >= 0) {
+            oxi_port_name_current = outPorts[oxiOutIdx];
+        }
+
+        if (!isOxiPort || !isOpen || _oxi_port_name_out != oxi_port_name_current){
             qDebug() << "MIDI OUT port index: " << _out_idx;
             qDebug() << "MIDI OUT ports: " << outPorts;
             qWarning() << "MIDI OUT port is not an OXI port and will be closed";
@@ -109,7 +120,7 @@ bool OxiDiscovery::DiscoverOutPort(){
     }
     else {
         emit ui_UpdateConnectionLabel("CONNECT YOUR OXI ONE");
-        int oxiOutIdx = GetOxiOutIndex(outPorts);
+//        int oxiOutIdx = GetOxiOutIndex(outPorts);
         if (oxiOutIdx >= 0){
             qInfo() << "Discovered MIDI OUT port " + outPorts[oxiOutIdx] + " and will open";
             try{
@@ -119,7 +130,8 @@ bool OxiDiscovery::DiscoverOutPort(){
                 qWarning() << &error.getMessage();
                 return true;
             }
-            qInfo() << "Port opened to " + outPorts[oxiOutIdx];
+            _oxi_port_name_in = outPorts[oxiOutIdx];
+            qInfo() << "Port opened to " + _oxi_port_name_in;
             _out_idx = oxiOutIdx;
             emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
         }
@@ -130,12 +142,19 @@ bool OxiDiscovery::DiscoverOutPort(){
 
 bool OxiDiscovery::DiscoverInPort(){
     QStringList inPorts = _midi_in->getPorts();
+
+    int oxiInIdx = GetOxiInIndex(inPorts);
+
     if (_in_idx >= 0)
     {
         bool isOxiPort = IsOxiPort(inPorts, _in_idx);
         bool isOpen = _midi_in->isPortOpen();
+        QString oxi_port_name_current = "";
+        if (oxiInIdx >= 0) {
+            oxi_port_name_current = inPorts[oxiInIdx];
+        }
 
-        if (!isOxiPort || !isOpen){
+        if (!isOxiPort || !isOpen || _oxi_port_name_in != oxi_port_name_current){
             qDebug() << "MIDI IN port index: " << _in_idx;
             qDebug() << "MIDI IN ports: " << inPorts;
             qWarning() << "MIDI IN port is not an OXI port and will be closed";
@@ -145,7 +164,7 @@ bool OxiDiscovery::DiscoverInPort(){
         }
     }
     else {
-        int oxiInIdx = GetOxiInIndex(inPorts);
+//        int oxiInIdx = GetOxiInIndex(inPorts);
         if (oxiInIdx >= 0){
             qInfo() << "Discovered MIDI IN port" + inPorts[oxiInIdx] + " and will open";
             try{
@@ -158,6 +177,7 @@ bool OxiDiscovery::DiscoverInPort(){
                 qWarning() << &error.getMessage();
                 return true;
             }
+            _oxi_port_name_out = inPorts[oxiInIdx];
             qInfo() << "Port opened to " + inPorts[oxiInIdx];
             _in_idx = oxiInIdx;
             // TODO     should also emit a signal to indicate that updates the UI.

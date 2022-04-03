@@ -147,7 +147,6 @@ void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
 bool MidiWorker::WaitForOXIUpdate(void)
 {
     // when receiving the ack from bootloader, the update should start
-    QString fw_update = QString("FW Update");
     int retries = 10;
 
     while (((midi_out.isPortOpen() == false) ||
