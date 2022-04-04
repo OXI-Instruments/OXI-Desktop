@@ -115,6 +115,7 @@ bool OxiDiscovery::DiscoverOutPort(){
             qWarning() << "MIDI OUT port is not an OXI port and will be closed";
             _out_idx = -1;
             _midi_out->closePort();
+            _oxi_port_name_out = "";
             qInfo() << "The port has been closed";
         }
     }
@@ -130,7 +131,7 @@ bool OxiDiscovery::DiscoverOutPort(){
                 qWarning() << &error.getMessage();
                 return true;
             }
-            _oxi_port_name_in = outPorts[oxiOutIdx];
+            _oxi_port_name_out = outPorts[oxiOutIdx];
             qInfo() << "Port opened to " + _oxi_port_name_in;
             _out_idx = oxiOutIdx;
             emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
@@ -159,6 +160,7 @@ bool OxiDiscovery::DiscoverInPort(){
             qDebug() << "MIDI IN ports: " << inPorts;
             qWarning() << "MIDI IN port is not an OXI port and will be closed";
             _in_idx = -1;
+            _oxi_port_name_in = "";
             _midi_in->closePort();
             qInfo() << "The port has been closed";
         }
@@ -166,7 +168,7 @@ bool OxiDiscovery::DiscoverInPort(){
     else {
 //        int oxiInIdx = GetOxiInIndex(inPorts);
         if (oxiInIdx >= 0){
-            qInfo() << "Discovered MIDI IN port" + inPorts[oxiInIdx] + " and will open";
+            qInfo() << "Discovered MIDI IN port " + inPorts[oxiInIdx] + " and will open";
             try{
                 // Messages across multiple buffers currently not implemented.
                 // https://www.music.mcgill.ca/~gary/rtmidi/classRtMidiIn.html#a7bf07fe12fa6588db8e772f0fc56f70d
@@ -177,7 +179,7 @@ bool OxiDiscovery::DiscoverInPort(){
                 qWarning() << &error.getMessage();
                 return true;
             }
-            _oxi_port_name_out = inPorts[oxiInIdx];
+            _oxi_port_name_in = inPorts[oxiInIdx];
             qInfo() << "Port opened to " + inPorts[oxiInIdx];
             _in_idx = oxiInIdx;
             // TODO     should also emit a signal to indicate that updates the UI.
