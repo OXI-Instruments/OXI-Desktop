@@ -16,5 +16,6 @@ RUN cd Python310 && python -m pip install aqtinstall \
   && aqt install-tool --outputdir c:/Qt windows desktop tools_ninja \
   && aqt install-tool --outputdir c:/Qt windows desktop tools_mingw90 \
   && aqt install-tool --outputdir c:/Qt windows desktop tools_qtcreator \
+  && setx PATH "C:\Qt\Tools\mingw1120_64\bin;%PATH%" \
   && setx PATH "C:\Qt\Tools\Ninja;%PATH%"
   # Somehow cmake is not able to detect ninja
