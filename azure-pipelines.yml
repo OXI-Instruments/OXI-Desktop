@@ -11,88 +11,90 @@ trigger:
     include:
     - v*
 
-pool:
-  vmImage: windows-2019
+jobs:
+- job:  Build_Deploy_x64
+  pool:
+    vmImage: windows-2019
 
-container: 
-  image: oxidocker.azurecr.io/oxiwinbuild:99
-  endpoint: Docker Registry
+  container: 
+    image: oxidocker.azurecr.io/oxiwinbuild:99
+    endpoint: Docker Registry
 
-variables:
-  - name: oxiSourceDir
-    value: $(Build.Repository.LocalPath)
-  - name: oxiBuildDir
-    value: $(Pipeline.Workspace)/build
+  variables:
+    - name: oxiSourceDir
+      value: $(Build.Repository.LocalPath)
+    - name: oxiBuildDir
+      value: $(Pipeline.Workspace)/build
 
-steps:
-- script: mkdir build
-  workingDirectory: $(Pipeline.Workspace)
-  displayName: Create build directory
+  steps:
+  - script: mkdir build
+    workingDirectory: $(Pipeline.Workspace)
+    displayName: Create build directory
 
-- script: |
-    echo PATH before activation: %PATH%
-    echo Qt Environment should be activated already. This is the dump of the activation script
-    cat C:/Qt/6.2.4/mingw_64/bin/qtenv2.bat
-  displayName: Report Qt Activation status
+  - script: |
+      echo PATH before activation: %PATH%
+      echo Qt Environment should be activated already. This is the dump of the activation script
+      cat C:/Qt/6.2.4/mingw_64/bin/qtenv2.bat
+    displayName: Report Qt Activation status
 
-- script: |
-    echo PATH: %PATH%
-  displayName: Report PATH
+  - script: |
+      echo PATH: %PATH%
+    displayName: Report PATH
 
-- script: >
-    C:/Qt/Tools/CMake_64/bin/cmake.exe
-    -S $(oxiSourceDir)
-    -B $(oxiBuildDir)
-    "-DCMAKE_GENERATOR:STRING=Ninja"
-    "-DCMAKE_BUILD_TYPE:STRING=Release"
-    "-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=C:/Qt/Tools/QtCreator/share/qtcreator/package-manager/auto-setup.cmake"
-    "-DQT_QMAKE_EXECUTABLE:STRING=C:/Qt/6.2.4/mingw_64/bin/qmake.exe"
-    "-DCMAKE_PREFIX_PATH:STRING=C:/Qt/6.2.4/mingw_64"
-    "-DCMAKE_C_COMPILER:STRING=C:/Qt/Tools/mingw1120_64/bin/gcc.exe"
-    "-DCMAKE_CXX_COMPILER:STRING=C:/Qt/Tools/mingw1120_64/bin/g++.exe"
-  displayName: Create CMake cache
+  - script: >
+      C:/Qt/Tools/CMake_64/bin/cmake.exe
+      -S $(oxiSourceDir)
+      -B $(oxiBuildDir)
+      "-DCMAKE_GENERATOR:STRING=Ninja"
+      "-DCMAKE_BUILD_TYPE:STRING=Release"
+      "-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=C:/Qt/Tools/QtCreator/share/qtcreator/package-manager/auto-setup.cmake"
+      "-DQT_QMAKE_EXECUTABLE:STRING=C:/Qt/6.2.4/mingw_64/bin/qmake.exe"
+      "-DCMAKE_PREFIX_PATH:STRING=C:/Qt/6.2.4/mingw_64"
+      "-DCMAKE_C_COMPILER:STRING=C:/Qt/Tools/mingw1120_64/bin/gcc.exe"
+      "-DCMAKE_CXX_COMPILER:STRING=C:/Qt/Tools/mingw1120_64/bin/g++.exe"
+    displayName: Create CMake cache
 
-- script: C:/Qt/Tools/CMake_64/bin/cmake.exe --build $(oxiBuildDir) --target all
-  displayName: Build
+  - script: C:/Qt/Tools/CMake_64/bin/cmake.exe --build $(oxiBuildDir) --target all
+    displayName: Build
 
-- script: mkdir deploy
-  workingDirectory: $(oxiBuildDir)/apps/oxi_desktop
-  displayName: Create deploy directory
+  - script: mkdir deploy
+    workingDirectory: $(oxiBuildDir)/apps/oxi_desktop
+    displayName: Create deploy directory
 
-- script: |
-    cp ../*.exe .
-    cp ../*.dll .
-    ls .
-    echo %PATH%
-    C:/Qt/6.2.4/mingw_64/bin/windeployqt.exe --no-translations --compiler-runtime oxi_desktop.exe
-  workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
-  displayName: Create windows deployable
+  - script: |
+      cp ../*.exe .
+      cp ../*.dll .
+      ls .
+      echo %PATH%
+      C:/Qt/6.2.4/mingw_64/bin/windeployqt.exe --no-translations --compiler-runtime oxi_desktop.exe
+    workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
+    displayName: Create windows deployable
 
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(oxiBuildDir)/apps/oxi_desktop/deploy'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/OXI-Desktop_x64.zip'
-    replaceExistingArchive: true
-  displayName: Copy archive to artifact staging directory
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: '$(oxiBuildDir)/apps/oxi_desktop/deploy'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/OXI-Desktop_x64.zip'
+      replaceExistingArchive: true
+    displayName: Copy archive to artifact staging directory
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: $(Build.ArtifactStagingDirectory)
-    ArtifactName: drop
-    publishLocation: Container
-  displayName: Publish artifact
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: drop
+      publishLocation: Container
+    displayName: Publish artifact
 
-- task: GitHubRelease@1
-  inputs:
-    gitHubConnection: 'GitHub OXI-Desktop'
-    repositoryName: 'OXI-Instruments/OXI-Desktop'
-    action: 'create'
-    target: '$(Build.SourceVersion)'
-    tagSource: 'gitTag'
-    tagPattern: 'v*.*.*'
-    title: 'OXI Desktop $(Build.SourceBranchName)'
-    releaseNotesSource: 'inline'
-    releaseNotesInline: '$(Build.BuildNumber)'
-    addChangeLog: false
+  - task: GitHubRelease@1
+    inputs:
+      gitHubConnection: 'GitHub OXI-Desktop'
+      repositoryName: 'OXI-Instruments/OXI-Desktop'
+      action: 'create'
+      target: '$(Build.SourceVersion)'
+      tagSource: 'gitTag'
+      tagPattern: 'v*.*.*'
+      title: 'OXI Desktop $(Build.SourceBranchName)'
+      releaseNotesSource: 'inline'
+      releaseNotesInline: '$(Build.BuildNumber)'
+      addChangeLog: false
