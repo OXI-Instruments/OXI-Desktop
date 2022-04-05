@@ -39,6 +39,9 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     qInstallMessageHandler(customMessageOutput);
+#ifndef QT_DEBUG
+    QLoggingCategory::setFilterRules("*.debug=false");
+#endif
     QFontDatabase::addApplicationFont(":/fonts/Oswald.ttf");
     MainWindow w;
     w.show();
