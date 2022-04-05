@@ -6,7 +6,7 @@
 trigger:
   branches:
     exclude:
-    - master
+    - main
   tags:
     include:
     - v*
