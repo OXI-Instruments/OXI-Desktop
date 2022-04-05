@@ -86,7 +86,7 @@ steps:
 
 - task: GitHubRelease@1
   inputs:
-    gitHubConnection: 'OXI-Instruments'
+    gitHubConnection: 'GitHub OXI-Desktop'
     repositoryName: 'OXI-Instruments/OXI-Desktop'
     action: 'create'
     target: '$(Build.SourceVersion)'
