@@ -27,6 +27,11 @@ jobs:
       value: $(Pipeline.Workspace)/build
 
   steps:
+  - checkout: self
+    lfs: true
+    submodules: recursive
+    displayName: Checkout Repository Recursively
+
   - script: mkdir build
     workingDirectory: $(Pipeline.Workspace)
     displayName: Create build directory
