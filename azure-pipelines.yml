@@ -99,7 +99,7 @@ jobs:
       target: '$(Build.SourceVersion)'
       tagSource: 'gitTag'
       tagPattern: 'v*.*.*'
-      title: 'OXI Desktop $(Build.SourceBranchName)'
+      title: 'OXI-Desktop $(Build.SourceBranchName)'
       releaseNotesSource: 'inline'
       releaseNotesInline: '$(Build.BuildNumber)'
       addChangeLog: false
