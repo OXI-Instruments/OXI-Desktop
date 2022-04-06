@@ -136,6 +136,22 @@ bool MidiWorker::WaitForOXIUpdate(void)
 
 void MidiWorker::run()
 {
+    switch (this->run_process_) {
+    case OXI_ONE_UPDATE:
+    case OXI_SPLIT_UPDATE:
+    case OXI_ONE_BLE_UPDATE:
+        qDebug() << "Thread START: FW Update";
+        runFWUpdate();
+        break;
+    default:
+        break;
+    }
+}
+
+
+// UPDATE PROCESS
+void MidiWorker::runFWUpdate()
+{
     int timeout = 0;
     int retries = 0;
     const int DELAY_TIME = 50;

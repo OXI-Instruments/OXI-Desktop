@@ -18,6 +18,7 @@ class OXI_CORE_EXPORT MidiWorker : public QThread {
 public:
     explicit MidiWorker(QObject *parent = 0, bool b = false);
     void run();
+    void runFWUpdate();
 
     // if Stop = true, the thread will break
     // out of the loop, and will be disposed
