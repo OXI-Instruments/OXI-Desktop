@@ -148,7 +148,7 @@ void MidiWorker::run()
     if (!file.open(QIODevice::ReadOnly))
         return;
 
-    switch (this->updated_device_){
+    switch (this->run_process_){
     case OXI_ONE_UPDATE:
         wait_for_ack = true;
         SendGotoBoot(MSG_FW_UPDT_OXI_ONE);
@@ -269,7 +269,7 @@ EXIT:
     if (success) {
         emit ui_UpdateProgressBar(100);
 
-        switch (this->updated_device_){
+        switch (this->run_process_){
         case OXI_ONE_UPDATE:
 
             break;

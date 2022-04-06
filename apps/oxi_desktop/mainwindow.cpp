@@ -130,7 +130,7 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_ONE_BLE_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_ONE_BLE_UPDATE;
         ui->process_status->setText("");
         midiWorker->LoadFile();
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -157,7 +157,7 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_SPLIT_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_SPLIT_UPDATE;
         ui->process_status->setText("");
         midiWorker->LoadFile();
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -184,7 +184,7 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_ONE_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
 
         midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
                     this,

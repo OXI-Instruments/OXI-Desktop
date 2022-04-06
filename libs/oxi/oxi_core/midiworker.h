@@ -34,10 +34,14 @@ public:
     QString project_file_;
 
     typedef enum  {
-        OXI_ONE_UPDATE, OXI_ONE_BLE_UPDATE, OXI_SPLIT_UPDATE,
-    } updated_device_e;
+        OXI_ONE_UPDATE,
+        OXI_ONE_BLE_UPDATE,
+        OXI_SPLIT_UPDATE,
 
-    updated_device_e updated_device_;
+        PROJECT_SEND,
+    } process_e;
+
+    process_e run_process_;
 
     uint8_t project_index = 0;
     uint8_t seq_index = 0;
