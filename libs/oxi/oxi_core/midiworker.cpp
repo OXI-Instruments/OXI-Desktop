@@ -191,7 +191,7 @@ LOOP:
     for (package_num = 0; package_num < packages.size(); )
     {
         timeout = 0;
-        sysex_ack_ = 0;
+        oxi_ack_ = 0;
 
         raw_data.assign(packages[package_num].constData(), packages[package_num].constData() + packages[package_num].size());
 
@@ -214,7 +214,7 @@ LOOP:
         }
 
         if (wait_for_ack) {
-            while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
+            while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
             {
                 this->msleep(DELAY_TIME);
                 timeout += DELAY_TIME;
@@ -223,13 +223,13 @@ LOOP:
             if (timeout >= TIMEOUT_TIME) {
                 goto SEND_RESET;
             }
-            else if (sysex_ack_ == MSG_FW_UPDT_ACK) {
-                sysex_ack_ = 0;
+            else if (oxi_ack_ == MSG_FW_UPDT_ACK) {
+                oxi_ack_ = 0;
                 retries = 0;
 
                 package_num ++;
             }
-            else if (sysex_ack_ == MSG_FW_UPDT_NACK) {
+            else if (oxi_ack_ == MSG_FW_UPDT_NACK) {
                 goto SEND_RESET;
             }
         }
@@ -361,11 +361,11 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     break;
                 case MSG_FW_UPDT_ACK:
                     qDebug() << "ACK!!" << Qt::endl;
-                    sysex_ack_ = MSG_FW_UPDT_ACK;
+                    oxi_ack_ = MSG_FW_UPDT_ACK;
                     break;
                 case MSG_FW_UPDT_NACK:
                     qDebug() << "NOT ACK" << Qt::endl;
-                    sysex_ack_ = MSG_FW_UPDT_NACK;
+                    oxi_ack_ = MSG_FW_UPDT_NACK;
                     break;
                 default:
                     break;

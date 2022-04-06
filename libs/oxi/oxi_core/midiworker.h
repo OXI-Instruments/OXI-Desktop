@@ -80,7 +80,7 @@ signals:
 
 private:
     int delay_time = 100;
-    int sysex_ack_ = 0;
+    int oxi_ack_ = 0;
     QFile file;
     Project project_;
     OxiDiscovery* _discovery;
