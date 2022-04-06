@@ -71,6 +71,7 @@ void MidiWorker::SendACK(void)
     SendRaw();
 }
 
+
 void MidiWorker::LoadFile(void)
 {
     //    update_file_name_ = QFileDialog::getOpenFileName(
@@ -114,7 +115,6 @@ void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
 bool MidiWorker::WaitForOXIUpdate(void)
 {
     // when receiving the ack from bootloader, the update should start
-    QString fw_update = QString("FW Update");
     int retries = 10;
 
     while (((midi_out.isPortOpen() == false) ||
@@ -133,7 +133,6 @@ bool MidiWorker::WaitForOXIUpdate(void)
         return false;
     }
 }
-
 
 void MidiWorker::run()
 {
@@ -157,7 +156,6 @@ void MidiWorker::run()
             emit ui_UpdateError();
             return;
         }
-
         break;
     case OXI_SPLIT_UPDATE:
         wait_for_ack = false;
@@ -296,6 +294,7 @@ EXIT:
 
 void MidiWorker::SendProject(void)
 {
+
     QFile projectFile( project_file_ );
     if ( projectFile.open(QIODevice::ReadOnly) )
     {
