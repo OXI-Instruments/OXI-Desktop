@@ -38,7 +38,7 @@ struct ProjectPatternData {
 
     ProjectPatternData() {}
 
-    ProjectPatternData(void * pattern, const int type) {
+    void readPattern(void * pattern, const int type) {
         this->type = type;
         uint32_t expected_crc;
         uint32_t crc_received = 0;
