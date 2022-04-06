@@ -52,12 +52,36 @@ OxiDiscovery* MidiWorker::GetDiscovery(){
 
 void MidiWorker::SendRaw(void)
 {
-    try {
-        midi_out.sendRawMessage(raw_data);
+#define CHUNK_SIZE 4096
+    int raw_data_len = raw_data.size();
+
+    if (raw_data_len > CHUNK_SIZE) {
+
+        for (int ibegin = 0; ibegin < raw_data_len; ibegin += CHUNK_SIZE) {
+            int iend = ibegin + CHUNK_SIZE;
+            if (iend > raw_data_len) iend = raw_data_len;
+            data_chunk.assign(raw_data.begin() + ibegin, raw_data.begin() + iend);
+
+
+            try {
+                midi_out.sendRawMessage(data_chunk);
+            }
+            catch ( RtMidiError &error ) {
+                error.printMessage();
+                emit ui_ConnectionError();
+            }
+
+            QThread::msleep(100);
+        }
     }
-    catch ( RtMidiError &error ) {
-        error.printMessage();
-        emit ui_ConnectionError();
+    else {
+        try {
+            midi_out.sendRawMessage(raw_data);
+        }
+        catch ( RtMidiError &error ) {
+            error.printMessage();
+            emit ui_ConnectionError();
+        }
     }
 }
 

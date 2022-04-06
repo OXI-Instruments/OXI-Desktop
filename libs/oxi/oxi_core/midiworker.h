@@ -28,6 +28,8 @@ public:
     QMidiIn midi_in_2;
     QMidiOut midi_out;
     std::vector<unsigned char> raw_data;
+    std::vector<unsigned char> data_chunk;
+
     QString update_file_name_;
     QString oxi_path_;
     QString project_path_;
