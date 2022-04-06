@@ -107,7 +107,7 @@ typedef struct
 #pragma pack(push,1)
 typedef struct {
     uint8_t type;
-    uint8_t byte_align;
+    uint8_t version;
     uint16_t length;
     SEQ_step_multi_s steps[SEQ_STEPS_MAX];
     uint8_t note_offset[SEQ_NOTES_STEP_MAX];
@@ -146,7 +146,7 @@ typedef struct {
 #pragma pack(push,1)
 typedef struct {
     uint8_t type;
-    uint8_t byte_align;
+    uint8_t version;
     uint16_t length;
     SEQ_step_mono_buffer_s steps[SEQ_STEPS_MAX];
     uint8_t cc_mod_global[SEQ_MOD_NUM];
@@ -162,7 +162,7 @@ typedef struct {
 #pragma pack(push,1)
 typedef struct {
     uint8_t type;
-    uint8_t byte_align;
+    uint8_t version;
     uint16_t length;
     SEQ_step_chord_buffer_s steps[SEQ_STEPS_MAX];
     uint8_t arp_type;
@@ -205,7 +205,7 @@ typedef struct {
 #pragma pack(push,1)
 typedef struct {
     uint8_t type;
-    uint8_t byte_align;
+    uint8_t version;
     uint16_t length;
     SEQ_step_poly_buffer_s steps[SEQ_STEPS_MAX];
     uint8_t cc_mod_global[SEQ_MOD_NUM];
