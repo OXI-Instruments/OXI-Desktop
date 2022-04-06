@@ -246,6 +246,7 @@ void MainWindow::on_sendProjectButton_clicked()
         if (midiWorker->isRunning()) {
             midiWorker->terminate();
         }
+        midiWorker->run_process_ = midiWorker->PROJECT_SEND;
 
         midiWorker->project_file_ =  QFileDialog::getOpenFileName(
                     this,
@@ -258,7 +259,9 @@ void MainWindow::on_sendProjectButton_clicked()
         if (midiWorker->project_file_ == "" ) return;
 
         // launch worker
-        midiWorker->SendProject();
+        if (!midiWorker->isRunning()) {
+            midiWorker->start();
+        }
     }
     else {
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);

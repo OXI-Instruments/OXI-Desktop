@@ -85,14 +85,22 @@ void MidiWorker::SendRaw(void)
     }
 }
 
-void MidiWorker::SendACK(void)
-{
-    raw_data.clear();
-    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    raw_data.push_back(MSG_CAT_FW_UPDATE);
-    raw_data.push_back(MSG_FW_UPDT_ACK);
-    raw_data.push_back(0xF7);
-    SendRaw();
+bool MidiWorker::WaitProjectACK(void) {
+    int timeout = 0;
+    const int TIMEOUT_TIME = 5000;
+    const int DELAY_TIME = 100;
+
+    while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
+    {
+//        this->msleep(DELAY_TIME);
+        QThread::msleep(DELAY_TIME);
+        timeout += DELAY_TIME;
+    }
+    if (timeout >= TIMEOUT_TIME) {
+        qDebug() << "TIMEOUT ERROR";
+        return false;
+    }
+    return true;
 }
 
 
@@ -166,6 +174,10 @@ void MidiWorker::run()
     case OXI_ONE_BLE_UPDATE:
         qDebug() << "Thread START: FW Update";
         runFWUpdate();
+        break;
+    case PROJECT_SEND:
+        qDebug() << "Thread START: Send Project RAW";
+        runSendProjectRAW();
         break;
     default:
         break;
@@ -332,15 +344,69 @@ EXIT:
 //    this->terminate();
 }
 
-void MidiWorker::SendProject(void)
+/* SEND RAW DATA WITHOUT PARSING */
+void MidiWorker::runSendProjectRAW(void)
 {
 
     QFile projectFile( project_file_ );
     if ( projectFile.open(QIODevice::ReadOnly) )
     {
+        emit ui_updateStatusLabel("SENDING");
+
         QByteArray buff = projectFile.readAll();
-        project_.readProject(buff);
-        qDebug() << "Project: " << project_.project_data_.proj_name << Qt::endl;;
+
+        SetProjectHeader(project_index_);
+        Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
+        // sysex end command
+        raw_data.push_back(0xF7);
+
+        oxi_ack_ = 0;
+
+        SendRaw();
+
+        // wait for OXI's ACK
+        if (WaitProjectACK() != true) {
+            qDebug() << "SEND PROJECT ERROR" << Qt::endl;
+            emit ui_UpdateProgressBar(0);
+            emit ui_UpdateError();
+            return;
+        }
+        emit ui_UpdateProjectProgressBar(1);
+
+        QFileInfo fi(project_file_);
+        QString project_folder = fi.absolutePath();
+        qDebug() << project_folder << Qt::endl;
+
+        for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
+        {
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+
+            QFile patternFile(pattern_file_);
+            if ( patternFile.open(QIODevice::ReadOnly) )
+            {
+                qDebug() << "open: " << pattern_file_ << Qt::endl;
+                buff = patternFile.readAll();
+
+                SetPatternHeader(project_index_, pattern_index);
+                Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
+                raw_data.push_back(0xF7);
+
+                oxi_ack_ = 0;
+
+                SendRaw();
+
+                if (WaitProjectACK() != true) {
+                    emit ui_UpdateProgressBar(0);
+                    emit ui_UpdateError();
+                    return;
+                }
+
+                emit ui_UpdateProjectProgressBar(100 * pattern_index / 64);
+            }
+        }
+
+        emit ui_UpdateProjectProgressBar(100);
+        emit ui_updateStatusLabel("SUCESS!");
     }
     else {
          emit ui_updateStatusLabel("PROJECT ERROR");
@@ -560,6 +626,14 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     break;
                 case MSG_PROJECT_DELETE_PATTERN:
 
+                    break;
+                case MSG_PROJECT_ACK:
+                     qDebug() << "PROJECT ACK" << Qt::endl;
+                     oxi_ack_ = MSG_PROJECT_ACK;
+                    break;
+                case MSG_PROJECT_NACK:
+                    qDebug() << "PROJECT NOT ACK" << Qt::endl;
+                    oxi_ack_ = MSG_PROJECT_NACK;
                     break;
                 default:
                     break;
