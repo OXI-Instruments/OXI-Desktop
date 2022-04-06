@@ -308,6 +308,38 @@ void MidiWorker::SendProject(void)
     }
 }
 
+void MidiWorker::ReadProjectFromFiles(void)
+{
+    QFile projectFile( project_file_ );
+    if ( projectFile.open(QIODevice::ReadOnly) )
+    {
+        QByteArray buff = projectFile.readAll();
+        project_.readProject(buff);
+        qDebug() << "Project: " << project_.project_data_.proj_name << Qt::endl;
+
+        QFileInfo fi(project_file_);
+        QString project_folder = fi.absolutePath();
+        qDebug() << project_folder << Qt::endl;
+
+        for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
+        {
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+
+            qDebug() << pattern_file_ << Qt::endl;
+
+            QFile patternFile(pattern_file_);
+            if ( patternFile.open(QIODevice::ReadOnly) )
+            {
+                buff = patternFile.readAll();
+                project_.readPattern(buff, pattern_index);
+            }
+        }
+    }
+    else {
+        emit ui_updateStatusLabel("PROJECT ERROR");
+    }
+}
+
 void MidiWorker::GetProject(void)
 {
     raw_data.clear();

@@ -64,6 +64,7 @@ public slots:
 
     void GetPattern(void);
     void SendProject(void);
+    void ReadProjectFromFiles(void);
     void GetProject(void);
 //    void updateUpdateFile(QString update_file_name);
 
