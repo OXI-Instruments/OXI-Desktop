@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>468</width>
-    <height>456</height>
+    <width>410</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -67,8 +67,8 @@ font-size: 14px;
            <rect>
             <x>10</x>
             <y>20</y>
-            <width>401</width>
-            <height>295</height>
+            <width>341</width>
+            <height>261</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -129,7 +129,7 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>30</height>
+               <height>20</height>
               </size>
              </property>
              <property name="orientation">
@@ -208,9 +208,9 @@ font-size: 14px;
          <widget class="QWidget" name="verticalLayoutWidget_2">
           <property name="geometry">
            <rect>
-            <x>10</x>
+            <x>20</x>
             <y>20</y>
-            <width>411</width>
+            <width>321</width>
             <height>251</height>
            </rect>
           </property>
@@ -352,9 +352,9 @@ font-size: 14px;
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>20</y>
-            <width>401</width>
-            <height>221</height>
+            <y>10</y>
+            <width>341</width>
+            <height>231</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
