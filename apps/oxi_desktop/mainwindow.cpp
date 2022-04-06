@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(midiWorker, SIGNAL(ui_UpdateProgressBar(int)),
             this, SLOT(updateProgressBar(int)));
 
-    connect(midiWorker, SIGNAL(ui_UpdateMidiProgressBar(int)),
+    connect(midiWorker, SIGNAL(ui_UpdateProjectProgressBar(int)),
             this, SLOT(updateMidiProgressBar(int)));
 
     connect(midiWorker, SIGNAL(ui_updateStatusLabel(QString)),
@@ -98,6 +98,11 @@ void MainWindow::updateMidiProgressBar(int value)
 void MainWindow::updateStatusLabel(QString text)
 {
     ui->process_status->setText(text);
+}
+
+void MainWindow::updateProjectStatusLabel(QString text)
+{
+//    ui->process_status->setText(text);
 }
 
 void MainWindow::updateConnectionLabel(QString text)
@@ -251,7 +256,6 @@ void MainWindow::on_sendProjectButton_clicked()
 
         qDebug() << midiWorker->project_file_ << Qt::endl;
         if (midiWorker->project_file_ == "" ) return;
-        ui->process_status->setText("SENDING");
 
         // launch worker
         midiWorker->SendProject();

@@ -404,7 +404,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     calib_file.close();
 
-                    emit ui_UpdateMidiProgressBar(100);
+                    emit ui_UpdateProjectProgressBar(100);
                 }
                     break;
                 default:
@@ -478,7 +478,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
 
                     GetPattern();
 
-                    emit ui_UpdateMidiProgressBar(100 * pattern_index / 64);
+                    emit ui_UpdateProjectProgressBar(100 * pattern_index / 64);
                     break;
                 }
                 case MSG_PROJECT_GET_PATTERN:

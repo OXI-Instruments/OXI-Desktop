@@ -69,7 +69,7 @@ signals:
     void ui_UpdateProgressBar(int);
     void ui_UpdateError(void);
     void ui_ConnectionError(void);
-    void ui_UpdateMidiProgressBar(int);
+    void ui_UpdateProjectProgressBar(int);
     void ui_updateStatusLabel(QString);
     void finished();
     void error(QString err);
