@@ -93,21 +93,21 @@ font-size: 14px;
            <item>
             <widget class="QPushButton" name="gotoOXIBootloaderButton">
              <property name="text">
-              <string>OXI ONE FIRMWARE</string>
+              <string>OXI ONE UPDATE</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="gotoBLEBootloaderButton">
              <property name="text">
-              <string>BLUETOOTH FIRMWARE</string>
+              <string>BLUETOOTH UPDATE</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="gotoSPLITBootloaderButton">
              <property name="text">
-              <string>OXI SPLIT FIRMWARE</string>
+              <string>OXI SPLIT UPDATE</string>
              </property>
             </widget>
            </item>
