@@ -43,9 +43,9 @@ public:
 
     process_e run_process_;
 
-    uint8_t project_index = 0;
-    uint8_t seq_index = 0;
-    uint8_t pattern_index = 0;
+    uint8_t project_index_ = 0;
+    uint8_t seq_index_ = 0;
+    uint8_t pattern_index_ = 0;
 
     OxiDiscovery *GetDiscovery();
 

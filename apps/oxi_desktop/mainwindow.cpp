@@ -277,17 +277,17 @@ void MainWindow::on_getPatternButton_clicked()
 
 void MainWindow::on_seq_index_valueChanged(double arg1)
 {
-    midiWorker->seq_index = static_cast<int>(arg1) - 1;
+    midiWorker->seq_index_ = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_project_index_valueChanged(double arg1)
 {
-    midiWorker->project_index = static_cast<int>(arg1) - 1;
+    midiWorker->project_index_ = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_pattern_index_valueChanged(double arg1)
 {
-    midiWorker->pattern_index = static_cast<int>(arg1) - 1;
+    midiWorker->pattern_index_ = static_cast<int>(arg1) - 1;
 }
 
 
@@ -298,7 +298,7 @@ void MainWindow::on_deleteProjectButton_clicked()
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_PROJECT);
     midiWorker->raw_data.push_back(MSG_PROJECT_DELETE_PROJECT);
-    midiWorker->raw_data.push_back(midiWorker->project_index);
+    midiWorker->raw_data.push_back(midiWorker->project_index_);
     midiWorker->raw_data.push_back(0);
     midiWorker->raw_data.push_back(0xF7);
 
@@ -312,8 +312,8 @@ void MainWindow::on_deletePatternButton_clicked()
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_PROJECT);
     midiWorker->raw_data.push_back(MSG_PROJECT_DELETE_PATTERN);
-    midiWorker->raw_data.push_back(midiWorker->project_index);
-    midiWorker->raw_data.push_back(midiWorker->seq_index * 16 + midiWorker->pattern_index);
+    midiWorker->raw_data.push_back(midiWorker->project_index_);
+    midiWorker->raw_data.push_back(midiWorker->seq_index_ * 16 + midiWorker->pattern_index_);
     midiWorker->raw_data.push_back(0xF7);
 
     midiWorker->SendRaw();
