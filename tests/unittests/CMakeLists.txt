@@ -46,6 +46,7 @@ add_executable(
     oxi_unittests
     simple_test_case.cpp
     oxidiscovery_test.cpp
+    send_raw_test.cpp
     main.cpp
     ${GTestFiles})
 add_test(NAME coretest COMMAND coretest)

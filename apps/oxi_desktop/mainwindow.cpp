@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(midiWorker, SIGNAL(ui_UpdateProgressBar(int)),
             this, SLOT(updateProgressBar(int)));
 
-    connect(midiWorker, SIGNAL(ui_UpdateMidiProgressBar(int)),
+    connect(midiWorker, SIGNAL(ui_UpdateProjectProgressBar(int)),
             this, SLOT(updateMidiProgressBar(int)));
 
     connect(midiWorker, SIGNAL(ui_updateStatusLabel(QString)),
@@ -100,6 +100,11 @@ void MainWindow::updateStatusLabel(QString text)
     ui->process_status->setText(text);
 }
 
+void MainWindow::updateProjectStatusLabel(QString text)
+{
+//    ui->process_status->setText(text);
+}
+
 void MainWindow::updateConnectionLabel(QString text)
 {
     ui->connection_status_label->setText(text);
@@ -125,7 +130,7 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_ONE_BLE_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_ONE_BLE_UPDATE;
         ui->process_status->setText("");
         midiWorker->LoadFile();
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -152,7 +157,7 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_SPLIT_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_SPLIT_UPDATE;
         ui->process_status->setText("");
         midiWorker->LoadFile();
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -179,7 +184,7 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
             midiWorker->terminate();
         }
 
-        midiWorker->updated_device_ = midiWorker->OXI_ONE_UPDATE;
+        midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
 
         midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
                     this,
@@ -241,6 +246,7 @@ void MainWindow::on_sendProjectButton_clicked()
         if (midiWorker->isRunning()) {
             midiWorker->terminate();
         }
+        midiWorker->run_process_ = midiWorker->PROJECT_SEND;
 
         midiWorker->project_file_ =  QFileDialog::getOpenFileName(
                     this,
@@ -251,10 +257,11 @@ void MainWindow::on_sendProjectButton_clicked()
 
         qDebug() << midiWorker->project_file_ << Qt::endl;
         if (midiWorker->project_file_ == "" ) return;
-        ui->process_status->setText("SENDING");
 
         // launch worker
-        midiWorker->SendProject();
+        if (!midiWorker->isRunning()) {
+            midiWorker->start();
+        }
     }
     else {
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
@@ -273,17 +280,17 @@ void MainWindow::on_getPatternButton_clicked()
 
 void MainWindow::on_seq_index_valueChanged(double arg1)
 {
-    midiWorker->seq_index = static_cast<int>(arg1) - 1;
+    midiWorker->seq_index_ = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_project_index_valueChanged(double arg1)
 {
-    midiWorker->project_index = static_cast<int>(arg1) - 1;
+    midiWorker->project_index_ = static_cast<int>(arg1) - 1;
 }
 
 void MainWindow::on_pattern_index_valueChanged(double arg1)
 {
-    midiWorker->pattern_index = static_cast<int>(arg1) - 1;
+    midiWorker->pattern_index_ = static_cast<int>(arg1) - 1;
 }
 
 
@@ -294,7 +301,7 @@ void MainWindow::on_deleteProjectButton_clicked()
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_PROJECT);
     midiWorker->raw_data.push_back(MSG_PROJECT_DELETE_PROJECT);
-    midiWorker->raw_data.push_back(midiWorker->project_index);
+    midiWorker->raw_data.push_back(midiWorker->project_index_);
     midiWorker->raw_data.push_back(0);
     midiWorker->raw_data.push_back(0xF7);
 
@@ -308,8 +315,8 @@ void MainWindow::on_deletePatternButton_clicked()
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_PROJECT);
     midiWorker->raw_data.push_back(MSG_PROJECT_DELETE_PATTERN);
-    midiWorker->raw_data.push_back(midiWorker->project_index);
-    midiWorker->raw_data.push_back(midiWorker->seq_index * 16 + midiWorker->pattern_index);
+    midiWorker->raw_data.push_back(midiWorker->project_index_);
+    midiWorker->raw_data.push_back(midiWorker->seq_index_ * 16 + midiWorker->pattern_index_);
     midiWorker->raw_data.push_back(0xF7);
 
     midiWorker->SendRaw();

@@ -19,7 +19,7 @@ class Project
 public:
     Project();
     void readProject(QByteArray &buff);
-    void readPattern(QByteArray &buff, SEQ_e seq_index, uint16_t pattern_index);
+    void readPattern(QByteArray &buff, uint16_t pattern_index);
 
 private:
     uint16_t version_ = ProjectVersion::Latest;

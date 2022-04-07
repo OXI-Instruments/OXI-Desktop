@@ -52,24 +52,57 @@ OxiDiscovery* MidiWorker::GetDiscovery(){
 
 void MidiWorker::SendRaw(void)
 {
-    try {
-        midi_out.sendRawMessage(raw_data);
+#define CHUNK_SIZE 4096
+    int raw_data_len = raw_data.size();
+
+    if (raw_data_len > CHUNK_SIZE) {
+
+        for (int ibegin = 0; ibegin < raw_data_len; ibegin += CHUNK_SIZE) {
+            int iend = ibegin + CHUNK_SIZE;
+            if (iend > raw_data_len) iend = raw_data_len;
+            data_chunk.assign(raw_data.begin() + ibegin, raw_data.begin() + iend);
+
+
+            try {
+                midi_out.sendRawMessage(data_chunk);
+            }
+            catch ( RtMidiError &error ) {
+                error.printMessage();
+                emit ui_ConnectionError();
+            }
+
+            QThread::msleep(100);
+        }
     }
-    catch ( RtMidiError &error ) {
-        error.printMessage();
-        emit ui_ConnectionError();
+    else {
+        try {
+            midi_out.sendRawMessage(raw_data);
+        }
+        catch ( RtMidiError &error ) {
+            error.printMessage();
+            emit ui_ConnectionError();
+        }
     }
 }
 
-void MidiWorker::SendACK(void)
-{
-    raw_data.clear();
-    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    raw_data.push_back(MSG_CAT_FW_UPDATE);
-    raw_data.push_back(MSG_FW_UPDT_ACK);
-    raw_data.push_back(0xF7);
-    SendRaw();
+bool MidiWorker::WaitProjectACK(void) {
+    int timeout = 0;
+    const int TIMEOUT_TIME = 5000;
+    const int DELAY_TIME = 100;
+
+    while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
+    {
+//        this->msleep(DELAY_TIME);
+        QThread::msleep(DELAY_TIME);
+        timeout += DELAY_TIME;
+    }
+    if (timeout >= TIMEOUT_TIME) {
+        qDebug() << "TIMEOUT ERROR";
+        return false;
+    }
+    return true;
 }
+
 
 void MidiWorker::LoadFile(void)
 {
@@ -114,7 +147,6 @@ void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
 bool MidiWorker::WaitForOXIUpdate(void)
 {
     // when receiving the ack from bootloader, the update should start
-    QString fw_update = QString("FW Update");
     int retries = 10;
 
     while (((midi_out.isPortOpen() == false) ||
@@ -134,8 +166,27 @@ bool MidiWorker::WaitForOXIUpdate(void)
     }
 }
 
-
 void MidiWorker::run()
+{
+    switch (this->run_process_) {
+    case OXI_ONE_UPDATE:
+    case OXI_SPLIT_UPDATE:
+    case OXI_ONE_BLE_UPDATE:
+        qDebug() << "Thread START: FW Update";
+        runFWUpdate();
+        break;
+    case PROJECT_SEND:
+        qDebug() << "Thread START: Send Project RAW";
+        runSendProjectRAW();
+        break;
+    default:
+        break;
+    }
+}
+
+
+// UPDATE PROCESS
+void MidiWorker::runFWUpdate()
 {
     int timeout = 0;
     int retries = 0;
@@ -148,7 +199,7 @@ void MidiWorker::run()
     if (!file.open(QIODevice::ReadOnly))
         return;
 
-    switch (this->updated_device_){
+    switch (this->run_process_){
     case OXI_ONE_UPDATE:
         wait_for_ack = true;
         SendGotoBoot(MSG_FW_UPDT_OXI_ONE);
@@ -157,7 +208,6 @@ void MidiWorker::run()
             emit ui_UpdateError();
             return;
         }
-
         break;
     case OXI_SPLIT_UPDATE:
         wait_for_ack = false;
@@ -191,7 +241,7 @@ LOOP:
     for (package_num = 0; package_num < packages.size(); )
     {
         timeout = 0;
-        sysex_ack_ = 0;
+        oxi_ack_ = 0;
 
         raw_data.assign(packages[package_num].constData(), packages[package_num].constData() + packages[package_num].size());
 
@@ -214,7 +264,7 @@ LOOP:
         }
 
         if (wait_for_ack) {
-            while((sysex_ack_ == 0) && (timeout < TIMEOUT_TIME))
+            while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
             {
                 this->msleep(DELAY_TIME);
                 timeout += DELAY_TIME;
@@ -223,13 +273,13 @@ LOOP:
             if (timeout >= TIMEOUT_TIME) {
                 goto SEND_RESET;
             }
-            else if (sysex_ack_ == MSG_FW_UPDT_ACK) {
-                sysex_ack_ = 0;
+            else if (oxi_ack_ == MSG_FW_UPDT_ACK) {
+                oxi_ack_ = 0;
                 retries = 0;
 
                 package_num ++;
             }
-            else if (sysex_ack_ == MSG_FW_UPDT_NACK) {
+            else if (oxi_ack_ == MSG_FW_UPDT_NACK) {
                 goto SEND_RESET;
             }
         }
@@ -269,7 +319,7 @@ EXIT:
     if (success) {
         emit ui_UpdateProgressBar(100);
 
-        switch (this->updated_device_){
+        switch (this->run_process_){
         case OXI_ONE_UPDATE:
 
             break;
@@ -294,17 +344,104 @@ EXIT:
 //    this->terminate();
 }
 
-void MidiWorker::SendProject(void)
+/* SEND RAW DATA WITHOUT PARSING */
+void MidiWorker::runSendProjectRAW(void)
+{
+
+    QFile projectFile( project_file_ );
+    if ( projectFile.open(QIODevice::ReadOnly) )
+    {
+        emit ui_updateStatusLabel("SENDING");
+
+        QByteArray buff = projectFile.readAll();
+
+        SetProjectHeader(project_index_);
+        Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
+        // sysex end command
+        raw_data.push_back(0xF7);
+
+        oxi_ack_ = 0;
+
+        SendRaw();
+
+        // wait for OXI's ACK
+        if (WaitProjectACK() != true) {
+            qDebug() << "SEND PROJECT ERROR" << Qt::endl;
+            emit ui_UpdateProgressBar(0);
+            emit ui_UpdateError();
+            return;
+        }
+        emit ui_UpdateProjectProgressBar(1);
+
+        QFileInfo fi(project_file_);
+        QString project_folder = fi.absolutePath();
+        qDebug() << project_folder << Qt::endl;
+
+        for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
+        {
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+
+            QFile patternFile(pattern_file_);
+            if ( patternFile.open(QIODevice::ReadOnly) )
+            {
+                qDebug() << "open: " << pattern_file_ << Qt::endl;
+                buff = patternFile.readAll();
+
+                SetPatternHeader(project_index_, pattern_index);
+                Nibblize(raw_data, (uint8_t*)buff.data(), buff.size());
+                raw_data.push_back(0xF7);
+
+                oxi_ack_ = 0;
+
+                SendRaw();
+
+                if (WaitProjectACK() != true) {
+                    emit ui_UpdateProgressBar(0);
+                    emit ui_UpdateError();
+                    return;
+                }
+
+                emit ui_UpdateProjectProgressBar(100 * pattern_index / 64);
+            }
+        }
+
+        emit ui_UpdateProjectProgressBar(100);
+        emit ui_updateStatusLabel("SUCESS!");
+    }
+    else {
+         emit ui_updateStatusLabel("PROJECT ERROR");
+    }
+}
+
+void MidiWorker::ReadProjectFromFiles(void)
 {
     QFile projectFile( project_file_ );
     if ( projectFile.open(QIODevice::ReadOnly) )
     {
         QByteArray buff = projectFile.readAll();
         project_.readProject(buff);
-        qDebug() << "Project: " << project_.project_data_.proj_name << Qt::endl;;
+        qDebug() << "Project: " << project_.project_data_.proj_name << Qt::endl;
+
+        QFileInfo fi(project_file_);
+        QString project_folder = fi.absolutePath();
+        qDebug() << project_folder << Qt::endl;
+
+        for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
+        {
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+
+            qDebug() << pattern_file_ << Qt::endl;
+
+            QFile patternFile(pattern_file_);
+            if ( patternFile.open(QIODevice::ReadOnly) )
+            {
+                buff = patternFile.readAll();
+                project_.readPattern(buff, pattern_index);
+            }
+        }
     }
     else {
-         emit ui_updateStatusLabel("PROJECT ERROR");
+        emit ui_updateStatusLabel("PROJECT ERROR");
     }
 }
 
@@ -314,7 +451,7 @@ void MidiWorker::GetProject(void)
     raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     raw_data.push_back(MSG_CAT_PROJECT);
     raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
-    raw_data.push_back(project_index);
+    raw_data.push_back(project_index_);
     raw_data.push_back(0);
     raw_data.push_back(0xF7);
     try {
@@ -331,8 +468,8 @@ void MidiWorker::GetPattern(void)
     raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     raw_data.push_back(MSG_CAT_PROJECT);
     raw_data.push_back(MSG_PROJECT_GET_PATTERN);
-    raw_data.push_back(project_index);
-    raw_data.push_back(seq_index * 16 + pattern_index);
+    raw_data.push_back(project_index_);
+    raw_data.push_back(seq_index_ * 16 + pattern_index_);
     raw_data.push_back(0xF7);
     try {
         midi_out.sendRawMessage(raw_data);
@@ -361,11 +498,11 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     break;
                 case MSG_FW_UPDT_ACK:
                     qDebug() << "ACK!!" << Qt::endl;
-                    sysex_ack_ = MSG_FW_UPDT_ACK;
+                    oxi_ack_ = MSG_FW_UPDT_ACK;
                     break;
                 case MSG_FW_UPDT_NACK:
                     qDebug() << "NOT ACK" << Qt::endl;
-                    sysex_ack_ = MSG_FW_UPDT_NACK;
+                    oxi_ack_ = MSG_FW_UPDT_NACK;
                     break;
                 default:
                     break;
@@ -404,7 +541,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     calib_file.close();
 
-                    emit ui_UpdateMidiProgressBar(100);
+                    emit ui_UpdateProjectProgressBar(100);
                 }
                     break;
                 default:
@@ -425,13 +562,13 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
                     QDir system_dir;
-                    project_path_ = oxi_path_ + "/Projects/Project " + QString::number(project_index + 1);
+                    project_path_ = oxi_path_ + "/Projects/Project " + QString::number(project_index_ + 1);
                     if (!system_dir.exists(project_path_)) {
 
                         system_dir.mkdir(project_path_);
                     }
 
-                    QString proj_filename = project_path_ + "/Project " + QString::number(project_index + 1) + ".bin";
+                    QString proj_filename = project_path_ + "/Project " + QString::number(project_index_ + 1) + ".bin";
                     qDebug() << proj_filename << Qt::endl;;
 
                     QFile proj_file( proj_filename );
@@ -441,7 +578,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     proj_file.close();
 
-                    pattern_index = 0;
+                    pattern_index_ = 0;
 
                     GetPattern();
                     break;
@@ -464,7 +601,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                         system_dir.mkdir(project_path_);
                     }
 
-                    QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+                    QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_index_ + 1) + ".bin";
                     qDebug() << patt_filename;
 
                     QFile patt_file( patt_filename );
@@ -474,11 +611,11 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     }
                     patt_file.close();
 
-                    pattern_index ++;
+                    pattern_index_ ++;
 
                     GetPattern();
 
-                    emit ui_UpdateMidiProgressBar(100 * pattern_index / 64);
+                    emit ui_UpdateProjectProgressBar(100 * pattern_index_ / 64);
                     break;
                 }
                 case MSG_PROJECT_GET_PATTERN:
@@ -489,6 +626,14 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     break;
                 case MSG_PROJECT_DELETE_PATTERN:
 
+                    break;
+                case MSG_PROJECT_ACK:
+                     qDebug() << "PROJECT ACK" << Qt::endl;
+                     oxi_ack_ = MSG_PROJECT_ACK;
+                    break;
+                case MSG_PROJECT_NACK:
+                    qDebug() << "PROJECT NOT ACK" << Qt::endl;
+                    oxi_ack_ = MSG_PROJECT_NACK;
                     break;
                 default:
                     break;
