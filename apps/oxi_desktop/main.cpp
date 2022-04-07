@@ -42,6 +42,12 @@ int main(int argc, char *argv[])
 #ifndef QT_DEBUG
     QLoggingCategory::setFilterRules("*.debug=false");
 #endif
+
+    QFile styleSheetFile(":/resources/Style.qss");
+    styleSheetFile.open(QFile::ReadOnly);
+    QString styleSheet = QLatin1String(styleSheetFile.readAll());
+    a.setStyleSheet(styleSheet);
+
     QFontDatabase::addApplicationFont(":/fonts/Oswald.ttf");
     MainWindow w;
     w.show();
