@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>resources/Oswald.ttf</file>
         <file>resources/Style.qss</file>
+        <file>resources/logo.png</file>
     </qresource>
 </RCC>
