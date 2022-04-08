@@ -100,11 +100,6 @@ void MainWindow::updateStatusLabel(QString text)
     ui->process_status->setText(text);
 }
 
-void MainWindow::updateProjectStatusLabel(QString text)
-{
-//    ui->process_status->setText(text);
-}
-
 void MainWindow::updateConnectionLabel(QString text)
 {
     ui->connection_status_label->setText(text);
@@ -124,6 +119,8 @@ void MainWindow::connectionError(void)
 void MainWindow::on_gotoBLEBootloaderButton_clicked()
 {
 #if 1
+    ui->process_status->setText("");
+
     if ( midiWorker->midi_out.isPortOpen())
     {
         if (midiWorker->isRunning()) {
@@ -132,9 +129,16 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
 
         midiWorker->run_process_ = midiWorker->OXI_ONE_BLE_UPDATE;
         ui->process_status->setText("");
-        midiWorker->LoadFile();
+        midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
+                    this,
+                    tr("Select SYSEX"),
+                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                    tr("Sysex ( *.syx);All Files ( * )"));
+
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
+
+        ui->process_status->setText("UPDATING");
 
         // launch worker
         if (!midiWorker->isRunning()) {
@@ -151,6 +155,8 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
 void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 {
 #if 1
+    ui->process_status->setText("");
+
     if ( midiWorker->midi_out.isPortOpen())
     {
         if (midiWorker->isRunning()) {
@@ -159,9 +165,16 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 
         midiWorker->run_process_ = midiWorker->OXI_SPLIT_UPDATE;
         ui->process_status->setText("");
-        midiWorker->LoadFile();
+        midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
+                    this,
+                    tr("Select SYSEX"),
+                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+                    tr("Sysex ( *.syx);All Files ( * )"));
+
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
+
+        ui->process_status->setText("UPDATING");
 
         // launch worker
         if (!midiWorker->isRunning()) {
@@ -178,6 +191,8 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 void MainWindow::on_gotoOXIBootloaderButton_clicked()
 {
 #if 1
+    ui->process_status->setText("");
+
     if ( midiWorker->midi_out.isPortOpen())
     {
         if (midiWorker->isRunning()) {
@@ -195,7 +210,9 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
         qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
+
         ui->process_status->setText("UPDATING");
+
         qDebug() << "file selected" << Qt::endl;
 
         // launch worker
@@ -220,6 +237,8 @@ void MainWindow::on_exitBootloaderButton_clicked()
             midiWorker->terminate();
             ui->progressBar->setValue(0);
         }
+
+        ui->process_status->setText("");
     }
     else {
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
@@ -241,6 +260,8 @@ void MainWindow::on_stopButton_clicked()
 
 void MainWindow::on_sendProjectButton_clicked()
 {
+    ui->process_status->setText("");
+
     if ( midiWorker->midi_out.isPortOpen())
     {
         if (midiWorker->isRunning()) {
@@ -270,6 +291,8 @@ void MainWindow::on_sendProjectButton_clicked()
 
 void MainWindow::on_getProjectButton_clicked()
 {
+    ui->process_status->setText("");
+
     midiWorker->GetProject();
 }
 
@@ -324,6 +347,8 @@ void MainWindow::on_deletePatternButton_clicked()
 
 void MainWindow::on_getCalibDataButton_clicked()
 {
+    ui->process_status->setText("");
+
     midiWorker->raw_data.clear();
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);
@@ -371,6 +396,8 @@ void MainWindow::on_sendCalibDataButton_clicked()
 
 void MainWindow::on_eraseMemButton_clicked()
 {
+    ui->process_status->setText("");
+
     midiWorker->raw_data.clear();
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);

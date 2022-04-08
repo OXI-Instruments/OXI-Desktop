@@ -56,7 +56,6 @@ public:
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
     void onMidiReceive(QMidiMessage*);
-    void LoadFile(void);
 
     void SendRaw(void);
     void SendACK(void) {

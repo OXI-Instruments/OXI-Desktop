@@ -29,7 +29,6 @@ private slots:
     void updateProgressBar(int value);
     void updateMidiProgressBar(int value);
     void updateStatusLabel(QString text);
-    void updateProjectStatusLabel(QString text);
     void updateConnectionLabel(QString text);
     void updateError(void);
     void connectionError(void);

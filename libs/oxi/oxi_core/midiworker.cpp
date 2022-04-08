@@ -104,15 +104,6 @@ bool MidiWorker::WaitProjectACK(void) {
 }
 
 
-void MidiWorker::LoadFile(void)
-{
-    //    update_file_name_ = QFileDialog::getOpenFileName(
-    //                this,
-    //                tr("Select SYSEX"),
-    //                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-    //                tr("Sysex ( *.syx);All Files ( * )"));
-}
-
 void MidiWorker::SendBootExit(void)
 {
     raw_data.clear();
@@ -349,6 +340,7 @@ void MidiWorker::runSendProjectRAW(void)
 {
 
     QFile projectFile( project_file_ );
+
     if ( projectFile.open(QIODevice::ReadOnly) )
     {
         emit ui_updateStatusLabel("SENDING");
@@ -454,7 +446,11 @@ void MidiWorker::GetProject(void)
     raw_data.push_back(project_index_);
     raw_data.push_back(0);
     raw_data.push_back(0xF7);
+
+    ui_updateStatusLabel("");
+
     try {
+        ui_updateStatusLabel("Receiving Project Data");
         midi_out.sendRawMessage(raw_data);
     }
     catch ( RtMidiError &error ) {
