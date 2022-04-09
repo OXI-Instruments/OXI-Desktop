@@ -22,9 +22,9 @@ public:
     OxiDiscovery *discovery;
     QTimer *connection_timer;
 
-//    QMidiIn midi_in;
-//    QMidiOut midi_out;
-//    std::vector<unsigned char> raw_data;
+    //    QMidiIn midi_in;
+    //    QMidiOut midi_out;
+    //    std::vector<unsigned char> raw_data;
 
 private slots:
 
@@ -67,7 +67,7 @@ signals:
     void WorkerUpdateFile(QString);
 
 private:
-//public:
+    //public:
     Ui::MainWindow *ui;
     void updateUiStatus(QString statusMessage);
 };

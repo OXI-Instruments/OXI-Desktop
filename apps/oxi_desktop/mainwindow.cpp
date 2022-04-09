@@ -113,7 +113,7 @@ QString MainWindow::FileDialog(FileType type){
 void MainWindow::uiPortAlreadyInUse(){
     connection_timer->stop();
     QMessageBox::information(this, tr("Port Already in Use"),
-    tr("Another process is already using the MIDI port.\n\nPlease ensure the port is not in use and restart OXI Desktop."));
+                             tr("Another process is already using the MIDI port.\n\nPlease ensure the port is not in use and restart OXI Desktop."));
 }
 
 void MainWindow::updateUiStatus(QString statusMessage){
@@ -383,7 +383,7 @@ void MainWindow::on_sendCalibDataButton_clicked()
     Nibblize(midiWorker->raw_data, (uint8_t*)sysex_file_buffer.data(), sysex_file_buffer.size());
     midiWorker->raw_data.push_back(0xF7);
 
-     midiWorker->SendRaw();
+    midiWorker->SendRaw();
 
     ui->midiProgressBar->setValue(0);
 }

@@ -25,18 +25,18 @@ QStringList OxiDiscovery::GetInPorts(){
 
 bool OxiDiscovery::IsOxiFwUpdatePort(QStringList portNames, int index){
     return IsOxiPort(portNames, index)
-           && portNames[index].contains(fw_update);
+            && portNames[index].contains(fw_update);
 }
 
 bool OxiDiscovery::IsOxiPort(QStringList portNames, int index){
     return index >= 0
-           && index < portNames.length()
-           && IsOxiPort(portNames[index]);
+            && index < portNames.length()
+            && IsOxiPort(portNames[index]);
 }
 
 bool OxiDiscovery::IsOxiPort(QString portName){
     bool isOxiPortName = (portName.contains(one) || (portName.contains(fw_update))) &&
-                         portName.contains(oxi);
+            portName.contains(oxi);
     return isOxiPortName;
 }
 
@@ -124,7 +124,7 @@ bool OxiDiscovery::DiscoverOutPort(){
     }
     else {
         emit ui_UpdateConnectionLabel("CONNECT YOUR OXI ONE");
-//        int oxiOutIdx = GetOxiOutIndex(outPorts);
+        //        int oxiOutIdx = GetOxiOutIndex(outPorts);
         if (oxiOutIdx >= 0){
             qInfo() << "Discovered MIDI OUT port " + outPorts[oxiOutIdx] + " and will open";
             try{
@@ -173,7 +173,7 @@ bool OxiDiscovery::DiscoverInPort(){
         }
     }
     else {
-//        int oxiInIdx = GetOxiInIndex(inPorts);
+        //        int oxiInIdx = GetOxiInIndex(inPorts);
         if (oxiInIdx >= 0){
             qInfo() << "Discovered MIDI IN port " + inPorts[oxiInIdx] + " and will open";
             try{
