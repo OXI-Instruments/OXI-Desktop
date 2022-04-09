@@ -35,7 +35,7 @@ build_and_test:
 
     script:
         - cd /builds/manuwind5/Oxi-Desktop-App
-        - cmake .
+        - cmake -DCMAKE_BUILD_TYPE=Release .
         - make
         # until we have no deployable artifact to run tests on we just test here
         - ./tests/unittests/oxi_unittests --gtest_filter=unit* --gtest_output=xml:test_report.xml
