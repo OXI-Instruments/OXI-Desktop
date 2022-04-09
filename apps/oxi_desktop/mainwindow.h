@@ -20,7 +20,6 @@ public:
     ~MainWindow();
     MidiWorker *midiWorker;
     OxiDiscovery *discovery;
-    QTimer *connection_timer;
 
     //    QMidiIn midi_in;
     //    QMidiOut midi_out;

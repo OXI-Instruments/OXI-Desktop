@@ -20,6 +20,7 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
     QThread(parent), Stop(b)
 {
     _discovery = new OxiDiscovery(&midi_in, &midi_out);
+    _discovery->start();
     midi_in.setIgnoreTypes(false, true, true);
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
                      this, SLOT(onMidiReceive(QMidiMessage*))));

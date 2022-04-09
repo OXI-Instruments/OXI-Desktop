@@ -34,8 +34,6 @@ MainWindow::MainWindow(QWidget *parent)
     midiWorker = new MidiWorker(this);
     OxiDiscovery *discovery = midiWorker->GetDiscovery();
 
-    connection_timer = new QTimer(this);
-
     // connect signal/slot
     connect(midiWorker, SIGNAL(ui_UpdateProgressBar(int)),
             this, SLOT(updateProgressBar(int)));
@@ -60,10 +58,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
-
-    connect(connection_timer, SIGNAL(timeout()), discovery, SLOT(Discover()));
-
-    connection_timer->start(500);
 
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
@@ -111,7 +105,7 @@ QString MainWindow::FileDialog(FileType type){
 }
 
 void MainWindow::uiPortAlreadyInUse(){
-    connection_timer->stop();
+    midiWorker->GetDiscovery()->Stop();
     QMessageBox::information(this, tr("Port Already in Use"),
                              tr("Another process is already using the MIDI port.\n\nPlease ensure the port is not in use and restart OXI Desktop."));
 }

@@ -6,13 +6,14 @@
 #include "qmidiin.h"
 #include "qmidiout.h"
 
-class OXI_CORE_EXPORT OxiDiscovery : public QObject {
+class OXI_CORE_EXPORT OxiDiscovery : public QThread {
     Q_OBJECT
 private:
     const static QString oxi;
     const static QString one;
     const static QString fw_update;
 
+    bool _stopPending;
     QMidiIn* _midi_in;
     QMidiOut* _midi_out;
     int _in_idx;
@@ -29,7 +30,7 @@ private:
     bool DiscoverInPort();
 
 public:
-    OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut);
+    explicit OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut, QObject *parent = nullptr);
 
     int GetOxiOutIndex(QStringList portNames);
     int GetOxiInIndex(QStringList portNames);
@@ -39,7 +40,10 @@ public:
     bool IsOutFwUpdate();
     QStringList GetOutPorts();
     QStringList GetInPorts();
+    void run() override;
+    void Stop();
 
+    bool IsConnected();
 signals:
     void ui_UpdateConnectionLabel(QString);
     void ui_PortAlreadyInUse(void);

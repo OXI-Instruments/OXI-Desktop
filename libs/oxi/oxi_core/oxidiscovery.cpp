@@ -5,7 +5,9 @@ const QString OxiDiscovery::oxi = QString("OXI");
 const QString OxiDiscovery::one = QString("ONE");
 const QString OxiDiscovery::fw_update = QString("FW Update");
 
-OxiDiscovery::OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut)
+OxiDiscovery::OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut, QObject *parent) :
+    QThread(parent)
+
 {
     _in_idx = -1;
     _out_idx = -1;
@@ -13,6 +15,20 @@ OxiDiscovery::OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut)
     _midi_out = midiOut;
     _previousInPorts = QStringList();
     _previousOutPorts = QStringList();
+    _stopPending = false;
+}
+
+void OxiDiscovery::run(){
+    while(!_stopPending){
+        Discover();
+        msleep(500);
+    }
+
+    _stopPending = false;
+}
+
+void OxiDiscovery::Stop(){
+    _stopPending = true;
 }
 
 QStringList OxiDiscovery::GetOutPorts(){
@@ -21,6 +37,10 @@ QStringList OxiDiscovery::GetOutPorts(){
 
 QStringList OxiDiscovery::GetInPorts(){
     return _midi_in->getPorts();
+}
+
+bool OxiDiscovery::IsConnected(){
+    return _out_idx >= 0 && _in_idx >= 0;
 }
 
 bool OxiDiscovery::IsOxiFwUpdatePort(QStringList portNames, int index){
