@@ -70,11 +70,13 @@ int OxiDiscovery::GetOxiInIndex(QStringList portNames)
 }
 
 QString OxiDiscovery::GetOxiOutDeviceName(int index){
-    return _midi_out->getPorts()[index];
+    QStringList ports = _midi_out->getPorts();
+    return ports[index];
 }
 
 QString OxiDiscovery::GetOxiInDeviceName(int index){
-    return _midi_in->getPorts()[index];
+    QStringList ports = _midi_out->getPorts();
+    return ports[index];
 }
 
 bool OxiDiscovery::IsInFwUpdate(){
