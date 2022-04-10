@@ -1,4 +1,5 @@
 if(WIN32)
+    # See about TARGET_RUNTIME_DLLS from 3.21 https://cmake.org/cmake/help/git-stage/manual/cmake-generator-expressions.7.html#genex:TARGET_RUNTIME_DLLS
     cmake_minimum_required(VERSION 3.21)
 else()
     cmake_minimum_required(VERSION 3.5)
