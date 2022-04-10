@@ -27,7 +27,7 @@ private:
     bool DiscoverInPort();
 
 public:
-    explicit OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut);
+    OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut);
 
     int GetOxiOutIndex(QStringList portNames);
     int GetOxiInIndex(QStringList portNames);
