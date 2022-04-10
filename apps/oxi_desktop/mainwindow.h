@@ -5,6 +5,8 @@
 #include <QMainWindow>
 #include "midiworker.h"
 
+#include "FileTypes.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -46,23 +48,19 @@ private slots:
 
     void on_getProjectButton_clicked();
 
-    void on_seq_index_valueChanged(double arg1);
-
     void on_project_index_valueChanged(double arg1);
-
-    void on_pattern_index_valueChanged(double arg1);
 
     void on_getPatternButton_clicked();
 
     void on_deleteProjectButton_clicked();
-
-    void on_deletePatternButton_clicked();
 
     void on_getCalibDataButton_clicked();
 
     void on_sendCalibDataButton_clicked();
 
     void on_eraseMemButton_clicked();
+
+    QString FileDialog(FileType file);
 
 signals:
     void updateWorkerDelayTime(int);
