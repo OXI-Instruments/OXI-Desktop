@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.5)
+if(WIN32)
+    # See about TARGET_RUNTIME_DLLS from 3.21 https://cmake.org/cmake/help/git-stage/manual/cmake-generator-expressions.7.html#genex:TARGET_RUNTIME_DLLS
+    cmake_minimum_required(VERSION 3.21)
+else()
+    cmake_minimum_required(VERSION 3.5)
+endif()
 
 project(oxi_desktop VERSION 0.1 LANGUAGES CXX)
 
@@ -83,7 +88,9 @@ set_target_properties(oxi_desktop PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-if(WIN32)
+string(TOUPPER ${CMAKE_BUILD_TYPE} OXI_BUILD_TYPE_UPPER)
+if(OXI_BUILD_TYPE_UPPER STREQUAL "RELEASE" AND WIN32)
+    message("RELEASE build on windows will copy runtime assemblies to target location.")
     add_custom_command(TARGET oxi_desktop POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:oxi_desktop> $<TARGET_FILE_DIR:oxi_desktop>
       COMMAND_EXPAND_LISTS
