@@ -26,7 +26,6 @@ public:
     bool Stop;
 
     QMidiIn midi_in;
-    QMidiIn midi_in_2;
     QMidiOut midi_out;
     std::vector<unsigned char> raw_data;
     std::vector<unsigned char> data_chunk;

@@ -20,13 +20,7 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
 {
     _discovery = new OxiDiscovery(&midi_in, &midi_out);
     midi_in.setIgnoreTypes(false, true, true);
-    midi_in_2.setIgnoreTypes(false, true, true);
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
-                     this, SLOT(onMidiReceive(QMidiMessage*))));
-
-    // Listen to both OXI MIDI Ports just in case?
-    // If so Receive msgs in the same callback
-    Q_ASSUME(connect(&midi_in_2, SIGNAL(midiMessageReceived(QMidiMessage*)),
                      this, SLOT(onMidiReceive(QMidiMessage*))));
 
     QString desktop_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
