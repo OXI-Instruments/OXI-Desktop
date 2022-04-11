@@ -25,6 +25,8 @@ jobs:
       value: $(Build.Repository.LocalPath)
     - name: oxiBuildDir
       value: $(Pipeline.Workspace)/build
+    - name: oxiOutputName
+      value: OXI-Desktop
 
   steps:
   - checkout: self
@@ -61,7 +63,7 @@ jobs:
       cp ../*.dll .
       ls .
       echo %PATH%
-      C:/Qt/6.2.4/mingw_64/bin/windeployqt.exe --no-translations --compiler-runtime oxi_desktop.exe
+      C:/Qt/6.2.4/mingw_64/bin/windeployqt.exe --no-translations --compiler-runtime $(oxiOutputName)
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
     displayName: Create windows deployable
 
@@ -70,7 +72,7 @@ jobs:
       rootFolderOrFile: '$(oxiBuildDir)/apps/oxi_desktop/deploy'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/OXI-Desktop_Win_x64.zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(oxiOutputName)_Win_x64.zip'
       replaceExistingArchive: true
     displayName: Copy archive to artifact staging directory
 
@@ -133,20 +135,20 @@ jobs:
     workingDirectory: $(oxiBuildDir)
     displayName: Build
 
-  - script: mkdir deploy && cp -r ./oxi_desktop.app ./deploy
+  - script: mkdir deploy && cp -r ./$(oxiOutputName).app ./deploy
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop
 
-  - script: /opt/qt/6.2.4/macos/bin/macdeployqt oxi_desktop.app -always-overwrite -dmg
+  - script: /opt/qt/6.2.4/macos/bin/macdeployqt $(oxiOutputName).app -always-overwrite -dmg
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
     displayName: Create Mac Deployable
 
-  - script: mv oxi_desktop.dmg OXI-Desktop_MacOS.dmg
+  - script: mv $(oxiOutputName).dmg $(oxiOutputName)_MacOS.dmg
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
 
   - task: CopyFiles@2
     inputs:
       SourceFolder: '$(oxiBuildDir)/apps/oxi_desktop/deploy'
-      Contents: 'OXI-Desktop_MacOS.dmg'
+      Contents: '$(oxiOutputName)_MacOS.dmg'
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
     displayName: Copy Files to Staging Area
 

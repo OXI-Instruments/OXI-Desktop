@@ -91,6 +91,9 @@ set_target_properties(oxi_desktop PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+set_target_properties(oxi_desktop
+    PROPERTIES OUTPUT_NAME "OXI Desktop")
+
 string(TOUPPER ${CMAKE_BUILD_TYPE} OXI_BUILD_TYPE_UPPER)
 if(OXI_BUILD_TYPE_UPPER STREQUAL "RELEASE" AND WIN32)
     message("RELEASE build on windows will copy runtime assemblies to target location.")
