@@ -19,6 +19,8 @@ private:
     int _out_idx;
     QString _oxi_port_name_in;
     QString _oxi_port_name_out;
+    QStringList _previousInPorts;
+    QStringList _previousOutPorts;
 
     bool IsOxiPort(QString portName);
     bool IsOxiPort(QStringList portNames, int index);

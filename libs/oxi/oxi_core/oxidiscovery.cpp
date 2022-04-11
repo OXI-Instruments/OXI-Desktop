@@ -11,6 +11,8 @@ OxiDiscovery::OxiDiscovery(QMidiIn *midiIn, QMidiOut *midiOut)
     _out_idx = -1;
     _midi_in = midiIn;
     _midi_out = midiOut;
+    _previousInPorts = QStringList();
+    _previousOutPorts = QStringList();
 }
 
 QStringList OxiDiscovery::GetOutPorts(){
@@ -40,9 +42,6 @@ bool OxiDiscovery::IsOxiPort(QString portName){
 
 int OxiDiscovery::GetOxiOutIndex(QStringList portNames)
 {
-    // TODO portNames is a list, which is not properly printed.
-    // TODO GetOxiOutIndex and GetOxiInIndex are redundant methods
-    qDebug() << "OUT ports are: " << portNames;
     for (int i = 0; i != portNames.size(); ++i)
     {
         if (IsOxiPort(portNames[i]))
@@ -56,8 +55,6 @@ int OxiDiscovery::GetOxiOutIndex(QStringList portNames)
 
 int OxiDiscovery::GetOxiInIndex(QStringList portNames)
 {
-    // TODO portNames is a list, which is not properly printed.
-    qDebug() << "IN ports are: " << portNames;
     for (int i = 0; i != portNames.size(); ++i)
     {
         if (IsOxiPort(portNames[i]))
@@ -98,6 +95,10 @@ void OxiDiscovery::Discover()
 
 bool OxiDiscovery::DiscoverOutPort(){
     QStringList outPorts = _midi_out->getPorts();
+    if(outPorts != _previousOutPorts){
+        qDebug() << "MIDI OUT ports have changed: " << outPorts;
+        _previousOutPorts = outPorts;
+    }
 
     int oxiOutIdx = GetOxiOutIndex(outPorts);
 
@@ -145,6 +146,10 @@ bool OxiDiscovery::DiscoverOutPort(){
 
 bool OxiDiscovery::DiscoverInPort(){
     QStringList inPorts = _midi_in->getPorts();
+    if(inPorts != _previousInPorts){
+        qDebug() << "MIDI IN ports have changed: " << inPorts;
+        _previousInPorts = inPorts;
+    }
 
     int oxiInIdx = GetOxiInIndex(inPorts);
 
