@@ -49,10 +49,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
                MACOSX_PACKAGE_LOCATION "Resources")
 
         qt_add_executable(oxi_desktop MACOSX_BUNDLE
+            MANUAL_FINALIZATION
             ${PROJECT_SOURCES}
             ${app_icon_macos})
     else()
-        qt_add_executable(oxi_desktop ${PROJECT_SOURCES})
+        qt_add_executable(oxi_desktop
+            MANUAL_FINALIZATION
+            ${PROJECT_SOURCES})
     endif()
 
 # Define target properties for Android with Qt 6 as:
