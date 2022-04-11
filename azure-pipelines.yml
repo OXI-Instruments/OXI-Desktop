@@ -156,7 +156,7 @@ jobs:
   - task: CopyFiles@2
     inputs:
       SourceFolder: '$(oxiBuildDir)/apps/oxi_desktop/deploy'
-      Contents: '**'
+      Contents: 'OXI-Desktop_MacOS.dmg'
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
     displayName: Copy Files to Staging Area
 
