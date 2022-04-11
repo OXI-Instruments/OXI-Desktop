@@ -63,7 +63,7 @@ jobs:
       cp ../*.dll .
       ls .
       echo %PATH%
-      C:/Qt/6.2.4/mingw_64/bin/windeployqt.exe --no-translations --compiler-runtime $(oxiOutputName)
+      C:/Qt/6.2.4/mingw_64/bin/windeployqt.exe --no-translations --compiler-runtime $(oxiOutputName).exe
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
     displayName: Create windows deployable
 
