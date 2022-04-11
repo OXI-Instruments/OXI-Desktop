@@ -12,14 +12,6 @@ trigger:
     - v*
 
 jobs:
-- job:  Build_Deploy_Win_x64
-  pool:
-    vmImage: windows-2019
-
-  container: 
-    image: oxidocker.azurecr.io/oxiwinbuild:99
-    endpoint: Docker Registry
-
   variables:
     - name: oxiSourceDir
       value: $(Build.Repository.LocalPath)
@@ -27,6 +19,14 @@ jobs:
       value: $(Pipeline.Workspace)/build
     - name: oxiOutputName
       value: OXI-Desktop
+
+- job:  Build_Deploy_Win_x64
+  pool:
+    vmImage: windows-2019
+
+  container: 
+    image: oxidocker.azurecr.io/oxiwinbuild:99
+    endpoint: Docker Registry
 
   steps:
   - checkout: self
