@@ -184,6 +184,6 @@ jobs:
       tagPattern: 'v*.*.*'
       title: 'OXI-Desktop $(Build.SourceBranchName)'
       releaseNotesSource: 'inline'
-      releaseNotesInline: '$(Build.BuildNumber)'
+      releaseNotesInline: 'Build Pipeline $(Build.BuildNumber) based on $(Build.SourceVersion)'
       assets: '$(Pipeline.Workspace)/*'
       addChangeLog: false
