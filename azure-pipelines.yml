@@ -176,6 +176,14 @@ jobs:
     - Build_Deploy_MacOS
 
   steps:
+  - checkout: none
+
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      buildType: 'current'
+      artifactName: 'drop'
+      targetPath: '$(Pipeline.Workspace)'
+
   - task: GitHubRelease@1
     inputs:
       gitHubConnection: 'GitHub OXI-Desktop'
@@ -187,4 +195,5 @@ jobs:
       title: 'OXI-Desktop $(Build.SourceBranchName)'
       releaseNotesSource: 'inline'
       releaseNotesInline: '$(Build.BuildNumber)'
+      assets: '$(Pipeline.Workspace)/*'
       addChangeLog: false
