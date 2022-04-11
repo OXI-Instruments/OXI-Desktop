@@ -11,15 +11,15 @@ trigger:
     include:
     - v*
 
-jobs:
-  variables:
-    - name: oxiSourceDir
-      value: $(Build.Repository.LocalPath)
-    - name: oxiBuildDir
-      value: $(Pipeline.Workspace)/build
-    - name: oxiOutputName
-      value: OXI-Desktop
+variables:
+  - name: oxiSourceDir
+    value: $(Build.Repository.LocalPath)
+  - name: oxiBuildDir
+    value: $(Pipeline.Workspace)/build
+  - name: oxiOutputName
+    value: OXI-Desktop
 
+jobs:
 - job:  Build_Deploy_Win_x64
   pool:
     vmImage: windows-2019
