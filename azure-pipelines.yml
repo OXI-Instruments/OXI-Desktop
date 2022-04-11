@@ -12,7 +12,7 @@ trigger:
     - v*
 
 jobs:
-- job:  Build_Deploy_Winx64
+- job:  Build_Deploy_Win_x64
   pool:
     vmImage: windows-2019
 
