@@ -36,16 +36,6 @@ jobs:
     workingDirectory: $(Pipeline.Workspace)
     displayName: Create build directory
 
-  - script: |
-      echo PATH before activation: %PATH%
-      echo Qt Environment should be activated already. This is the dump of the activation script
-      cat C:/Qt/6.2.4/mingw_64/bin/qtenv2.bat
-    displayName: Report Qt Activation status
-
-  - script: |
-      echo PATH: %PATH%
-    displayName: Report PATH
-
   - script: >
       C:/Qt/Tools/CMake_64/bin/cmake.exe
       -S $(oxiSourceDir)
