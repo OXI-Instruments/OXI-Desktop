@@ -164,7 +164,7 @@ jobs:
     vmImage: windows-2019
 
   dependsOn:
-    - Build_Deploy_Winx64
+    - Build_Deploy_Win_x64
     - Build_Deploy_MacOS
 
   steps:
