@@ -7,7 +7,7 @@ trigger:
   branches:
     exclude:
     - main
-    - *
+    - refs/heads/*
   tags:
     include:
     - v*
