@@ -25,11 +25,11 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
 RUN pip3 install -U pip && \
     pip3 install aqtinstall
 
-ARG QT=6.2.4
+ARG QT=5.15.2
 ARG QT_MODULES=
 ARG QT_HOST=linux
 ARG QT_TARGET=desktop
-ARG QT_ARCH=
+ARG QT_ARCH=gcc_64
 RUN aqt install-qt --outputdir /opt/qt ${QT_HOST} ${QT_TARGET} ${QT} ${QT_ARCH} -m ${QT_MODULES}
 
 ENV PATH /opt/qt/${QT}/gcc_64/bin:$PATH
