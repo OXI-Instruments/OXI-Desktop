@@ -212,4 +212,5 @@ jobs:
       releaseNotesSource: 'inline'
       releaseNotesInline: 'Build Pipeline $(Build.BuildNumber) based on $(Build.SourceVersion)'
       assets: '$(Pipeline.Workspace)/*'
-      addChangeLog: false
+      changeLogCompareToRelease: 'lastFullRelease'
+      changeLogType: 'commitBased'
