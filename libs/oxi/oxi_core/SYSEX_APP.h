@@ -22,6 +22,8 @@
 #define PROJ_NAME_LEN		12
 #define PROJ_NUM            15 // Number of projects stored in OXI One
 
+#define PROJ_PATT_MAX       64
+
 typedef enum
 {
     SEQ_1 = 0,
