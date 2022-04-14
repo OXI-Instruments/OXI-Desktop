@@ -96,7 +96,7 @@ void OxiDiscovery::Discover()
 bool OxiDiscovery::DiscoverOutPort(){
     QStringList outPorts = _midi_out->getPorts();
     if(outPorts != _previousOutPorts){
-        qDebug() << "MIDI OUT ports have changed: " << outPorts;
+        qInfo() << "MIDI OUT ports have changed: " << outPorts;
         _previousOutPorts = outPorts;
     }
 
@@ -147,7 +147,7 @@ bool OxiDiscovery::DiscoverOutPort(){
 bool OxiDiscovery::DiscoverInPort(){
     QStringList inPorts = _midi_in->getPorts();
     if(inPorts != _previousInPorts){
-        qDebug() << "MIDI IN ports have changed: " << inPorts;
+        qInfo() << "MIDI IN ports have changed: " << inPorts;
         _previousInPorts = inPorts;
     }
 
