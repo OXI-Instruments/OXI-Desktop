@@ -324,13 +324,13 @@ font-size: 14px;
                <property name="minimumSize">
                 <size>
                  <width>70</width>
-                 <height>0</height>
+                 <height>30</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>60</width>
-                 <height>24</height>
+                 <height>30</height>
                 </size>
                </property>
                <property name="text">
