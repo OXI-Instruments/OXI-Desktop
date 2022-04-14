@@ -31,14 +31,6 @@ void OxiDiscovery::Stop(){
     _stopPending = true;
 }
 
-QStringList OxiDiscovery::GetOutPorts(){
-    return _midi_out->getPorts();
-}
-
-QStringList OxiDiscovery::GetInPorts(){
-    return _midi_in->getPorts();
-}
-
 bool OxiDiscovery::IsConnected(){
     return _out_idx >= 0 && _in_idx >= 0;
 }
@@ -86,14 +78,16 @@ int OxiDiscovery::GetOxiInIndex(QStringList portNames)
     return -1;
 }
 
-QString OxiDiscovery::GetOxiOutDeviceName(int index){
-    QStringList ports = _midi_out->getPorts();
-    return ports[index];
+QString OxiDiscovery::GetOxiOutDeviceName(QStringList portNames, int index){
+    return index < 0 || index >= portNames.length()
+            ? NULL
+            : portNames[index];
 }
 
-QString OxiDiscovery::GetOxiInDeviceName(int index){
-    QStringList ports = _midi_out->getPorts();
-    return ports[index];
+QString OxiDiscovery::GetOxiInDeviceName(QStringList portNames, int index){
+    return index <= 0 || index >= portNames.length()
+            ? NULL
+            : portNames[index];
 }
 
 bool OxiDiscovery::IsInFwUpdate(){
@@ -120,19 +114,15 @@ bool OxiDiscovery::DiscoverOutPort(){
         _previousOutPorts = outPorts;
     }
 
-    int oxiOutIdx = GetOxiOutIndex(outPorts);
-
     if (_out_idx >= 0)
     {
+        QString outName = GetOxiOutDeviceName(outPorts, _out_idx);
+
+        bool portNameUnchanged = outName == _oxi_port_name_out;
         bool isOxiPort = IsOxiPort(outPorts, _out_idx);
         bool isOpen = _midi_out->isPortOpen();
 
-        QString oxi_port_name_current = "";
-        if (oxiOutIdx >= 0) {
-            oxi_port_name_current = outPorts[oxiOutIdx];
-        }
-
-        if (!isOxiPort || !isOpen || _oxi_port_name_out != oxi_port_name_current){
+        if (!portNameUnchanged || !isOxiPort || !isOpen){
             qDebug() << "MIDI OUT port index: " << _out_idx;
             qDebug() << "MIDI OUT ports: " << outPorts;
             qWarning() << "MIDI OUT port is not an OXI port and will be closed";
@@ -144,9 +134,10 @@ bool OxiDiscovery::DiscoverOutPort(){
     }
     else {
         emit ui_UpdateConnectionLabel("CONNECT YOUR OXI ONE");
-        //        int oxiOutIdx = GetOxiOutIndex(outPorts);
+        int oxiOutIdx = GetOxiOutIndex(outPorts);
         if (oxiOutIdx >= 0){
-            qInfo() << "Discovered MIDI OUT port " + outPorts[oxiOutIdx] + " and will open";
+            QString oxiOutName = outPorts[oxiOutIdx];
+            qInfo() << "Discovered MIDI OUT port " + oxiOutName + " and will open";
             try{
                 _midi_out->openPort(oxiOutIdx);
             }
@@ -154,9 +145,10 @@ bool OxiDiscovery::DiscoverOutPort(){
                 qWarning() << &error.getMessage();
                 return true;
             }
-            _oxi_port_name_out = outPorts[oxiOutIdx];
-            qInfo() << "Port opened to " + _oxi_port_name_in;
+
+            qInfo() << "Port opened to " + oxiOutName;
             _out_idx = oxiOutIdx;
+            _oxi_port_name_out = oxiOutName;
             emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
         }
     }
@@ -171,18 +163,15 @@ bool OxiDiscovery::DiscoverInPort(){
         _previousInPorts = inPorts;
     }
 
-    int oxiInIdx = GetOxiInIndex(inPorts);
-
     if (_in_idx >= 0)
     {
+        QString inName = GetOxiInDeviceName(inPorts, _in_idx);
+
+        bool portNameUnchanged = inName == _oxi_port_name_in;
         bool isOxiPort = IsOxiPort(inPorts, _in_idx);
         bool isOpen = _midi_in->isPortOpen();
-        QString oxi_port_name_current = "";
-        if (oxiInIdx >= 0) {
-            oxi_port_name_current = inPorts[oxiInIdx];
-        }
 
-        if (!isOxiPort || !isOpen || _oxi_port_name_in != oxi_port_name_current){
+        if (!portNameUnchanged || !isOxiPort || !isOpen){
             qDebug() << "MIDI IN port index: " << _in_idx;
             qDebug() << "MIDI IN ports: " << inPorts;
             qWarning() << "MIDI IN port is not an OXI port and will be closed";
@@ -193,9 +182,10 @@ bool OxiDiscovery::DiscoverInPort(){
         }
     }
     else {
-        //        int oxiInIdx = GetOxiInIndex(inPorts);
+        int oxiInIdx = GetOxiInIndex(inPorts);
         if (oxiInIdx >= 0){
-            qInfo() << "Discovered MIDI IN port " + inPorts[oxiInIdx] + " and will open";
+            QString oxiInName = inPorts[oxiInIdx];
+            qInfo() << "Discovered MIDI IN port " + oxiInName + " and will open";
             try{
                 // Messages across multiple buffers currently not implemented.
                 // https://www.music.mcgill.ca/~gary/rtmidi/classRtMidiIn.html#a7bf07fe12fa6588db8e772f0fc56f70d
@@ -206,9 +196,10 @@ bool OxiDiscovery::DiscoverInPort(){
                 qWarning() << &error.getMessage();
                 return true;
             }
-            _oxi_port_name_in = inPorts[oxiInIdx];
-            qInfo() << "Port opened to " + inPorts[oxiInIdx];
+
+            qInfo() << "Port opened to " + oxiInName;
             _in_idx = oxiInIdx;
+            _oxi_port_name_in = oxiInName;
             // TODO     should also emit a signal to indicate that updates the UI.
             //          But then both IN/OUT states may collide because they must not be the same.
         }

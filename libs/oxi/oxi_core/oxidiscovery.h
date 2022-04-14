@@ -34,12 +34,10 @@ public:
 
     int GetOxiOutIndex(QStringList portNames);
     int GetOxiInIndex(QStringList portNames);
-    QString GetOxiInDeviceName(int index);
-    QString GetOxiOutDeviceName(int index);
+    QString GetOxiInDeviceName(QStringList portNames, int index);
+    QString GetOxiOutDeviceName(QStringList portNames, int index);
     bool IsInFwUpdate();
     bool IsOutFwUpdate();
-    QStringList GetOutPorts();
-    QStringList GetInPorts();
     void run() override;
     void Stop();
 
