@@ -16,11 +16,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -57,22 +54,27 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
             MANUAL_FINALIZATION
             ${PROJECT_SOURCES})
     endif()
-
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET oxi_desktop APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
-    if(ANDROID)
-        add_library(oxi_desktop SHARED
+    if (WIN32)
+        set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/resources/oxi_desktop.rc")
+        add_executable(oxi_desktop
             ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+            ${CMAKE_SOURCE_DIR}/libs
+            ${app_icon_resource_windows})
+    elseif(APPLE)
+        set(MACOSX_BUNDLE_ICON_FILE icon.icns)
+        set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.icns")
+        set_source_files_properties(${app_icon_macos} PROPERTIES
+               MACOSX_PACKAGE_LOCATION "Resources")
+
+        add_executable(oxi_desktop MACOSX_BUNDLE
+            ${PROJECT_SOURCES}
+            ${CMAKE_SOURCE_DIR}/libs
+            ${app_icon_macos})
     else()
         add_executable(oxi_desktop
             ${PROJECT_SOURCES}
-            ${CMAKE_SOURCE_DIR}/lib
+            ${CMAKE_SOURCE_DIR}/libs
         )
     endif()
 endif()

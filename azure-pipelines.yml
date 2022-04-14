@@ -18,6 +18,8 @@ variables:
     value: $(Pipeline.Workspace)/build
   - name: oxiOutputName
     value: OXI-Desktop
+  - name: qt
+    value: 5.15.2
 
 jobs:
 - job:  Build_Deploy_Win_x64
@@ -25,8 +27,14 @@ jobs:
     vmImage: windows-2019
 
   container: 
-    image: oxidocker.azurecr.io/oxiwinbuild:99
+    image: oxidocker.azurecr.io/oxiwinbuild:220
     endpoint: Docker Registry
+
+  variables:
+  - name: QT_ARCH_DIR
+    value: C:/Qt/$(qt)/mingw81_64
+  - name: QT_TOOLS_CXX_DIR
+    value: C:/Qt/Tools/mingw810_64/bin
 
   steps:
   - checkout: self
@@ -38,6 +46,16 @@ jobs:
     workingDirectory: $(Pipeline.Workspace)
     displayName: Create build directory
 
+  - script: dir /s
+    workingDirectory: C:/Qt
+    displayName: List Qt Directory on Windows
+
+  - script: aqt list-tool windows desktop
+    displayName: List Qt Tools
+
+  - script: aqt list-tool windows desktop tools_mingw -l
+    displayName: List details of mingw tool
+
   - script: >
       C:/Qt/Tools/CMake_64/bin/cmake.exe
       -S $(oxiSourceDir)
@@ -45,10 +63,10 @@ jobs:
       "-DCMAKE_GENERATOR:STRING=Ninja"
       "-DCMAKE_BUILD_TYPE:STRING=Release"
       "-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=C:/Qt/Tools/QtCreator/share/qtcreator/package-manager/auto-setup.cmake"
-      "-DQT_QMAKE_EXECUTABLE:STRING=C:/Qt/6.2.4/mingw_64/bin/qmake.exe"
-      "-DCMAKE_PREFIX_PATH:STRING=C:/Qt/6.2.4/mingw_64"
-      "-DCMAKE_C_COMPILER:STRING=C:/Qt/Tools/mingw1120_64/bin/gcc.exe"
-      "-DCMAKE_CXX_COMPILER:STRING=C:/Qt/Tools/mingw1120_64/bin/g++.exe"
+      "-DQT_QMAKE_EXECUTABLE:STRING=$(QT_ARCH_DIR)/bin/qmake.exe"
+      "-DCMAKE_PREFIX_PATH:STRING=$(QT_ARCH_DIR)"
+      "-DCMAKE_C_COMPILER:STRING=$(QT_TOOLS_CXX_DIR)/gcc.exe"
+      "-DCMAKE_CXX_COMPILER:STRING=$(QT_TOOLS_CXX_DIR)/g++.exe"
     displayName: Create CMake cache
 
   - script: C:/Qt/Tools/CMake_64/bin/cmake.exe --build $(oxiBuildDir) --target all
@@ -63,7 +81,7 @@ jobs:
       cp ../*.dll .
       ls .
       echo %PATH%
-      C:/Qt/6.2.4/mingw_64/bin/windeployqt.exe --no-translations --compiler-runtime $(oxiOutputName).exe
+      $(QT_ARCH_DIR)/bin/windeployqt.exe --no-translations --compiler-runtime $(oxiOutputName).exe
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
     displayName: Create windows deployable
 
@@ -88,10 +106,10 @@ jobs:
     vmImage: macOS-10.15
 
   variables:
-    - name: oxiSourceDir
-      value: $(Build.Repository.LocalPath)
-    - name: oxiBuildDir
-      value: $(Pipeline.Workspace)/build
+  - name: QT_ARCH_DIR
+    value: /opt/qt/$(qt)/clang_64
+  - name: QT_TOOLS_CXX_DIR
+    value: /usr/bin
 
   steps:
   - checkout: self
@@ -102,8 +120,11 @@ jobs:
   - script: python3 -m pip install aqtinstall
     displayName: Pip Install aqtinstall
 
+  - script: sudo aqt list-tool mac desktop
+    displayName: List Qt Tools on MacOS
+
   - script: >
-      sudo aqt install-qt --outputdir /opt/qt mac desktop 6.2.4 clang_64
+      sudo aqt install-qt --outputdir /opt/qt mac desktop $(qt) clang_64
       && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_cmake
       && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_ninja
       && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_qtcreator
@@ -117,6 +138,9 @@ jobs:
       echo '##vso[task.setvariable variable=path]$(PATH):/opt/qt/Tools/Ninja'
     displayName: Append Ninja to path
 
+  - script: ls -R /opt/qt
+    displayName: List Qt Directory on MacOS
+
   - script: >
       /opt/qt/Tools/CMake/CMake.app/Contents/bin/cmake
       -S $(oxiSourceDir)
@@ -124,10 +148,10 @@ jobs:
       -DCMAKE_GENERATOR:STRING=Ninja 
       -DCMAKE_BUILD_TYPE:STRING=Release 
       '-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=/opt/qt/Qt Creator.app/Contents/Resources/package-manager/auto-setup.cmake'
-      -DQT_QMAKE_EXECUTABLE:FILEPATH=/opt/qt/6.2.4/macos/bin/qmake 
-      -DCMAKE_PREFIX_PATH:PATH=/opt/qt/6.2.4/macos 
-      -DCMAKE_C_COMPILER:FILEPATH=/usr/bin/clang 
-      -DCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/clang++
+      -DQT_QMAKE_EXECUTABLE:FILEPATH=$(QT_ARCH_DIR)/bin/qmake 
+      -DCMAKE_PREFIX_PATH:PATH=$(QT_ARCH_DIR)
+      -DCMAKE_C_COMPILER:FILEPATH=$(QT_TOOLS_CXX_DIR)/clang 
+      -DCMAKE_CXX_COMPILER:FILEPATH=$(QT_TOOLS_CXX_DIR)/clang++
     workingDirectory: $(oxiBuildDir)
     displayName: Build CMake Cache
 
@@ -138,7 +162,7 @@ jobs:
   - script: mkdir deploy && cp -r ./$(oxiOutputName).app ./deploy
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop
 
-  - script: /opt/qt/6.2.4/macos/bin/macdeployqt $(oxiOutputName).app -always-overwrite -dmg
+  - script: $(QT_ARCH_DIR)/bin/macdeployqt $(oxiOutputName).app -always-overwrite -dmg
     workingDirectory: $(oxiBuildDir)/apps/oxi_desktop/deploy
     displayName: Create Mac Deployable
 
@@ -188,4 +212,5 @@ jobs:
       releaseNotesSource: 'inline'
       releaseNotesInline: 'Build Pipeline $(Build.BuildNumber) based on $(Build.SourceVersion)'
       assets: '$(Pipeline.Workspace)/*'
-      addChangeLog: false
+      changeLogCompareToRelease: 'lastFullRelease'
+      changeLogType: 'commitBased'
