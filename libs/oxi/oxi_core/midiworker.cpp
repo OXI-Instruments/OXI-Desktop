@@ -244,7 +244,7 @@ LOOP:
 
         if (package_num >= packages.size() - 2) {
             success = true;
-            emit ui_updateStatusLabel("SUCESS!");
+            emit ui_updateStatusLabel("SUCCESS!");
             goto EXIT;
         }
 
@@ -392,7 +392,7 @@ void MidiWorker::runSendProjectRAW(void)
         }
 
         emit ui_UpdateProjectProgressBar(100);
-        emit ui_updateStatusLabel("SUCESS!");
+        emit ui_updateStatusLabel("SUCCESS!");
     }
     else {
          emit ui_updateStatusLabel("PROJECT ERROR");
