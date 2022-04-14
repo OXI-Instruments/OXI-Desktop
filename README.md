@@ -6,6 +6,15 @@ The project is in very early development stage and it has limitations and known 
 
 ![Screenshot](doc/img/screenshot.png)
 
+## Usage
+
+### FW Update
+For firmware updates simply go to the FW Update tab, clic the right option and load the corresponding .syx file.
+The last stable update files can be found here: [OXI One Update files](https://oxiinstruments.com/oxi-one/update) 
+
+### Backups
+You can backup your projects by selecting the project number and clicking on "GET PROJECT". The project and all its patterns will be downloaded from the OXI One into your computer. A new folder called OXI Files will be created in your desktop.
+You can then send any project back to any slot of your OXI One by pressing "SEND PROJECT" and choosing the right project number. Choose the file with the .oxipro extension inside the project folder. 
 
 ## Community
 
