@@ -111,6 +111,7 @@ public slots:
         raw_data.push_back(0);
         raw_data.push_back(0xF7);
         SendRaw();
+        emit ui_updateStatusLabel("ERASED!");
     }
 
     void GetCalibData(void) {
