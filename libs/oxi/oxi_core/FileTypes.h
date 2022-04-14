@@ -11,6 +11,11 @@ enum FileType {
     FILE_SIZE,
 };
 
-extern const char * FileExtension[FILE_SIZE];
+constexpr const char * FileExtension[FILE_SIZE] {
+    ".syx",
+    ".oxipro",
+    ".oxipat",
+    ".oxical",
+};
 
 #endif // FILETYPES_H

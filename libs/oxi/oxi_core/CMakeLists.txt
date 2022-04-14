@@ -23,7 +23,6 @@ add_library(oxi_core SHARED
   delay.h
   crc32.h
   FileTypes.h
-  FileTypes.cpp
   oxidiscovery.h
   oxidiscovery.cpp
   Parser.h
