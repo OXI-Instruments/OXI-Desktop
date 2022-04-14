@@ -604,8 +604,14 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
 
                     pattern_index_ ++;
 
-                    GetPattern();
-
+                    if (pattern_index_ < PROJ_PATT_MAX)
+                    {
+                        GetPattern();
+                    }
+                    else
+                    {
+                        emit ui_updateStatusLabel("SUCCESS!");
+                    }
                     emit ui_UpdateProjectProgressBar(100 * pattern_index_ / 64);
                     break;
                 }
