@@ -20,6 +20,7 @@
 #define PROJ_HEADER_LEN		2
 #define PROJ_CRC_LEN		4
 #define PROJ_NAME_LEN		12
+#define PROJ_NUM            15 // Number of projects stored in OXI One
 
 typedef enum
 {

@@ -22,6 +22,7 @@ add_library(oxi_core SHARED
   Nibble.h
   delay.h
   crc32.h
+  FileTypes.h
   oxidiscovery.h
   oxidiscovery.cpp
   Parser.h
@@ -32,7 +33,6 @@ add_library(oxi_core SHARED
   OXI_SYSEX_MSG.h
   MIDI.h
   SYSEX_APP.h
-  SYSEX_PROJ.h
 )
 
 target_include_directories(oxi_core PUBLIC ${PROJECT_SOURCE_DIR})

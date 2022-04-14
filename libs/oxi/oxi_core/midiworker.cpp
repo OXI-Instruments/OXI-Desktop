@@ -5,6 +5,7 @@
 
 #include <Nibble.h>
 #include <crc32.h>
+#include <FileTypes.h>
 #include "oxidiscovery.h"
 #include <QFile>
 #include <QTextStream>
@@ -365,7 +366,7 @@ void MidiWorker::runSendProjectRAW(void)
 
         for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
         {
-            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + FileExtension[FILE_PATTERN];
 
             QFile patternFile(pattern_file_);
             if ( patternFile.open(QIODevice::ReadOnly) )
@@ -414,7 +415,7 @@ void MidiWorker::ReadProjectFromFiles(void)
 
         for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
         {
-            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + ".bin";
+            QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + FileExtension[FILE_PATTERN];
 
             qDebug() << pattern_file_ << Qt::endl;
 
@@ -523,7 +524,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                         system_dir.mkdir(system_path);
                     }
 
-                    QString calib_filename = system_path + "/calibration_data.bin";
+                    QString calib_filename = system_path + "/calibration_data" + FileExtension[FILE_CALIBRATION];
                     QFile calib_file( calib_filename );
                     if ( calib_file.open(QIODevice::ReadWrite) )
                     {
@@ -558,7 +559,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                         system_dir.mkdir(project_path_);
                     }
 
-                    QString proj_filename = project_path_ + "/Project " + QString::number(project_index_ + 1) + ".bin";
+                    QString proj_filename = project_path_ + "/Project " + QString::number(project_index_ + 1) + FileExtension[FILE_PROJECT];
                     qDebug() << proj_filename << Qt::endl;;
 
                     QFile proj_file( proj_filename );
@@ -591,7 +592,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                         system_dir.mkdir(project_path_);
                     }
 
-                    QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_index_ + 1) + ".bin";
+                    QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_index_ + 1) + FileExtension[FILE_PATTERN];
                     qDebug() << patt_filename;
 
                     QFile patt_file( patt_filename );

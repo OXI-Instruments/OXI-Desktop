@@ -46,10 +46,6 @@ public:
 
     process_e run_process_;
 
-    uint8_t project_index_ = 0;
-    uint8_t seq_index_ = 0;
-    uint8_t pattern_index_ = 0;
-
     OxiDiscovery *GetDiscovery();
 
 public slots:
@@ -101,7 +97,32 @@ public slots:
         // pattern slot, from 0 to 63
         raw_data.push_back(patt_index);
     };
-//    void updateUpdateFile(QString update_file_name);
+
+    void UpdateProjIdx(int proj_idx) {
+        if ((proj_idx > 0) && (proj_idx <= PROJ_NUM)) project_index_ = proj_idx - 1;
+    };
+
+    void DeleteProject(void) {
+        raw_data.clear();
+        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+        raw_data.push_back(MSG_CAT_PROJECT);
+        raw_data.push_back(MSG_PROJECT_DELETE_PROJECT);
+        raw_data.push_back(project_index_);
+        raw_data.push_back(0);
+        raw_data.push_back(0xF7);
+        SendRaw();
+    }
+
+    void GetCalibData(void) {
+        raw_data.clear();
+        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+        raw_data.push_back(MSG_CAT_SYSTEM);
+        raw_data.push_back(MSG_SYSTEM_GET_CALIB_DATA);
+        raw_data.push_back(0);
+        raw_data.push_back(0);
+        raw_data.push_back(0xF7);
+        SendRaw();
+    }
 
 signals:
     // To communicate with Gui Thread
@@ -117,6 +138,11 @@ signals:
 private:
     int delay_time = 100;
     int oxi_ack_ = 0;
+
+    uint8_t project_index_ = 0;
+    uint8_t seq_index_ = 0;
+    uint8_t pattern_index_ = 0;
+
     QFile file;
     Project project_;
     OxiDiscovery* _discovery;

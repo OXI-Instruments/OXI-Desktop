@@ -75,6 +75,41 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+QString MainWindow::FileDialog(FileType type){
+    QString filter = "";
+    QString user_msg = "";
+    QString path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+
+    switch (type) {
+    case FILE_SYSEX:
+        user_msg = tr("Select SYSEX Update File");
+        filter = "Sysex ( *" + QString(FileExtension[FILE_SYSEX]) + ")";
+        break;
+    case FILE_PROJECT:
+        user_msg = tr("Select PROJECT File");
+        filter = "Sysex ( *" + QString(FileExtension[FILE_PROJECT]) + ")";
+        break;
+    case FILE_PATTERN:
+        user_msg = tr("Select PATTERN FILE");
+        filter = "Sysex ( *" + QString(FileExtension[FILE_PATTERN]) + ")";
+        break;
+    case FILE_CALIBRATION:
+        user_msg = tr("Select CALIBRATION File");
+        filter = "Sysex ( *" + QString(FileExtension[FILE_CALIBRATION]) + ")";
+        break;
+    default:
+        break;
+    }
+
+    QString ret = QFileDialog::getOpenFileName(
+                        this,
+                        user_msg,
+                        path,
+                        filter);
+
+    return ret;
+}
+
 void MainWindow::uiPortAlreadyInUse(){
     connection_timer->stop();
     QMessageBox::information(this, tr("Port Already in Use"),
@@ -129,11 +164,7 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
 
         midiWorker->run_process_ = midiWorker->OXI_ONE_BLE_UPDATE;
         ui->process_status->setText("");
-        midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
-                    this,
-                    tr("Select SYSEX"),
-                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-                    tr("Sysex ( *.syx);All Files ( * )"));
+        midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
 
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
@@ -165,11 +196,7 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 
         midiWorker->run_process_ = midiWorker->OXI_SPLIT_UPDATE;
         ui->process_status->setText("");
-        midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
-                    this,
-                    tr("Select SYSEX"),
-                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-                    tr("Sysex ( *.syx);All Files ( * )"));
+        midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
 
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
         if (midiWorker->update_file_name_ == "" ) return;
@@ -201,11 +228,7 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
 
         midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
 
-        midiWorker->update_file_name_ = QFileDialog::getOpenFileName(
-                    this,
-                    tr("Select SYSEX"),
-                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-                    tr("Sysex ( *.syx);All Files ( * )"));
+        midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
 
         qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -262,6 +285,8 @@ void MainWindow::on_sendProjectButton_clicked()
 {
     ui->process_status->setText("");
 
+    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
+
     if ( midiWorker->midi_out.isPortOpen())
     {
         if (midiWorker->isRunning()) {
@@ -269,12 +294,7 @@ void MainWindow::on_sendProjectButton_clicked()
         }
         midiWorker->run_process_ = midiWorker->PROJECT_SEND;
 
-        midiWorker->project_file_ =  QFileDialog::getOpenFileName(
-                    this,
-                    tr("Select project FILE"),
-                    QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-                    tr("Sysex ( *.bin);All Files ( * )"));
-
+        midiWorker->project_file_ =  FileDialog(FILE_PROJECT);
 
         qDebug() << midiWorker->project_file_ << Qt::endl;
         if (midiWorker->project_file_ == "" ) return;
@@ -292,7 +312,7 @@ void MainWindow::on_sendProjectButton_clicked()
 void MainWindow::on_getProjectButton_clicked()
 {
     ui->process_status->setText("");
-
+    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
     midiWorker->GetProject();
 }
 
@@ -301,37 +321,22 @@ void MainWindow::on_getPatternButton_clicked()
     midiWorker->GetPattern();
 }
 
-void MainWindow::on_seq_index_valueChanged(double arg1)
-{
-    midiWorker->seq_index_ = static_cast<int>(arg1) - 1;
-}
-
 void MainWindow::on_project_index_valueChanged(double arg1)
 {
-    midiWorker->project_index_ = static_cast<int>(arg1) - 1;
-}
-
-void MainWindow::on_pattern_index_valueChanged(double arg1)
-{
-    midiWorker->pattern_index_ = static_cast<int>(arg1) - 1;
+    // midiWorker->project_index_ = static_cast<int>(arg1) - 1;
 }
 
 
 
 void MainWindow::on_deleteProjectButton_clicked()
 {
-    midiWorker->raw_data.clear();
-    midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    midiWorker->raw_data.push_back(MSG_CAT_PROJECT);
-    midiWorker->raw_data.push_back(MSG_PROJECT_DELETE_PROJECT);
-    midiWorker->raw_data.push_back(midiWorker->project_index_);
-    midiWorker->raw_data.push_back(0);
-    midiWorker->raw_data.push_back(0xF7);
-
-    midiWorker->SendRaw();
+    ui->process_status->setText("");
+    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
+    midiWorker->DeleteProject();
+    ui->midiProgressBar->setValue(0);
 }
 
-
+#if 0
 void MainWindow::on_deletePatternButton_clicked()
 {
     midiWorker->raw_data.clear();
@@ -344,27 +349,20 @@ void MainWindow::on_deletePatternButton_clicked()
 
     midiWorker->SendRaw();
 }
+#endif
 
 void MainWindow::on_getCalibDataButton_clicked()
 {
     ui->process_status->setText("");
-
-    midiWorker->raw_data.clear();
-    midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);
-    midiWorker->raw_data.push_back(MSG_SYSTEM_GET_CALIB_DATA);
-    midiWorker->raw_data.push_back(0);
-    midiWorker->raw_data.push_back(0);
-    midiWorker->raw_data.push_back(0xF7);
-
-    midiWorker->SendRaw();
-
+    midiWorker->GetCalibData();
     ui->midiProgressBar->setValue(0);
 }
 
 
 void MainWindow::on_sendCalibDataButton_clicked()
 {
+    // TODO move to MIDI Worker
+    ui->process_status->setText("");
     midiWorker->raw_data.clear();
     midiWorker->raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
     midiWorker->raw_data.push_back(MSG_CAT_SYSTEM);
@@ -372,11 +370,7 @@ void MainWindow::on_sendCalibDataButton_clicked()
 
     ui->process_status->setText("");
 
-    QString calib_data_file = QFileDialog::getOpenFileName(
-                this,
-                tr("Select CALIBRATION FILE"),
-                QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-                tr("Sysex ( *.bin);All Files ( * )"));
+    QString calib_data_file = FileDialog(FILE_CALIBRATION);
 
     QFile calib_file;
     calib_file.setFileName(calib_data_file);
@@ -396,6 +390,8 @@ void MainWindow::on_sendCalibDataButton_clicked()
 
 void MainWindow::on_eraseMemButton_clicked()
 {
+    // TODO move to MIDI Worker
+
     ui->process_status->setText("");
 
     midiWorker->raw_data.clear();
