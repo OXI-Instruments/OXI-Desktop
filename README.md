@@ -8,13 +8,14 @@ The project is in very early development stage and it has limitations and known 
 
 ## Usage
 
-### FW Update
-For firmware updates simply go to the FW Update tab, clic the right option and load the corresponding .syx file.
-The last stable update files can be found here: [OXI One Update files](https://oxiinstruments.com/oxi-one/update) 
+### Firmware Update
+To update the firmware of you OXI select the **FW Update** tab and choose the `.syx` file when chosing to update either the OXI Firmware, Bluetooth or Split.
+The latest stable firmware can be found on the [OXI One Update files](https://oxiinstruments.com/oxi-one/update) section.
 
-### Backups
-You can backup your projects by selecting the project number and clicking on "GET PROJECT". The project and all its patterns will be downloaded from the OXI One into your computer. A new folder called OXI Files will be created in your desktop.
-You can then send any project back to any slot of your OXI One by pressing "SEND PROJECT" and choosing the right project number. Choose the file with the .oxipro extension inside the project folder. 
+### Syncing Projects
+You can sync your projects between the OXI One and your computer. Select the project number and click **GET PROJECT**. The project and the patterns it contains will be downloaded from the OXI One onto your computer. The desktop directory `OXI Files` now contains the downloaded data.
+
+To send any project back to any project slot of your OXI One, select the desired slot and press **SEND PROJECT**. The file selection dialog lets you choose the `.oxipro` project file to upload.
 
 ## Community
 
