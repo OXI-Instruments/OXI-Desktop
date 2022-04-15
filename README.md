@@ -9,7 +9,7 @@ The project is in very early development stage and it has limitations and known 
 ## Usage
 
 ### Firmware Update
-To update the firmware of you OXI select the **FW Update** tab and choose the `.syx` file when chosing to update either the OXI Firmware, Bluetooth or Split.
+To update the firmware of you OXI select the **FW UPDATE** tab and choose the `.syx` file when chosing to update either the OXI Firmware, Bluetooth or Split.
 The latest stable firmware can be found on the [OXI One Update files](https://oxiinstruments.com/oxi-one/update) section.
 
 ### Syncing Projects
