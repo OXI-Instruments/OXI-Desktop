@@ -5,9 +5,11 @@ ENV TZ=UTC
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     apt-get update -y && \
-    apt-get install \
+    apt-get install -y \
         git \
         cmake \
+        curl \
+        file \
         pkg-config \
         python3 \
         python3-pip \
@@ -19,20 +21,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
         libgl1-mesa-dev \
         libfreetype6-dev \
         libfontconfig1 \
-        libxkbcommon-dev -y && \
+        libxkbcommon-dev \
+        ninja-build \
+        patchelf \
+        qtbase5-dev \
+        qtbase5-dev-tools \
+        qtcreator && \
     apt-get clean && rm -rf /var/lib/apt/lists/
-
-RUN pip3 install -U pip && \
-    pip3 install aqtinstall
-
-ARG QT=5.15.2
-ARG QT_MODULES=
-ARG QT_HOST=linux
-ARG QT_TARGET=desktop
-ARG QT_ARCH=gcc_64
-RUN aqt install-qt --outputdir /opt/qt ${QT_HOST} ${QT_TARGET} ${QT} ${QT_ARCH} -m ${QT_MODULES}
-
-ENV PATH /opt/qt/${QT}/gcc_64/bin:$PATH
-ENV QT_PLUGIN_PATH /opt/qt/${QT}/gcc_64/plugins/
-ENV QML_IMPORT_PATH /opt/qt/${QT}/gcc_64/qml/
-ENV QML2_IMPORT_PATH /opt/qt/${QT}/gcc_64/qml/

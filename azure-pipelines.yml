@@ -183,6 +183,79 @@ jobs:
       publishLocation: 'Container'
     displayName: Publish Artifacts
 
+- job:  Build_Deploy_Ubuntu
+  pool:
+    vmImage: ubuntu-22.04
+
+  variables:
+  - name: oxiDeployDir
+    value: $(Pipeline.Workspace)/deploy
+
+  steps:
+  - checkout: self
+    lfs: true
+    submodules: recursive
+    displayName: Checkout Repository Recursively
+
+  - script: mkdir -p $(oxiBuildDir)
+    workingDirectory: $(Pipeline.Workspace)
+    displayName: Create build directory
+
+  - script: >
+      cmake
+      -S $(oxiSourceDir)
+      -B $(oxiBuildDir)
+      -DCMAKE_GENERATOR:STRING=Ninja 
+      -DCMAKE_BUILD_TYPE:STRING=Release 
+      -DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=/usr/share/qtcreator/package-manager/auto-setup.cmake
+      -DQT_QMAKE_EXECUTABLE:FILEPATH=$(QT_ARCH_DIR)/usr/bin/qmake
+    workingDirectory: $(oxiBuildDir)
+    displayName: Build CMake Cache
+
+  - script: cmake --build $(oxiBuildDir) --target all
+    workingDirectory: $(oxiBuildDir)
+    displayName: Build for Linux
+
+  - script: mkdir -p $(oxiDeployDir)
+    workingDirectory: $(Pipeline.Workspace)
+    displayName: Create deploy directory
+
+  - script: |
+      curl -LO https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+      curl -LO https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+      chmod 0755 linuxdeploy-*.AppImage
+    workingDirectory: $(oxiBuildDir)
+    displayName: Download AppImage packaging tools
+
+  - script: |
+      echo '##vso[task.setvariable variable=VERSION]$(Build.SourceBranchName)'
+    displayName: Set version number for packaging
+
+  - script: >
+      ./linuxdeploy-x86_64.AppImage
+      --appdir $(oxiDeployDir)
+      --plugin qt
+      --output appimage
+      --icon-file=$(Pipeline.Workspace)/s/apps/oxi_desktop/resources/icon-256.png
+      --desktop-file=$(Pipeline.Workspace)/s/apps/oxi_desktop/resources/oxi_desktop.desktop
+      --executable=apps/$(oxiOutputName)/OXI-Desktop
+    workingDirectory: $(oxiBuildDir)
+    displayName: Create Linux AppImage
+
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(oxiBuildDir)'
+      Contents: '$(oxiOutputName)-$(Build.SourceBranchName)-x86_64.AppImage'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    displayName: Copy Files to Staging Area
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
+    displayName: Publish Artifacts
+
 - job: GitHub_Release
   pool:
     vmImage: windows-2019
