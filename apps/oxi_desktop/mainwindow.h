@@ -7,6 +7,8 @@
 
 #include "FileTypes.h"
 
+class QNetworkAccessManager;
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -70,5 +72,16 @@ private:
 //public:
     Ui::MainWindow *ui;
     void updateUiStatus(QString statusMessage);
+
+private:
+    int UncompressUpdateFile(const QString &filename, const QString &destDir);
+    void DetectOXIOneAvailableUpdate();
+    void DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, const QString& version);
+    void DeployOXIOneUpdate(const QString& updateFile);
+    QString GetFrmVersion();
+
+private:
+    std::unique_ptr<QNetworkAccessManager> _netManager;
+    std::unique_ptr<QTemporaryDir> _updateFileTempDir;
 };
 #endif // MAINWINDOW_H
