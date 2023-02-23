@@ -5,6 +5,8 @@
 #include "QFile"
 #include "QFileDialog"
 #include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 #include "math.h"
 #include "delay.h"
@@ -12,7 +14,7 @@
 
 #include "MIDI.h"
 #include "Nibble.h"
-
+#include "miniz.h"
 
 
 const uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
@@ -68,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
 
+    _netManager = std::make_unique<QNetworkAccessManager>();
 }
 
 MainWindow::~MainWindow()
@@ -214,8 +217,201 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 #endif
 }
 
-// OXI ONE
-void MainWindow::on_gotoOXIBootloaderButton_clicked()
+int MainWindow::UncompressUpdateFile(const QString &filename, const QString &destDir)
+{
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+
+    bool res = mz_zip_reader_init_file(&zip_archive, filename.toLatin1().constData(), 0);
+    if (!res)
+    {
+        ui->process_status->setText(mz_zip_get_error_string(mz_zip_get_last_error(&zip_archive)));
+        return EXIT_FAILURE;
+    }
+
+    uint count = mz_zip_reader_get_num_files(&zip_archive);
+    if (count == 0)
+    {
+        mz_zip_reader_end(&zip_archive);
+        return 0;
+    }
+
+    for (uint i = 0; i < count; ++i)
+    {
+        mz_zip_archive_file_stat file_stat;
+        if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
+        {
+            continue;
+        }
+
+        if (mz_zip_reader_is_file_a_directory(&zip_archive, i))
+        {
+            // skip directories
+            continue;
+        }
+
+        QString destfn = QFileInfo(QString(file_stat.m_filename)).fileName();
+        QString destfilename = QString("%1/%2").arg(!destDir.isEmpty() ? destDir : ".", destfn);
+
+        res = mz_zip_reader_extract_to_file(&zip_archive, i, destfilename.toLatin1().constData(), 0);
+        if (!res)
+        {
+            ui->process_status->setText(mz_zip_get_error_string(mz_zip_get_last_error(&zip_archive)));
+            return EXIT_FAILURE;
+        }
+    }
+
+    mz_zip_reader_end(&zip_archive);
+
+    return ERROR_SUCCESS;
+}
+
+QString MainWindow::GetFrmVersion()
+{
+    // TODO: Get firmware version;
+    return "3.0.2";
+}
+
+void MainWindow::DetectOXIOneAvailableUpdate()
+{
+    ui->gotoOXIBootloaderButton->setEnabled(false);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    QNetworkRequest request;
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/permalink/latest"));
+    auto updateReply = _netManager->get(request);
+
+    ui->process_status->setText("Detecting available update");
+
+    connect(updateReply, &QNetworkReply::finished, [=]()
+    {
+        QApplication::restoreOverrideCursor();
+
+        ui->gotoOXIBootloaderButton->setEnabled(true);
+
+        ui->process_status->setText("");
+
+        if (updateReply->error())
+        {
+            QMetaEnum metaEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
+
+            ui->process_status->setText(QString("Error detecting available update: %1").arg(metaEnum.valueToKey(updateReply->error())));
+        }
+        else
+        {
+            auto responseData = updateReply->readAll();
+            auto jsonData = QJsonDocument::fromJson(responseData);
+            auto jsonObj = jsonData.object();
+            auto version = jsonObj["name"].toString();
+            auto assets = jsonObj["assets"].toObject();
+            auto links = assets["links"].toArray();
+
+            QString updateFile;
+            if (links.size() == 1)
+            {
+                auto linkObj = links[0].toObject();
+                updateFile = linkObj["url"].toString();
+            }
+
+            auto latestVersion = QVersionNumber::fromString(version);
+            auto frmVersion = QVersionNumber::fromString(GetFrmVersion());
+
+            if (!updateFile.isEmpty() && !latestVersion.isNull())
+            {
+                if (latestVersion > frmVersion)
+                {
+                    auto choice = QMessageBox::question(this, "Update available", QString("Update to version %1 available to download. Do you wish to proceed?").arg(version));
+                    if (choice == QMessageBox::StandardButton::Yes)
+                    {
+                        DownloadOXIOneAvailableUpdate(updateFile, version);
+                    }
+                }
+                else
+                {
+                    ui->process_status->setText("Firmware version is up to date.");
+                }
+            }
+            else
+            {
+                ui->process_status->setText("No update file found.");
+            }
+        }
+
+        updateReply->deleteLater();
+    });
+}
+
+void MainWindow::DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, const QString& version)
+{
+    QNetworkRequest request;
+    request.setUrl(QUrl(updateZipFileUrl));
+    auto downloadUpdateReply = _netManager->get(request);
+
+    ui->progressBar->setTextVisible(true);
+    ui->progressBar->setFormat("Downloading update");
+    ui->process_status->setText("Downloading update");
+    ui->gotoOXIBootloaderButton->setEnabled(false);
+
+    connect(downloadUpdateReply, &QNetworkReply::downloadProgress, [=](auto bytesReceived, auto bytesTotal)
+    {
+        ui->progressBar->setMaximum(bytesTotal);
+        ui->progressBar->setValue(bytesReceived);
+    });
+
+    connect(downloadUpdateReply, &QNetworkReply::finished, [=]()
+    {
+        ui->process_status->setText("");
+        ui->progressBar->setTextVisible(false);
+        ui->progressBar->setFormat("");
+
+        ui->progressBar->reset();
+
+        if (downloadUpdateReply->error())
+        {
+            QMetaEnum metaEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
+
+            ui->process_status->setText(QString("Error downloading update file: %1").arg(metaEnum.valueToKey(downloadUpdateReply->error())));
+        }
+        else
+        {
+            _updateFileTempDir.reset(new QTemporaryDir());
+
+            if (_updateFileTempDir->isValid())
+            {
+                QByteArray b = downloadUpdateReply->readAll();
+                auto updateFilePath = QString("%1/OxiOneUpdate%2.syx").arg(_updateFileTempDir->path(), version);
+                QSaveFile file(updateFilePath);
+                if (file.open(QIODevice::WriteOnly))
+                {
+                    file.write(b);
+                    if (file.commit())
+                    {
+                        DeployOXIOneUpdate(updateFilePath);
+
+                    }
+                    else
+                    {
+                        ui->process_status->setText("Unable to save update file to destination archive.");
+                    }
+                }
+                else
+                {
+                    ui->process_status->setText("Unable to create destination archive for update file.");
+                }
+            }
+            else
+            {
+                ui->process_status->setText("Unable to create save location for update file.");
+            }
+        }
+
+        ui->gotoOXIBootloaderButton->setEnabled(true);
+        downloadUpdateReply->deleteLater();
+    });
+}
+
+void MainWindow::DeployOXIOneUpdate(const QString& updateFile)
 {
 #if 1
     ui->process_status->setText("");
@@ -228,7 +424,7 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
 
         midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
 
-        midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
+        midiWorker->update_file_name_ = updateFile;
 
         qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -244,9 +440,15 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
         }
     }
     else {
-        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
+        QMessageBox::warning(this, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
     }
 #endif
+}
+
+// OXI ONE
+void MainWindow::on_gotoOXIBootloaderButton_clicked()
+{
+    DetectOXIOneAvailableUpdate();
 }
 
 void MainWindow::on_exitBootloaderButton_clicked()
@@ -406,4 +608,3 @@ void MainWindow::on_eraseMemButton_clicked()
 
     ui->midiProgressBar->setValue(0);
 }
-

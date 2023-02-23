@@ -33,7 +33,12 @@ add_library(oxi_core SHARED
   OXI_SYSEX_MSG.h
   MIDI.h
   SYSEX_APP.h
+  miniz.h
+  miniz.c
 )
+
+set_source_files_properties(miniz.c PROPERTIES LANGUAGE CXX )
+SET(CMAKE_C_FLAGS "miniz.c -std=c99")
 
 target_include_directories(oxi_core PUBLIC ${PROJECT_SOURCE_DIR})
 
