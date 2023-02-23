@@ -91,6 +91,17 @@ void OxiDiscovery::Discover()
     if(DiscoverOutPort() || DiscoverInPort()){
         emit ui_PortAlreadyInUse();
     }
+
+    if (_out_idx != -1 &&
+            _in_idx != -1) {
+        if (!connected) {
+            connected = true;
+            emit discoveryOxiConnected();
+        }
+    } else {
+        connected = false;
+    }
+
 }
 
 bool OxiDiscovery::DiscoverOutPort(){
@@ -100,6 +111,7 @@ bool OxiDiscovery::DiscoverOutPort(){
         _previousOutPorts = outPorts;
     }
 
+    // this checks if it's an oxi one
     int oxiOutIdx = GetOxiOutIndex(outPorts);
 
     if (_out_idx >= 0)
@@ -137,6 +149,7 @@ bool OxiDiscovery::DiscoverOutPort(){
             _oxi_port_name_out = outPorts[oxiOutIdx];
             qInfo() << "Port opened to " + _oxi_port_name_in;
             _out_idx = oxiOutIdx;
+
             emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
         }
     }
@@ -189,8 +202,8 @@ bool OxiDiscovery::DiscoverInPort(){
             _oxi_port_name_in = inPorts[oxiInIdx];
             qInfo() << "Port opened to " + inPorts[oxiInIdx];
             _in_idx = oxiInIdx;
-            // TODO     should also emit a signal to indicate that updates the UI.
-            //          But then both IN/OUT states may collide because they must not be the same.
+            // TODO should also emit a signal to indicate that updates the UI.
+            // But then both IN/OUT states may collide because they must not be the same.
         }
     }
 

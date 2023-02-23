@@ -22,6 +22,8 @@ private:
     QStringList _previousInPorts;
     QStringList _previousOutPorts;
 
+    bool connected = false;
+
     bool IsOxiPort(QString portName);
     bool IsOxiPort(QStringList portNames, int index);
     bool IsOxiFwUpdatePort(QStringList portNames, int index);
@@ -43,6 +45,7 @@ public:
 signals:
     void ui_UpdateConnectionLabel(QString);
     void ui_PortAlreadyInUse(void);
+    void discoveryOxiConnected(void);
 
 public slots:
     void Discover(void);

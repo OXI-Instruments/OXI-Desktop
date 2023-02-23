@@ -17,11 +17,11 @@
 #include "miniz.h"
 
 
-const uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
-const uint8_t goto_split_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_SPLIT, 0xF7 };
+//const uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
+//const uint8_t goto_split_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_SPLIT, 0xF7 };
 
-QByteArray sysex_cmd((char*)goto_ble_bootloader, 1024);
-QByteArray sysex_file_buffer;
+//QByteArray sysex_cmd((char*)goto_ble_bootloader, 1024);
+//QByteArray sysex_file_buffer;
 
 
 /*======================================================================*/
@@ -59,6 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(midiWorker, SIGNAL(ui_ConnectionError(void)),
             this, SLOT(connectionError(void)));
+
+    connect(midiWorker, SIGNAL(SetFwVersion(QString)),
+            this, SLOT(updateFwVersion(QString)));
 
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
@@ -125,7 +128,9 @@ void MainWindow::updateUiStatus(QString statusMessage){
 
 void MainWindow::updateProgressBar(int value)
 {
+    ui->progressBar->setFormat("%p%");
     ui->progressBar->setValue(value);
+    ui->progressBar->setMaximum(100);
 }
 
 void MainWindow::updateMidiProgressBar(int value)
@@ -263,13 +268,24 @@ int MainWindow::UncompressUpdateFile(const QString &filename, const QString &des
 
     mz_zip_reader_end(&zip_archive);
 
-    return ERROR_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
-QString MainWindow::GetFrmVersion()
+QVersionNumber MainWindow::GetFrmVersion()
 {
     // TODO: Get firmware version;
-    return "3.0.2";
+    return fw_version_;
+}
+
+void MainWindow::updateFwVersion(QString version)
+{
+    QVersionNumber temp = QVersionNumber::fromString(version);
+    if (fw_version_ != temp) {
+        fw_version_ = temp;
+
+        qDebug() << fw_version_ << Qt::endl;
+        DetectOXIOneAvailableUpdate();
+    }
 }
 
 void MainWindow::DetectOXIOneAvailableUpdate()
@@ -279,7 +295,9 @@ void MainWindow::DetectOXIOneAvailableUpdate()
 
     QNetworkRequest request;
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/permalink/latest"));
+    request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/"));
+    // request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/permalink/latest"));
+    // request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/3.2.3"));
     auto updateReply = _netManager->get(request);
 
     ui->process_status->setText("Detecting available update");
@@ -297,13 +315,18 @@ void MainWindow::DetectOXIOneAvailableUpdate()
             QMetaEnum metaEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
 
             ui->process_status->setText(QString("Error detecting available update: %1").arg(metaEnum.valueToKey(updateReply->error())));
+
+            qDebug() << updateReply->errorString() << Qt::endl;
         }
         else
         {
             auto responseData = updateReply->readAll();
             auto jsonData = QJsonDocument::fromJson(responseData);
-            auto jsonObj = jsonData.object();
+            // auto jsonObj = jsonData.object();
+            QJsonArray dataObject = jsonData.array();
+            auto jsonObj = dataObject.at(0);
             auto version = jsonObj["name"].toString();
+            auto description = jsonObj["description"].toString();
             auto assets = jsonObj["assets"].toObject();
             auto links = assets["links"].toArray();
 
@@ -315,17 +338,52 @@ void MainWindow::DetectOXIOneAvailableUpdate()
             }
 
             auto latestVersion = QVersionNumber::fromString(version);
-            auto frmVersion = QVersionNumber::fromString(GetFrmVersion());
 
-            if (!updateFile.isEmpty() && !latestVersion.isNull())
+            if (!updateFile.isEmpty() &&
+                    !latestVersion.isNull())
             {
-                if (latestVersion > frmVersion)
+                if (latestVersion > fw_version_)
                 {
+#if 0
                     auto choice = QMessageBox::question(this, "Update available", QString("Update to version %1 available to download. Do you wish to proceed?").arg(version));
                     if (choice == QMessageBox::StandardButton::Yes)
                     {
                         DownloadOXIOneAvailableUpdate(updateFile, version);
                     }
+#endif
+                    QMessageBox messageBox;
+                    messageBox.setText(QString("Update to version %1 available to download. Do you wish to proceed?").arg(version));
+                    QAbstractButton* helpButton = messageBox.addButton("What's new?", QMessageBox::HelpRole);
+                    QAbstractButton* pButtonYes = messageBox.addButton("Yes", QMessageBox::YesRole);
+                    messageBox.addButton("No", QMessageBox::NoRole);
+
+                    // Add a "Help" button to the message box
+                    helpButton->disconnect();
+
+                    messageBox.setEscapeButton(QMessageBox::No);
+                    messageBox.setWindowModality(Qt::ApplicationModal);
+                    messageBox.setWindowFlags(Qt::Sheet);
+                    messageBox.setModal(true);
+
+
+                    connect(helpButton, &QAbstractButton::clicked, this, [=](){
+                        // Handle the "Help" button action here
+                        QString markdownText = description;
+                        HelpDialog helpDialog(markdownText);
+                        helpDialog.setWindowTitle("What's new?");
+                        helpDialog.resize(450,600);
+                        helpDialog.exec();
+                        qDebug() << "HELP" << Qt::endl;
+                    });
+
+                    connect(pButtonYes, &QAbstractButton::clicked, this, [=](){
+                        // Handle the "Help" button action here
+                        DownloadOXIOneAvailableUpdate(updateFile, version);
+                    });
+
+
+                    messageBox.exec();
+
                 }
                 else
                 {
@@ -348,8 +406,9 @@ void MainWindow::DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, 
     request.setUrl(QUrl(updateZipFileUrl));
     auto downloadUpdateReply = _netManager->get(request);
 
-    ui->progressBar->setTextVisible(true);
-    ui->progressBar->setFormat("Downloading update");
+    // ui->progressBar->setTextVisible(true);
+     ui->progressBar->setFormat("Downloading update");
+     ui->progressBar->setValue(0);
     ui->process_status->setText("Downloading update");
     ui->gotoOXIBootloaderButton->setEnabled(false);
 
@@ -362,10 +421,10 @@ void MainWindow::DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, 
     connect(downloadUpdateReply, &QNetworkReply::finished, [=]()
     {
         ui->process_status->setText("");
-        ui->progressBar->setTextVisible(false);
-        ui->progressBar->setFormat("");
+//        ui->progressBar->setTextVisible(false);
+        ui->progressBar->setFormat("%p%");
 
-        ui->progressBar->reset();
+//        ui->progressBar->reset();
 
         if (downloadUpdateReply->error())
         {
@@ -448,7 +507,39 @@ void MainWindow::DeployOXIOneUpdate(const QString& updateFile)
 // OXI ONE
 void MainWindow::on_gotoOXIBootloaderButton_clicked()
 {
-    DetectOXIOneAvailableUpdate();
+
+#if 1
+	ui->process_status->setText("");
+
+	if ( midiWorker->midi_out.isPortOpen())
+	{
+		if (midiWorker->isRunning()) {
+			midiWorker->terminate();
+		}
+
+		midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
+
+		midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
+
+		qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
+		qDebug() << midiWorker->update_file_name_ << Qt::endl;
+		if (midiWorker->update_file_name_ == "" ) return;
+
+		ui->process_status->setText("UPDATING");
+
+		qDebug() << "file selected" << Qt::endl;
+
+		// launch worker
+		if (!midiWorker->isRunning()) {
+			midiWorker->start();
+		}
+	}
+	else {
+		QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
+	}
+#endif
+
+
 }
 
 void MainWindow::on_exitBootloaderButton_clicked()
@@ -608,3 +699,9 @@ void MainWindow::on_eraseMemButton_clicked()
 
     ui->midiProgressBar->setValue(0);
 }
+
+void MainWindow::on_gotoOXIBootloaderButton_2_clicked()
+{
+    DetectOXIOneAvailableUpdate();
+}
+

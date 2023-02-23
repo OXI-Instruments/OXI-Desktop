@@ -131,7 +131,7 @@ font-size: 14px;
          <enum>QTabWidget::North</enum>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_fw_update">
          <attribute name="title">
@@ -141,9 +141,9 @@ font-size: 14px;
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>20</y>
+            <y>10</y>
             <width>331</width>
-            <height>221</height>
+            <height>241</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -166,12 +166,18 @@ font-size: 14px;
             <number>5</number>
            </property>
            <item>
-            <widget class="QPushButton" name="gotoOXIBootloaderButton">
+            <widget class="QPushButton" name="gotoOXIBootloaderButton_2">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
              </property>
              <property name="maximumSize">
               <size>
@@ -180,7 +186,32 @@ font-size: 14px;
               </size>
              </property>
              <property name="text">
-              <string>OXI ONE UPDATE</string>
+              <string>CHECK LATEST VERSION</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="gotoOXIBootloaderButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>SELECT FILE</string>
              </property>
             </widget>
            </item>
@@ -191,6 +222,12 @@ font-size: 14px;
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
              </property>
              <property name="maximumSize">
               <size>
@@ -211,6 +248,12 @@ font-size: 14px;
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
@@ -227,7 +270,7 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>20</height>
+               <height>15</height>
               </size>
              </property>
              <property name="orientation">
@@ -254,6 +297,9 @@ font-size: 14px;
                <width>0</width>
                <height>20</height>
               </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true"/>
              </property>
              <property name="value">
               <number>24</number>
