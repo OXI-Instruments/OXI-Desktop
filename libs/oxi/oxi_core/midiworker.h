@@ -51,6 +51,7 @@ public:
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
     void onMidiReceive(QMidiMessage*);
+    void OxiConnected();
 
     void SendRaw(void);
     void SendACK(void) {
@@ -62,8 +63,9 @@ public slots:
         SendRaw();
     };
 
-
+    void SendCmd(OXI_SYSEX_CAT_e cat, uint8_t id);
     void SendBootExit(void);
+    void GetFwVersion(void);
     void SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd);
     bool WaitForOXIUpdate(void);
     bool WaitProjectACK(void);
@@ -115,14 +117,15 @@ public slots:
     }
 
     void GetCalibData(void) {
-        raw_data.clear();
-        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-        raw_data.push_back(MSG_CAT_SYSTEM);
-        raw_data.push_back(MSG_SYSTEM_GET_CALIB_DATA);
-        raw_data.push_back(0);
-        raw_data.push_back(0);
-        raw_data.push_back(0xF7);
-        SendRaw();
+    	SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_GET_CALIB_DATA);
+//        raw_data.clear();
+//        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+//        raw_data.push_back(MSG_CAT_SYSTEM);
+//        raw_data.push_back(MSG_SYSTEM_GET_CALIB_DATA);
+//        raw_data.push_back(0);
+//        raw_data.push_back(0);
+//        raw_data.push_back(0xF7);
+//        SendRaw();
     }
 
 signals:
@@ -133,6 +136,7 @@ signals:
     void ui_ConnectionError(void);
     void ui_UpdateProjectProgressBar(int);
     void ui_updateStatusLabel(QString);
+    void SetFwVersion(QString);
     void finished();
     void error(QString err);
 

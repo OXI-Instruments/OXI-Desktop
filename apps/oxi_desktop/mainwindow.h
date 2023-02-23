@@ -7,6 +7,15 @@
 
 #include "FileTypes.h"
 
+
+#include <QApplication>
+#include <QDialog>
+#include <QLabel>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QTextBrowser>
+#include <QVBoxLayout>
+
 class QNetworkAccessManager;
 
 QT_BEGIN_NAMESPACE
@@ -34,6 +43,7 @@ private slots:
     void updateMidiProgressBar(int value);
     void updateStatusLabel(QString text);
     void updateConnectionLabel(QString text);
+    void updateFwVersion(QString version);
     void updateError(void);
     void connectionError(void);
     void uiPortAlreadyInUse(void);
@@ -64,12 +74,13 @@ private slots:
 
     QString FileDialog(FileType file);
 
+    void on_gotoOXIBootloaderButton_2_clicked();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerUpdateFile(QString);
 
 private:
-//public:
     Ui::MainWindow *ui;
     void updateUiStatus(QString statusMessage);
 
@@ -78,10 +89,31 @@ private:
     void DetectOXIOneAvailableUpdate();
     void DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, const QString& version);
     void DeployOXIOneUpdate(const QString& updateFile);
-    QString GetFrmVersion();
+    QVersionNumber GetFrmVersion();
 
 private:
     std::unique_ptr<QNetworkAccessManager> _netManager;
     std::unique_ptr<QTemporaryDir> _updateFileTempDir;
+
+    QVersionNumber fw_version_;
 };
+
+
+
+
+
+class HelpDialog : public QDialog
+{
+public:
+    HelpDialog(const QString& markdownText, QWidget *parent = nullptr)
+        : QDialog(parent)
+    {
+        QVBoxLayout *layout = new QVBoxLayout(this);
+        QTextBrowser *textBrowser = new QTextBrowser(this);
+        textBrowser->setMarkdown(markdownText);
+        layout->addWidget(textBrowser);
+    }
+};
+
+
 #endif // MAINWINDOW_H

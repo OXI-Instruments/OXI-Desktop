@@ -21,10 +21,14 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
 {
     _discovery = new OxiDiscovery(&midi_in, &midi_out);
     midi_in.setIgnoreTypes(false, true, true);
+
     Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
                      this, SLOT(onMidiReceive(QMidiMessage*))));
+    Q_ASSUME(connect(_discovery, SIGNAL(discoveryOxiConnected()),
+                     this, SLOT(OxiConnected())));
 
-    QString desktop_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    // QString desktop_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString desktop_path = QCoreApplication::applicationDirPath() + "/../../.." ;
 
     QDir system_dir;
     oxi_path_ = desktop_path + "/OXI_Files";
@@ -43,6 +47,12 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
 
 OxiDiscovery* MidiWorker::GetDiscovery(){
     return _discovery;
+}
+
+void MidiWorker::OxiConnected(void) {
+
+
+	GetFwVersion();
 }
 
 void MidiWorker::SendRaw(void)
@@ -87,7 +97,6 @@ bool MidiWorker::WaitProjectACK(void) {
 
     while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
     {
-//        this->msleep(DELAY_TIME);
         QThread::msleep(DELAY_TIME);
         timeout += DELAY_TIME;
     }
@@ -99,27 +108,27 @@ bool MidiWorker::WaitProjectACK(void) {
 }
 
 
+void MidiWorker::GetFwVersion(void)
+{
+    SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_SW_VERSION);
+}
+
 void MidiWorker::SendBootExit(void)
 {
-    raw_data.clear();
-    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    raw_data.push_back(MSG_CAT_FW_UPDATE);
-    raw_data.push_back(MSG_FW_UPDT_EXIT);
-    raw_data.push_back(0xF7);
-    try {
-        midi_out.sendRawMessage(raw_data);
-    }
-    catch ( RtMidiError &error ) {
-        error.printMessage();
-    }
+    SendCmd(MSG_CAT_FW_UPDATE, MSG_FW_UPDT_EXIT);
 }
 
 void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
 {
+	SendCmd(MSG_CAT_FW_UPDATE, device_cmd);
+}
+
+void MidiWorker::SendCmd(OXI_SYSEX_CAT_e cat, uint8_t id)
+{
     raw_data.clear();
     raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-    raw_data.push_back(MSG_CAT_FW_UPDATE);
-    raw_data.push_back(device_cmd);
+    raw_data.push_back(cat);
+    raw_data.push_back(id);
     raw_data.push_back(0xF7);
     try {
         midi_out.sendRawMessage(raw_data);
@@ -504,6 +513,25 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                 switch (p_msg->getSysExData()[7])
                 {
                 case MSG_SYSTEM_SW_VERSION:
+                {
+                    std::vector<uint8_t>buffer;
+                    std::vector<uint8_t>sysex_data = p_msg->getSysExData();
+
+                    DeNibblize(buffer, sysex_data, 8);
+
+                    QString version;
+                    for (size_t var = 0; var < buffer.size(); ++var) {
+                        QChar c = QChar(buffer[var]);
+                        if (c == ' ' || c == '\0') {
+                            version.push_back('\0');
+                            break;
+                        } else {
+                            version.push_back(c);
+                        }
+                    }
+
+                    emit SetFwVersion(version);
+                }
                     break;
                 case MSG_SYSTEM_HW_VERSION:
                     break;
@@ -512,6 +540,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     std::vector<uint8_t>buffer;
                     std::vector<uint8_t>sysex_data = p_msg->getSysExData();
 
+                    // 8 + sector index
                     DeNibblize(buffer, sysex_data, 9);
 
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
@@ -548,6 +577,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     std::vector<uint8_t>buffer;
                     std::vector<uint8_t>sysex_data = p_msg->getSysExData();
 
+                    // 8 + proj index + pattern index = 10
                     DeNibblize(buffer, sysex_data, 10);
 
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
