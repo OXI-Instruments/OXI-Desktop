@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>OXI ONE TOOL v2.1.0</string>
+   <string>OXI ONE DESKTOP</string>
   </property>
   <property name="styleSheet">
    <string notr="true">font: 14pt &quot;Oswald&quot;;
@@ -186,7 +186,7 @@ font-size: 14px;
               </size>
              </property>
              <property name="text">
-              <string>CHECK LATEST VERSION</string>
+              <string>GET LATEST FIRMWARE</string>
              </property>
             </widget>
            </item>
@@ -211,7 +211,7 @@ font-size: 14px;
               </size>
              </property>
              <property name="text">
-              <string>SELECT FILE</string>
+              <string>UPDATE FROM FILE</string>
              </property>
             </widget>
            </item>
@@ -236,12 +236,15 @@ font-size: 14px;
               </size>
              </property>
              <property name="text">
-              <string>BLUETOOTH UPDATE</string>
+              <string>BLE UPDATE FROM FILE</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="gotoSPLITBootloaderButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                <horstretch>0</horstretch>
@@ -259,6 +262,14 @@ font-size: 14px;
                <width>16777215</width>
                <height>35</height>
               </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Oswald</family>
+               <pointsize>-1</pointsize>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
              </property>
              <property name="text">
               <string>OXI SPLIT UPDATE</string>
