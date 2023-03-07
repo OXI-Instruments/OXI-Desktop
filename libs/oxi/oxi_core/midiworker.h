@@ -24,6 +24,7 @@ public:
     // if Stop = true, the thread will break
     // out of the loop, and will be disposed
     bool Stop;
+    bool update_in_progress_ = false;
 
     QMidiIn midi_in;
     QMidiOut midi_out;
@@ -133,16 +134,19 @@ signals:
     // we need to emit a signal
     void ui_UpdateProgressBar(int);
     void ui_UpdateError(void);
+    void ui_Success(void);
     void ui_ConnectionError(void);
+    void ui_lockUpdate(void);
     void ui_UpdateProjectProgressBar(int);
     void ui_updateStatusLabel(QString);
+    void ResetFwVersion(void);
     void SetFwVersion(QString);
     void finished();
     void error(QString err);
 
 private:
     int delay_time = 100;
-    int oxi_ack_ = 0;
+    volatile int oxi_ack_ = 0;
 
     uint8_t project_index_ = 0;
     uint8_t seq_index_ = 0;

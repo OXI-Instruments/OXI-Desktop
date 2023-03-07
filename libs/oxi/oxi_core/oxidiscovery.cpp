@@ -96,7 +96,12 @@ void OxiDiscovery::Discover()
             _in_idx != -1) {
         if (!connected) {
             connected = true;
-            emit discoveryOxiConnected();
+            if (IsInFwUpdate()) {
+                // Nothing
+            } else {
+                // SetFwVersion
+                emit discoveryOxiConnected();
+            }
         }
     } else {
         connected = false;

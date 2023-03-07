@@ -1,6 +1,5 @@
 #include "midiworker.h"
 #include "MIDI.h"
-#include "string.h"
 #include <QDebug>
 
 #include <Nibble.h>
@@ -51,8 +50,8 @@ OxiDiscovery* MidiWorker::GetDiscovery(){
 
 void MidiWorker::OxiConnected(void) {
 
-
-	GetFwVersion();
+    emit ResetFwVersion();
+    GetFwVersion();
 }
 
 void MidiWorker::SendRaw(void)
@@ -185,8 +184,8 @@ void MidiWorker::runFWUpdate()
 {
     int timeout = 0;
     int retries = 0;
-    const int DELAY_TIME = 50;
-    const int TIMEOUT_TIME = 1000;
+    const int DELAY_TIME = 75;
+    const int TIMEOUT_TIME = 3000;
     bool success = false;
     bool wait_for_ack = false;
 
@@ -223,6 +222,9 @@ void MidiWorker::runFWUpdate()
     int package_num = 0;
 
     emit ui_UpdateProgressBar(0);
+    update_in_progress_ = true;
+    // todo remove
+    emit  ui_lockUpdate();
 
     qDebug() << "File length: " << sysex_file_buffer.length() << Qt::endl;
 
@@ -328,7 +330,7 @@ EXIT:
             break;
 
         }
-
+        emit ui_Success();
     } else {
         emit ui_UpdateProgressBar(0);
         emit ui_UpdateError();
@@ -402,10 +404,10 @@ void MidiWorker::runSendProjectRAW(void)
         }
 
         emit ui_UpdateProjectProgressBar(100);
-        emit ui_updateStatusLabel("SUCCESS!");
+        emit ui_Success();
     }
     else {
-         emit ui_updateStatusLabel("PROJECT ERROR");
+        emit ui_updateStatusLabel("PROJECT ERROR");
     }
 }
 

@@ -9,7 +9,6 @@
 #include <QNetworkReply>
 
 #include "math.h"
-#include "delay.h"
 #include "midiworker.h"
 
 #include "MIDI.h"
@@ -60,8 +59,17 @@ MainWindow::MainWindow(QWidget *parent)
     connect(midiWorker, SIGNAL(ui_ConnectionError(void)),
             this, SLOT(connectionError(void)));
 
+    connect(midiWorker, SIGNAL(ui_Success(void)),
+            this, SLOT(processSuccess(void)));
+
+    connect(midiWorker, SIGNAL(ui_lockUpdate(void)),
+            this, SLOT(lockUpdateButtons(void)));
+
     connect(midiWorker, SIGNAL(SetFwVersion(QString)),
             this, SLOT(updateFwVersion(QString)));
+
+    connect(midiWorker, SIGNAL(ResetFwVersion(void)),
+            this, SLOT(resetFwVersion(void)));
 
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
@@ -151,6 +159,13 @@ void MainWindow::updateConnectionLabel(QString text)
 void MainWindow::updateError(void)
 {
     QMessageBox::warning(0, QString("Error"), QString("Update error"), QMessageBox::Ok);
+    unlockUpdateButtons();
+}
+
+void MainWindow::processSuccess(void)
+{
+    updateStatusLabel("SUCCESS!");
+    unlockUpdateButtons();
 }
 
 void MainWindow::connectionError(void)
@@ -277,6 +292,11 @@ QVersionNumber MainWindow::GetFrmVersion()
     return fw_version_;
 }
 
+void MainWindow::resetFwVersion(void)
+{
+    fw_version_ = QVersionNumber::fromString("");
+}
+
 void MainWindow::updateFwVersion(QString version)
 {
     QVersionNumber temp = QVersionNumber::fromString(version);
@@ -290,14 +310,12 @@ void MainWindow::updateFwVersion(QString version)
 
 void MainWindow::DetectOXIOneAvailableUpdate()
 {
-    ui->gotoOXIBootloaderButton->setEnabled(false);
+    ui->gotoOXIBootloaderButton_2->setEnabled(false);
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     QNetworkRequest request;
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/"));
-    // request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/permalink/latest"));
-    // request.setUrl(QUrl("https://gitlab.com/api/v4/projects/25470905/releases/3.2.3"));
     auto updateReply = _netManager->get(request);
 
     ui->process_status->setText("Detecting available update");
@@ -305,8 +323,7 @@ void MainWindow::DetectOXIOneAvailableUpdate()
     connect(updateReply, &QNetworkReply::finished, [=]()
     {
         QApplication::restoreOverrideCursor();
-
-        ui->gotoOXIBootloaderButton->setEnabled(true);
+        ui->gotoOXIBootloaderButton_2->setEnabled(true);
 
         ui->process_status->setText("");
 
@@ -317,12 +334,12 @@ void MainWindow::DetectOXIOneAvailableUpdate()
             ui->process_status->setText(QString("Error detecting available update: %1").arg(metaEnum.valueToKey(updateReply->error())));
 
             qDebug() << updateReply->errorString() << Qt::endl;
+            qDebug() << QSslSocket::supportsSsl();
         }
         else
         {
             auto responseData = updateReply->readAll();
             auto jsonData = QJsonDocument::fromJson(responseData);
-            // auto jsonObj = jsonData.object();
             QJsonArray dataObject = jsonData.array();
             auto jsonObj = dataObject.at(0);
             auto version = jsonObj["name"].toString();

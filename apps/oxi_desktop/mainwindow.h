@@ -6,6 +6,7 @@
 #include "midiworker.h"
 
 #include "FileTypes.h"
+#include "ui_mainwindow.h"
 
 
 #include <QApplication>
@@ -44,9 +45,25 @@ private slots:
     void updateStatusLabel(QString text);
     void updateConnectionLabel(QString text);
     void updateFwVersion(QString version);
+    void resetFwVersion(void);
     void updateError(void);
+    void processSuccess(void);
     void connectionError(void);
     void uiPortAlreadyInUse(void);
+
+    void lockUpdateButtons(void)
+    {
+        ui->gotoOXIBootloaderButton_2->setEnabled(false);
+        ui->gotoOXIBootloaderButton->setEnabled(false);
+        ui->gotoBLEBootloaderButton->setEnabled(false);
+    }
+
+    void unlockUpdateButtons(void)
+    {
+        ui->gotoOXIBootloaderButton_2->setEnabled(true);
+        ui->gotoOXIBootloaderButton->setEnabled(true);
+        ui->gotoBLEBootloaderButton->setEnabled(true);
+    }
 
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoSPLITBootloaderButton_clicked();
