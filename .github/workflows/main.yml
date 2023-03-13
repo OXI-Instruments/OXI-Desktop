@@ -337,7 +337,6 @@ jobs:
         name: OXI-Desktop_Linux.AppImage
 
   test-linux:
-    if: ${{ false }}  # disable while developing
     runs-on: ubuntu-22.04
     steps:
     - name: Install Libraries
