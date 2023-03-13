@@ -263,7 +263,7 @@ jobs:
   dependsOn:
     - Build_Deploy_Win_x64
     - Build_Deploy_MacOS
-    - Build_Deploy_Ubuntu
+    # - Build_Deploy_Ubuntu
 
   steps:
   - checkout: none
