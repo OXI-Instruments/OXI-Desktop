@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 env:
   QT_VERSION: 5.15.2
   OXI_SOURCE_PATH: ${{ github.workspace }}
@@ -24,77 +27,7 @@ env:
   QT_TOOLS_CXX_UBUNTU_PATH: /usr/bin
 
 jobs:
-  test-linux:
-    if: ${{ true }}  # disable while developing
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Install Libraries
-      run: |
-        sudo apt-get update -y && \
-        sudo apt-get install -y \
-        git \
-        cmake \
-        curl \
-        file \
-        pkg-config \
-        python3 \
-        python3-pip \
-        build-essential \
-        libdbus-1-3 \
-        libpulse-mainloop-glib0 \
-        libjack-dev \
-        libasound2-dev \
-        libgl1-mesa-dev \
-        libfreetype6-dev \
-        libfontconfig1 \
-        libxkbcommon-dev \
-        ninja-build \
-        patchelf \
-        qtbase5-dev \
-        qtbase5-dev-tools \
-        qtcreator \
-        libfuse2
-        
-    - name: Checkout
-      uses: actions/checkout@v3.3.0
-      with:
-        lfs: true
-        submodules: recursive
-
-    - name: Create Build Directory
-      run: |
-        mkdir -p ${{ env.OXI_BUILD_PATH }}
-        
-    - name: Make CMake Cache
-      run: >
-        cmake
-        -S ${{ env.OXI_SOURCE_PATH }}
-        -B ${{ env.OXI_BUILD_PATH }}
-        -DCMAKE_GENERATOR:STRING=Ninja 
-        -DCMAKE_BUILD_TYPE:STRING=Release 
-        -DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=/usr/share/qtcreator/package-manager/auto-setup.cmake
-        -DQT_QMAKE_EXECUTABLE:FILEPATH=${{ env.QT_ARCH_UBUNTU_PATH }}/usr/bin/qmake
-      working-directory: ${{ env.OXI_BUILD_PATH }}
-
-    - name: Build for Linux
-      run: |
-        cmake --build ${{ env.OXI_BUILD_PATH }} --target all
-      working-directory: ${{ env.OXI_BUILD_PATH }}
-
-    - name: Run Tests
-      run: |
-        ./tests/unittests/oxi_unittests --gtest_filter=unit* --gtest_output=xml:test_report.xml
-      working-directory: ${{ env.OXI_BUILD_PATH }}
-
-    - name: Upload Test Report
-      uses: actions/upload-artifact@v3.1.2
-      if: always()
-      with:
-        name: test-results
-        path: ./**/test_report.xml
-
   build-win:
-    needs: test-linux
     runs-on: windows-2019
 
     steps:
@@ -143,6 +76,7 @@ jobs:
     - name: Build
       run: |
         C:/Qt/Tools/CMake_64/bin/cmake.exe --build ${{ env.OXI_BUILD_PATH }} --target all
+
     - name: Create Deploy Directory
       run: |
         mkdir deploy
@@ -161,9 +95,7 @@ jobs:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/**
         name: OXI-Desktop_Win_x64.zip
 
-
-  build-mac:
-    needs: test-linux
+  build-mac-10-15:
     runs-on: macos-10.15 
 
     steps:        
@@ -222,21 +154,96 @@ jobs:
         ${{ env.QT_ARCH_MAC_PATH }}/bin/macdeployqt ${{ env.OXI_OUTPUT_NAME }}.app -always-overwrite -dmg
       working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
 
+    - name: Set Version for Packaging
+      run: |
+        echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
     - name: Rename artifact
       run: |
-        mv ${{ env.OXI_OUTPUT_NAME }}.dmg ${{ env.OXI_OUTPUT_NAME }}_MacOS.dmg
+        mv ${{ env.OXI_OUTPUT_NAME }}.dmg ${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
       working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
 
     - name: Upload Mac Build Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}_MacOS.dmg
-        name: OXI-Desktop_MacOS.dmg
+        path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
+        name: OXI-Desktop_MacOS-10.15.dmg
 
+  build-mac-11:
+    runs-on: macos-11
+
+    steps:        
+    - name: Install aqt
+      run: |
+        python3 -m pip install aqtinstall
+    
+    - name: List aqt-tools for mac desktop
+      run: |
+        sudo aqt list-tool mac desktop
+    - name: Install Qt
+      run: |
+        sudo aqt install-qt --outputdir /opt/qt mac desktop ${{ env.QT_VERSION }} clang_64 \
+        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_cmake \
+        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_ninja \
+        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_qtcreator
+        
+    - name: Append PATH
+      run: echo "/opt/qt/Tools/Ninja" >> $GITHUB_PATH
+
+    - name: Checkout
+      uses: actions/checkout@v3.3.0
+      with:
+        lfs: true
+        submodules: recursive
+
+    - name: Create Build Directory
+      run: |
+        mkdir -p ${{ env.OXI_BUILD_PATH }}
+    - name: Build CMake Cache
+      run: >
+        /opt/qt/Tools/CMake/CMake.app/Contents/bin/cmake
+        -S ${{ env.OXI_SOURCE_PATH }}
+        -B ${{ env.OXI_BUILD_PATH }}
+        -DCMAKE_GENERATOR:STRING=Ninja
+        -DCMAKE_BUILD_TYPE:STRING=Release
+        '-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=/opt/qt/Qt Creator.app/Contents/Resources/package-manager/auto-setup.cmake'
+        -DQT_QMAKE_EXECUTABLE:FILEPATH=${{ env.QT_ARCH_MAC_PATH }}/bin/qmake
+        -DCMAKE_PREFIX_PATH:PATH=${{ env.QT_ARCH_MAC_PATH }}
+        -DCMAKE_C_COMPILER:FILEPATH=${{ env.QT_TOOLS_CXX_MAC_PATH }}/clang
+        -DCMAKE_CXX_COMPILER:FILEPATH=${{ env.QT_TOOLS_CXX_MAC_PATH }}/clang++
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
+    - name: Build
+      run: |
+        /opt/qt/Tools/CMake/CMake.app/Contents/bin/cmake --build ${{ env.OXI_BUILD_PATH }} --target all
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
+    - name: Move to Deploy Staging
+      run: |
+        mkdir deploy && cp -r ./${{ env.OXI_OUTPUT_NAME }}.app ./deploy
+      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop
+
+    - name: Create mac deployable
+      run: |
+        ${{ env.QT_ARCH_MAC_PATH }}/bin/macdeployqt ${{ env.OXI_OUTPUT_NAME }}.app -always-overwrite -dmg
+      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
+
+    - name: Set Version for Packaging
+      run: |
+        echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+    - name: Rename artifact
+      run: |
+        mv ${{ env.OXI_OUTPUT_NAME }}.dmg ${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
+      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
+
+    - name: Upload Mac Build Artifact
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
+        name: OXI-Desktop_MacOS-11.dmg
 
   build-linux:
-    needs: test-linux
-
     runs-on: ubuntu-22.04
     steps:
     - name: Install Libraries
@@ -306,6 +313,7 @@ jobs:
     - name: Set Version for Packaging
       run: |
         echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
     - name: Create Linux AppImage
       run: >
         ./linuxdeploy-x86_64.AppImage
@@ -317,23 +325,125 @@ jobs:
         --executable=apps/oxi_desktop/${{ env.OXI_OUTPUT_NAME }}
       working-directory: ${{ env.OXI_BUILD_PATH }}
 
+    - name: Rename artifact
+    # the appimage creation replaces dash with underscore
+      run: mv OXI_Desktop-${{ env.VERSION }}-x86_64.AppImage OXI-Desktop-${{ env.VERSION }}-x86_64.AppImage
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
     - name: Upload Linux Build Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        path: ${{ env.OXI_BUILD_PATH }}/OXI_Desktop-${{ env.VERSION }}-x86_64.AppImage
-        name: OXI-Desktop_Win_x64.AppImage
+        path: ${{ env.OXI_BUILD_PATH }}/OXI-Desktop-${{ env.VERSION }}-x86_64.AppImage
+        name: OXI-Desktop_Linux.AppImage
+
+  test-linux:
+    if: ${{ false }}  # disable while developing
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Install Libraries
+      run: |
+        sudo apt-get update -y && \
+        sudo apt-get install -y \
+        git \
+        cmake \
+        curl \
+        file \
+        pkg-config \
+        python3 \
+        python3-pip \
+        build-essential \
+        libdbus-1-3 \
+        libpulse-mainloop-glib0 \
+        libjack-dev \
+        libasound2-dev \
+        libgl1-mesa-dev \
+        libfreetype6-dev \
+        libfontconfig1 \
+        libxkbcommon-dev \
+        ninja-build \
+        patchelf \
+        qtbase5-dev \
+        qtbase5-dev-tools \
+        qtcreator \
+        libfuse2
+        
+    - name: Checkout
+      uses: actions/checkout@v3.3.0
+      with:
+        lfs: true
+        submodules: recursive
+
+    - name: Create Build Directory
+      run: |
+        mkdir -p ${{ env.OXI_BUILD_PATH }}
+        
+    - name: Make CMake Cache
+      run: >
+        cmake
+        -S ${{ env.OXI_SOURCE_PATH }}
+        -B ${{ env.OXI_BUILD_PATH }}
+        -DCMAKE_GENERATOR:STRING=Ninja 
+        -DCMAKE_BUILD_TYPE:STRING=Release 
+        -DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=/usr/share/qtcreator/package-manager/auto-setup.cmake
+        -DQT_QMAKE_EXECUTABLE:FILEPATH=${{ env.QT_ARCH_UBUNTU_PATH }}/usr/bin/qmake
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
+    - name: Build for Linux
+      run: |
+        cmake --build ${{ env.OXI_BUILD_PATH }} --target all
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
+    - name: Run Tests
+      run: |
+        ./tests/unittests/oxi_unittests --gtest_filter=unit* --gtest_output=xml:test_report.xml
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v3.1.2
+      if: always()
+      with:
+        name: test-results
+        path: ./**/test_report.xml
 
 
   create-release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-win, build-mac, build-linux]
+    if: ${{ false}}
+    # if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-win, build-mac-10-15, build-linux, test-linux]
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Create Release
-        run: echo "Create Release"
+      - name: Download Linux Build Artifact
+        uses: actions/download-artifact@v2.1.1
+        with:
+          name: OXI-Desktop_Linux.AppImage
+          path: artifact_linux
 
-#      - name: Create Release
-#        uses: ncipollo/release-action@v1.12.0
-#        with:
-#          artifacts: # comma separated list
+      - name: Download Mac Build Artifact
+        uses: actions/download-artifact@v2.1.1
+        with:
+          name: OXI-Desktop_MacOS-10.15.dmg
+          path: artifact_mac
+
+      - name: Download Win Build Artifact
+        uses: actions/download-artifact@v2.1.1
+        with:
+          name: OXI-Desktop_Win_x64.zip
+          path: artifact_win
+
+      - name: Compress win artifacts
+        run: Compress-Archive -Path ./artifact_win/* -DestinationPath ${{ env.OXI_OUTPUT_NAME }}-${{ github.ref_name }}-Win_x64.zip
+
+      - name: List Files
+        run: ls -r
+    
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ./artifact_linux/**
+            ./artifact_mac/**
+            ${{ env.OXI_OUTPUT_NAME }}-${{ github.ref_name }}-Win_x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
