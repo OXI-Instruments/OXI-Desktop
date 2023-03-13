@@ -34,9 +34,9 @@ public:
     OxiDiscovery *discovery;
     QTimer *connection_timer;
 
-//    QMidiIn midi_in;
-//    QMidiOut midi_out;
-//    std::vector<unsigned char> raw_data;
+    //    QMidiIn midi_in;
+    //    QMidiOut midi_out;
+    //    std::vector<unsigned char> raw_data;
 
 private slots:
 
@@ -68,18 +68,19 @@ private slots:
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoSPLITBootloaderButton_clicked();
     void on_gotoOXIBootloaderButton_clicked();
-
+#if 0
     void on_exitBootloaderButton_clicked();
 
     void on_stopButton_clicked();
 
+    void on_getPatternButton_clicked();
+#endif
     void on_sendProjectButton_clicked();
 
     void on_getProjectButton_clicked();
 
     void on_project_index_valueChanged(double arg1);
 
-    void on_getPatternButton_clicked();
 
     void on_deleteProjectButton_clicked();
 
@@ -93,9 +94,14 @@ private slots:
 
     void on_gotoOXIBootloaderButton_2_clicked();
 
+    void on_tabWidget_currentChanged(int index);
+
+    void on_setWorkingFolderButton_clicked();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerUpdateFile(QString);
+    void workingDirectoryChanged(QString);
 
 private:
     Ui::MainWindow *ui;
@@ -108,17 +114,75 @@ private:
     void DeployOXIOneUpdate(const QString& updateFile);
     QVersionNumber GetFrmVersion();
 
+    bool DefaultWorkingDirectory() {
+        QString temp = workingDirectory_ + "/OXI_Files";
+        QDir temp_dir;
+        bool created = false;
+        if (temp_dir.exists(temp)) {
+            created = true;
+        }
+        return workingDirectory_ == oxiFilesDir_ || !created;
+    }
+
+    void SetWorkingDirectory() {
+        QMessageBox::information(
+                    0,
+                    QString("Working folder"),
+                    QString("Select your folder for the OXI One projects and data."),
+                    QMessageBox::Ok);
+
+        workingDirectory_ = QFileDialog::getExistingDirectory(
+                    this,
+                    tr("Select your folder for the OXI One projects and data."),
+                    QDir::homePath(),
+                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+        oxi_path_ = workingDirectory_ + "/OXI_Files";
+
+        QDir system_dir;
+        if (!system_dir.exists(oxi_path_)) {
+
+            system_dir.mkdir(oxi_path_);
+        }
+
+        // Save directory
+        writeSettings();
+        emit workingDirectoryChanged(oxi_path_);
+    }
+
+    void writeSettings()
+    {
+        QSettings settings("OXI Instruments", "OXI ONE DESKTOP");
+
+        settings.setValue("WorkingDirectory", workingDirectory_);
+    }
+
+    void readSettings()
+    {
+        QSettings settings("OXI Instruments", "OXI ONE DESKTOP");
+        workingDirectory_ = settings.value("WorkingDirectory", oxiFilesDir_).toString();
+        qDebug() << "Stored working directory: " + workingDirectory_ << Qt::endl;
+
+       // if (DefaultWorkingDirectory())
+         //   SetWorkingDirectory();
+    }
+
 private:
     std::unique_ptr<QNetworkAccessManager> _netManager;
     std::unique_ptr<QTemporaryDir> _updateFileTempDir;
 
     QVersionNumber fw_version_;
+
+    QString workingDirectory_ = "";
+    QString oxi_path_ = "";
+
+    const QString oxiFilesDir_ =  QCoreApplication::applicationDirPath() + "/../../.." ;
 };
 
 
 
 
-
+// Help/what's new window with markdown support
 class HelpDialog : public QDialog
 {
 public:

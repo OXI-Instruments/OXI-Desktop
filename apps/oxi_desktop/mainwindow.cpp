@@ -16,12 +16,6 @@
 #include "miniz.h"
 
 
-//const uint8_t goto_ble_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_BLE, 0xF7 };
-//const uint8_t goto_split_bootloader[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_OXI_SPLIT, 0xF7 };
-
-//QByteArray sysex_cmd((char*)goto_ble_bootloader, 1024);
-//QByteArray sysex_file_buffer;
-
 
 /*======================================================================*/
 /*                         MAIN WINDOW                                  */
@@ -74,6 +68,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(updateWorkerDelayTime(int)),
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
 
+    connect(this, SIGNAL(workingDirectoryChanged(QString)),
+            midiWorker, SLOT(setWorkingDirectory(QString)));
+
     connect(connection_timer, SIGNAL(timeout()), discovery, SLOT(Discover()));
 
     connection_timer->start(500);
@@ -82,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->midiProgressBar->setValue(0);
 
     _netManager = std::make_unique<QNetworkAccessManager>();
+
+    readSettings();
 }
 
 MainWindow::~MainWindow()
@@ -158,7 +157,16 @@ void MainWindow::updateConnectionLabel(QString text)
 
 void MainWindow::updateError(void)
 {
-    QMessageBox::warning(0, QString("Error"), QString("Update error"), QMessageBox::Ok);
+    QMessageBox::warning(
+                0,
+                QString("Update error"),
+                QString("Any error occurred during the update procedure.\n\r"
+                        "If your device is unresponsive, do the following:\n\r"
+                        "1. Hold the power button until the unit shuts down completely.\n\r"
+                        "2. Turn the device in UPDATE MODE by holding Mute button and powering on.\n\r"
+                        "3. Restart the firmware update procedure by either 'Get latest firmware' or 'Update from file'."),
+                QMessageBox::Ok);
+
     unlockUpdateButtons();
 }
 
@@ -170,7 +178,7 @@ void MainWindow::processSuccess(void)
 
 void MainWindow::connectionError(void)
 {
-    QMessageBox::warning(0, QString("Error"), QString("Connection error"), QMessageBox::Ok);
+    QMessageBox::warning(0, QString("Connection error"), QString("Connection error"), QMessageBox::Ok);
 }
 
 // BLE
@@ -559,9 +567,9 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
 
 }
 
+#if 0
 void MainWindow::on_exitBootloaderButton_clicked()
 {
-#if 1
     if ( midiWorker->midi_out.isPortOpen()) {
 
         midiWorker->SendBootExit();
@@ -576,7 +584,6 @@ void MainWindow::on_exitBootloaderButton_clicked()
     else {
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
     }
-#endif
 }
 
 
@@ -587,8 +594,7 @@ void MainWindow::on_stopButton_clicked()
     }
     ui->progressBar->setValue(0);
 }
-
-
+#endif
 
 
 void MainWindow::on_sendProjectButton_clicked()
@@ -621,15 +627,23 @@ void MainWindow::on_sendProjectButton_clicked()
 
 void MainWindow::on_getProjectButton_clicked()
 {
+    if (DefaultWorkingDirectory())
+        SetWorkingDirectory();
+
     ui->process_status->setText("");
     midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
     midiWorker->GetProject();
 }
 
+#if 0
 void MainWindow::on_getPatternButton_clicked()
 {
+    if (DefaultWorkingDirectory())
+        SetWorkingDirectory();
+
     midiWorker->GetPattern();
 }
+#endif
 
 void MainWindow::on_project_index_valueChanged(double arg1)
 {
@@ -663,6 +677,9 @@ void MainWindow::on_deletePatternButton_clicked()
 
 void MainWindow::on_getCalibDataButton_clicked()
 {
+    if (DefaultWorkingDirectory())
+        SetWorkingDirectory();
+
     ui->process_status->setText("");
     midiWorker->GetCalibData();
     ui->midiProgressBar->setValue(0);
@@ -720,5 +737,19 @@ void MainWindow::on_eraseMemButton_clicked()
 void MainWindow::on_gotoOXIBootloaderButton_2_clicked()
 {
     DetectOXIOneAvailableUpdate();
+}
+
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+    if (index > 0 && DefaultWorkingDirectory()) {
+        SetWorkingDirectory();
+    }
+}
+
+
+void MainWindow::on_setWorkingFolderButton_clicked()
+{
+    SetWorkingDirectory();
 }
 

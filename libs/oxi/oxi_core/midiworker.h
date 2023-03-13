@@ -32,6 +32,7 @@ public:
     std::vector<unsigned char> data_chunk;
 
     QString update_file_name_;
+
     QString oxi_path_;
     QString project_path_;
     QString projects_path_;
@@ -66,6 +67,7 @@ public slots:
 
     void SendCmd(OXI_SYSEX_CAT_e cat, uint8_t id);
     void SendBootExit(void);
+    void SendUpdateReset(void);
     void GetFwVersion(void);
     void SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd);
     bool WaitForOXIUpdate(void);
@@ -119,14 +121,18 @@ public slots:
 
     void GetCalibData(void) {
     	SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_GET_CALIB_DATA);
-//        raw_data.clear();
-//        raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
-//        raw_data.push_back(MSG_CAT_SYSTEM);
-//        raw_data.push_back(MSG_SYSTEM_GET_CALIB_DATA);
-//        raw_data.push_back(0);
-//        raw_data.push_back(0);
-//        raw_data.push_back(0xF7);
-//        SendRaw();
+    }
+
+    void setWorkingDirectory(const QString& workingDirectory) {
+        oxi_path_ = workingDirectory;
+
+        QDir dir;
+        projects_path_ = oxi_path_ + "/Projects";
+        qDebug() << projects_path_ << Qt::endl;
+        if (!dir.exists(projects_path_)) {
+
+            dir.mkdir(projects_path_);
+        }
     }
 
 signals:

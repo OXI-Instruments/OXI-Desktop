@@ -26,22 +26,6 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
     Q_ASSUME(connect(_discovery, SIGNAL(discoveryOxiConnected()),
                      this, SLOT(OxiConnected())));
 
-    // QString desktop_path = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
-    QString desktop_path = QCoreApplication::applicationDirPath() + "/../../.." ;
-
-    QDir system_dir;
-    oxi_path_ = desktop_path + "/OXI_Files";
-    qDebug() << oxi_path_ << Qt::endl;
-    if (!system_dir.exists(oxi_path_)) {
-
-        system_dir.mkdir(oxi_path_);
-    }
-
-    projects_path_ = oxi_path_ + "/Projects";
-    if (!system_dir.exists(projects_path_)) {
-
-        system_dir.mkdir(projects_path_);
-    }
 }
 
 OxiDiscovery* MidiWorker::GetDiscovery(){
@@ -115,6 +99,11 @@ void MidiWorker::GetFwVersion(void)
 void MidiWorker::SendBootExit(void)
 {
     SendCmd(MSG_CAT_FW_UPDATE, MSG_FW_UPDT_EXIT);
+}
+
+void MidiWorker::SendUpdateReset(void)
+{
+    SendCmd(MSG_CAT_FW_UPDATE, MSG_FW_UPDT_RESTART);
 }
 
 void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
@@ -217,6 +206,9 @@ void MidiWorker::runFWUpdate()
         break;
     }
 
+    SendUpdateReset();
+    this->msleep(200);
+
     QByteArray sysex_file_buffer = file.readAll();
 
     int package_num = 0;
@@ -292,15 +284,7 @@ LOOP:
 
 SEND_RESET:
     {
-        uint8_t bootloader_reset[] = {0xF0, OXI_INSTRUMENTS_MIDI_ID OXI_ONE_ID MSG_CAT_FW_UPDATE, MSG_FW_UPDT_RESTART, 0xF7 };
-        raw_data.assign (&bootloader_reset[0], &bootloader_reset[sizeof(bootloader_reset)]);
-
-        try {
-            midi_out.sendRawMessage( raw_data);
-        }
-        catch ( RtMidiError &error ) {
-            error.printMessage();
-        }
+        SendUpdateReset();
         this->msleep(DELAY_TIME);
 
         if (retries < 3) {
