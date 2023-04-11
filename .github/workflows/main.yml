@@ -86,7 +86,7 @@ jobs:
       run: |
         cp ../*.exe .
         cp ../*.dll .
-        Start-Process -Wait -FilePath "${{ env.QT_ARCH_WIN_PATH }}/bin/windeployqt.exe" -ArgumentList "--no-translations --compiler-runtime ${{ env.OXI_OUTPUT_NAME }}.exe"
+        Start-Process -Wait -FilePath "${{ env.QT_ARCH_WIN_PATH }}/bin/windeployqt.exe" -ArgumentList "--no-translations --compiler-runtime --release ${{ env.OXI_OUTPUT_NAME }}.exe"
       working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
 
     - name: Upload Windows Build Artifact
