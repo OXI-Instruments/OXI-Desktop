@@ -93,7 +93,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/**
-        name: OXI-Desktop_Win_x64.zip
+        name: OXI-Desktop_Win_x64
 
   build-mac-10-15:
     runs-on: macos-10.15 
@@ -167,7 +167,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
-        name: OXI-Desktop_MacOS-10.15.dmg
+        name: OXI-Desktop_MacOS-10.15
 
   build-mac-11:
     runs-on: macos-11
@@ -241,7 +241,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
-        name: OXI-Desktop_MacOS-11.dmg
+        name: OXI-Desktop_MacOS-11
 
   build-mac-12:
     runs-on: macos-12
@@ -315,8 +315,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
-        name: OXI-Desktop_MacOS-12.dmg
-
+        name: OXI-Desktop_MacOS-12
 
   build-linux:
     runs-on: ubuntu-22.04
@@ -409,7 +408,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         path: ${{ env.OXI_BUILD_PATH }}/OXI-Desktop-${{ env.VERSION }}-x86_64.AppImage
-        name: OXI-Desktop_Linux.AppImage
+        name: OXI-Desktop_Linux
 
   test-linux:
     runs-on: ubuntu-22.04
@@ -490,19 +489,19 @@ jobs:
       - name: Download Linux Build Artifact
         uses: actions/download-artifact@v2.1.1
         with:
-          name: OXI-Desktop_Linux.AppImage
+          name: OXI-Desktop_Linux
           path: artifact_linux
 
       - name: Download Mac Build Artifact
         uses: actions/download-artifact@v2.1.1
         with:
-          name: OXI-Desktop_MacOS-10.15.dmg
+          name: OXI-Desktop_MacOS-10.15
           path: artifact_mac
 
       - name: Download Win Build Artifact
         uses: actions/download-artifact@v2.1.1
         with:
-          name: OXI-Desktop_Win_x64.zip
+          name: OXI-Desktop_Win_x64
           path: artifact_win
 
       - name: Compress win artifacts
