@@ -284,7 +284,7 @@ font-size: 14px;
             <x>20</x>
             <y>10</y>
             <width>321</width>
-            <height>246</height>
+            <height>256</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -450,6 +450,40 @@ font-size: 14px;
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="setWorkingFolderButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>SET WORKING FOLDER</string>
+             </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
+             <property name="default">
+              <bool>false</bool>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="Line" name="line">
              <property name="minimumSize">
               <size>
@@ -545,34 +579,6 @@ font-size: 14px;
              </property>
              <property name="text">
               <string>SEND CALIBRATION</string>
-             </property>
-             <property name="autoDefault">
-              <bool>false</bool>
-             </property>
-             <property name="default">
-              <bool>false</bool>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="setWorkingFolderButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>35</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>35</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>SET WORKING FOLDER</string>
              </property>
              <property name="autoDefault">
               <bool>false</bool>

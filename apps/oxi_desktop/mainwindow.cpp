@@ -50,6 +50,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(midiWorker, SIGNAL(ui_UpdateError(void)),
             this, SLOT(updateError(void)));
 
+    connect(midiWorker, SIGNAL(ui_ProjectError(void)),
+            this, SLOT(projectError(void)));
+
     connect(midiWorker, SIGNAL(ui_ConnectionError(void)),
             this, SLOT(connectionError(void)));
 
@@ -176,9 +179,17 @@ void MainWindow::processSuccess(void)
     unlockUpdateButtons();
 }
 
+void MainWindow::projectError(void)
+{
+    QMessageBox::warning(0, QString("Project error"), QString("Project error, please try again."), QMessageBox::Ok);
+    unlockProjectButtons();
+    updateStatusLabel("");
+}
+
 void MainWindow::connectionError(void)
 {
-    QMessageBox::warning(0, QString("Connection error"), QString("Connection error"), QMessageBox::Ok);
+    QMessageBox::warning(0, QString("Connection error"), QString("Connection error."), QMessageBox::Ok);
+    updateStatusLabel("");
 }
 
 // BLE
@@ -318,7 +329,7 @@ void MainWindow::updateFwVersion(QString version)
 
 void MainWindow::DetectOXIOneAvailableUpdate()
 {
-    ui->gotoOXIBootloaderButton_2->setEnabled(false);
+   lockUpdateButtons();
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     QNetworkRequest request;
@@ -331,7 +342,7 @@ void MainWindow::DetectOXIOneAvailableUpdate()
     connect(updateReply, &QNetworkReply::finished, [=]()
     {
         QApplication::restoreOverrideCursor();
-        ui->gotoOXIBootloaderButton_2->setEnabled(true);
+        unlockUpdateButtons();
 
         ui->process_status->setText("");
 
@@ -601,23 +612,35 @@ void MainWindow::on_sendProjectButton_clicked()
 {
     ui->process_status->setText("");
 
-    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
+    int proj_idx = static_cast<int>(ui->project_index->value());
+    midiWorker->UpdateProjIdx( proj_idx );
 
     if ( midiWorker->midi_out.isPortOpen())
     {
-        if (midiWorker->isRunning()) {
-            midiWorker->terminate();
-        }
-        midiWorker->run_process_ = midiWorker->PROJECT_SEND;
+        QMessageBox::StandardButton reply;
+        QString question = QString("This will overwrite OXI One's project %1.\nAre you sure you want to proceed?").arg(proj_idx);
+        reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
 
-        midiWorker->project_file_ =  FileDialog(FILE_PROJECT);
+        if (reply == QMessageBox::Yes) {
+            // User clicked Yes
 
-        qDebug() << midiWorker->project_file_ << Qt::endl;
-        if (midiWorker->project_file_ == "" ) return;
+            if (midiWorker->isRunning()) {
+                midiWorker->terminate();
+            }
+            midiWorker->run_process_ = midiWorker->PROJECT_SEND;
 
-        // launch worker
-        if (!midiWorker->isRunning()) {
-            midiWorker->start();
+            midiWorker->project_file_ =  FileDialog(FILE_PROJECT);
+
+            qDebug() << midiWorker->project_file_ << Qt::endl;
+            if (midiWorker->project_file_ == "" ) return;
+
+            // launch worker
+            if (!midiWorker->isRunning()) {
+                midiWorker->start();
+            }
+        } else {
+            // User clicked No or closed the dialog
+            // Do something else...
         }
     }
     else {

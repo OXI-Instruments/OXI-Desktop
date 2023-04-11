@@ -49,6 +49,7 @@ private slots:
     void updateError(void);
     void processSuccess(void);
     void connectionError(void);
+    void projectError(void);
     void uiPortAlreadyInUse(void);
 
     void lockUpdateButtons(void)
@@ -63,6 +64,20 @@ private slots:
         ui->gotoOXIBootloaderButton_2->setEnabled(true);
         ui->gotoOXIBootloaderButton->setEnabled(true);
         ui->gotoBLEBootloaderButton->setEnabled(true);
+    }
+
+    void lockProjectButtons(void)
+    {
+        ui->getProjectButton->setEnabled(false);
+        ui->sendProjectButton->setEnabled(false);
+        ui->deleteProjectButton->setEnabled(false);
+    }
+
+    void unlockProjectButtons(void)
+    {
+        ui->getProjectButton->setEnabled(true);
+        ui->sendProjectButton->setEnabled(true);
+        ui->deleteProjectButton->setEnabled(true);
     }
 
     void on_gotoBLEBootloaderButton_clicked();
@@ -128,7 +143,7 @@ private:
         QMessageBox::information(
                     0,
                     QString("Working folder"),
-                    QString("Select your folder for the OXI One projects and data."),
+                    QString("Select your folder for the OXI One projects and data..."),
                     QMessageBox::Ok);
 
         workingDirectory_ = QFileDialog::getExistingDirectory(
@@ -139,11 +154,18 @@ private:
 
         oxi_path_ = workingDirectory_ + "/OXI_Files";
 
+
+
         QDir system_dir;
         if (!system_dir.exists(oxi_path_)) {
 
             system_dir.mkdir(oxi_path_);
         }
+
+        QDir dir = QDir::current(); // current directory
+        QString absolutePath = dir.absoluteFilePath(oxi_path_);
+        QString message = QString("Selected folder:\n%1").arg(absolutePath);
+        ui->process_status->setText(message);
 
         // Save directory
         writeSettings();

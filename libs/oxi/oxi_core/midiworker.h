@@ -140,6 +140,7 @@ signals:
     // we need to emit a signal
     void ui_UpdateProgressBar(int);
     void ui_UpdateError(void);
+    void ui_ProjectError(void);
     void ui_Success(void);
     void ui_ConnectionError(void);
     void ui_lockUpdate(void);

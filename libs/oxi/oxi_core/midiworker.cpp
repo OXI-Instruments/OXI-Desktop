@@ -350,7 +350,7 @@ void MidiWorker::runSendProjectRAW(void)
         if (WaitProjectACK() != true) {
             qDebug() << "SEND PROJECT ERROR" << Qt::endl;
             emit ui_UpdateProgressBar(0);
-            emit ui_UpdateError();
+            emit ui_ProjectError();
             return;
         }
         emit ui_UpdateProjectProgressBar(1);
@@ -367,6 +367,7 @@ void MidiWorker::runSendProjectRAW(void)
             if ( patternFile.open(QIODevice::ReadOnly) )
             {
                 qDebug() << "open: " << pattern_file_ << Qt::endl;
+
                 buff = patternFile.readAll();
 
                 SetPatternHeader(project_index_, pattern_index);
@@ -383,6 +384,8 @@ void MidiWorker::runSendProjectRAW(void)
                     return;
                 }
 
+                QString message = QString("Sending pattern %1...").arg(pattern_index + 1);
+                emit ui_updateStatusLabel(message);
                 emit ui_UpdateProjectProgressBar(100 * pattern_index / 64);
             }
         }
@@ -391,7 +394,8 @@ void MidiWorker::runSendProjectRAW(void)
         emit ui_Success();
     }
     else {
-        emit ui_updateStatusLabel("PROJECT ERROR");
+        // emit ui_updateStatusLabel("PROJECT ERROR");
+        emit ui_ProjectError();
     }
 }
 
@@ -423,7 +427,8 @@ void MidiWorker::ReadProjectFromFiles(void)
         }
     }
     else {
-        emit ui_updateStatusLabel("PROJECT ERROR");
+        // emit ui_updateStatusLabel("PROJECT ERROR");
+        emit ui_ProjectError();
     }
 }
 
@@ -593,6 +598,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                 case MSG_PROJECT_GET_PROJ_HEADER:
 
                     break;
+                    // Get proj pattern from OXI
                 case MSG_PROJECT_SEND_PATTERN:
                 {
                     std::vector<uint8_t>buffer;
@@ -623,10 +629,15 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     if (pattern_index_ < PROJ_PATT_MAX)
                     {
                         GetPattern();
+                        QString message = QString("Receiving pattern %1...").arg(pattern_index_ + 1);
+                        emit ui_updateStatusLabel(message);
                     }
                     else
                     {
-                        emit ui_updateStatusLabel("SUCCESS!");
+                        QDir dir = QDir::current(); // current directory
+                        QString absolutePath = dir.absoluteFilePath(project_path_);
+                        QString message = QString("Project saved on: %1").arg(absolutePath);
+                        emit ui_updateStatusLabel(message);
                     }
                     emit ui_UpdateProjectProgressBar(100 * pattern_index_ / 64);
                     break;
