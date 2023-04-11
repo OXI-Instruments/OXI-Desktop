@@ -482,7 +482,7 @@ jobs:
   create-release:
     if: ${{ false}}
     # if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-win, build-mac-10-15, build-linux, test-linux]
+    needs: [build-win, build-mac-10-15, build-mac-11, build-mac-12, build-linux, test-linux]
     runs-on: ubuntu-22.04
 
     steps:
