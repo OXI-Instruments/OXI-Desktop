@@ -8,6 +8,7 @@ enum FileType {
     FILE_PROJECT,
     FILE_PATTERN,
     FILE_CALIBRATION,
+    FILE_MIDI,
     FILE_SIZE,
 };
 
@@ -16,6 +17,7 @@ constexpr const char * FileExtension[FILE_SIZE] {
     ".oxipro",
     ".oxipat",
     ".oxical",
+    ".mid",
 };
 
 #endif // FILETYPES_H

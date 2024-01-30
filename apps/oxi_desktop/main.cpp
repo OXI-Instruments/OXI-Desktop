@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
 //    if (envVar.isEmpty())
         logToFile = true;
 
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // <--
     QApplication a(argc, argv);
     qInstallMessageHandler(customMessageOutput);
 #ifndef QT_DEBUG

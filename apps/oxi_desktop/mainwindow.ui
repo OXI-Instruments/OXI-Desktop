@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>401</width>
-    <height>475</height>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,7 +91,7 @@ font-size: 14px;
          <enum>QTabWidget::North</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab_fw_update">
          <attribute name="title">
@@ -284,7 +284,7 @@ font-size: 14px;
             <x>20</x>
             <y>10</y>
             <width>321</width>
-            <height>256</height>
+            <height>261</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -300,13 +300,13 @@ font-size: 14px;
               <number>80</number>
              </property>
              <property name="topMargin">
-              <number>10</number>
+              <number>5</number>
              </property>
              <property name="rightMargin">
               <number>80</number>
              </property>
              <property name="bottomMargin">
-              <number>10</number>
+              <number>5</number>
              </property>
              <item>
               <widget class="QLabel" name="label_3">
@@ -372,12 +372,31 @@ font-size: 14px;
             </layout>
            </item>
            <item>
+            <widget class="Line" name="line_3">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>5</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>5</height>
+              </size>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="sendProjectButton">
              <property name="enabled">
               <bool>true</bool>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -385,13 +404,13 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>35</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>40</height>
+               <height>35</height>
               </size>
              </property>
              <property name="text">
@@ -402,7 +421,7 @@ font-size: 14px;
            <item>
             <widget class="QPushButton" name="getProjectButton">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -410,13 +429,13 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>35</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>40</height>
+               <height>35</height>
               </size>
              </property>
              <property name="text">
@@ -427,7 +446,7 @@ font-size: 14px;
            <item>
             <widget class="QPushButton" name="deleteProjectButton">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -435,13 +454,13 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>35</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>40</height>
+               <height>35</height>
               </size>
              </property>
              <property name="text">
@@ -460,13 +479,13 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>35</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>40</height>
+               <height>35</height>
               </size>
              </property>
              <property name="text">
@@ -488,7 +507,7 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>20</height>
+               <height>5</height>
               </size>
              </property>
              <property name="orientation">
@@ -545,7 +564,7 @@ font-size: 14px;
             <number>10</number>
            </property>
            <item>
-            <widget class="QPushButton" name="getCalibDataButton">
+            <widget class="QPushButton" name="exportToMIDI">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                <horstretch>0</horstretch>
@@ -559,16 +578,16 @@ font-size: 14px;
               </size>
              </property>
              <property name="text">
-              <string>GET CALIBRATION</string>
+              <string>EXPORT TO MIDI FILE</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="sendCalibDataButton">
+            <widget class="QPushButton" name="importFromMIDI">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                <horstretch>0</horstretch>
-               <verstretch>35</verstretch>
+               <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="maximumSize">
@@ -578,16 +597,7 @@ font-size: 14px;
               </size>
              </property>
              <property name="text">
-              <string>SEND CALIBRATION</string>
-             </property>
-             <property name="autoDefault">
-              <bool>false</bool>
-             </property>
-             <property name="default">
-              <bool>false</bool>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
+              <string>IMPORT FROM MIDI FILE</string>
              </property>
             </widget>
            </item>
@@ -607,28 +617,6 @@ font-size: 14px;
              </property>
             </spacer>
            </item>
-           <item>
-            <widget class="QPushButton" name="eraseMemButton">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>35</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>ERASE MEMORY</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
         </widget>
@@ -636,6 +624,18 @@ font-size: 14px;
       </item>
       <item>
        <widget class="QLabel" name="process_status">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>320</width>
+          <height>50</height>
+         </size>
+        </property>
         <property name="text">
          <string/>
         </property>

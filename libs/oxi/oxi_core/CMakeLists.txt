@@ -33,6 +33,8 @@ add_library(oxi_core SHARED
   OXI_SYSEX_MSG.h
   MIDI.h
   SYSEX_APP.h
+  SEQ_Defs.h
+  SEQ_Scale.h
   miniz.h
   miniz.c
 )

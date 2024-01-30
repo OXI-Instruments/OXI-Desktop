@@ -85,7 +85,8 @@ target_link_libraries(oxi_desktop
             Qt${QT_VERSION_MAJOR}::Widgets
             Qt${QT_VERSION_MAJOR}::Network
             QMidi
-            oxi_core)
+            oxi_core
+            midifile)
 
 set_target_properties(oxi_desktop PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

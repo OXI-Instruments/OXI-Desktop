@@ -113,6 +113,10 @@ private slots:
 
     void on_setWorkingFolderButton_clicked();
 
+    void on_exportToMIDI_clicked();
+
+    void on_importFromMIDI_clicked();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerUpdateFile(QString);

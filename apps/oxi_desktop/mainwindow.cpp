@@ -15,7 +15,8 @@
 #include "Nibble.h"
 #include "miniz.h"
 
-
+#include "include/MidiFile.h"
+#include <sstream>
 
 /*======================================================================*/
 /*                         MAIN WINDOW                                  */
@@ -80,6 +81,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
+    ui->process_status->setWordWrap(true);
+    ui->process_status->setMaximumWidth(350);
+    ui->process_status->setMaximumHeight(50);
 
     _netManager = std::make_unique<QNetworkAccessManager>();
 
@@ -103,15 +107,19 @@ QString MainWindow::FileDialog(FileType type){
         break;
     case FILE_PROJECT:
         user_msg = tr("Select PROJECT File");
-        filter = "Sysex ( *" + QString(FileExtension[FILE_PROJECT]) + ")";
+        filter = "Oxipro ( *" + QString(FileExtension[FILE_PROJECT]) + ")";
         break;
     case FILE_PATTERN:
         user_msg = tr("Select PATTERN FILE");
-        filter = "Sysex ( *" + QString(FileExtension[FILE_PATTERN]) + ")";
+        filter = "Oxipat ( *" + QString(FileExtension[FILE_PATTERN]) + ")";
         break;
     case FILE_CALIBRATION:
         user_msg = tr("Select CALIBRATION File");
-        filter = "Sysex ( *" + QString(FileExtension[FILE_CALIBRATION]) + ")";
+        filter = "Oxical ( *" + QString(FileExtension[FILE_CALIBRATION]) + ")";
+        break;
+    case FILE_MIDI:
+        user_msg = tr("Select CALIBRATION File");
+        filter = "Midi ( *" + QString(FileExtension[FILE_MIDI]) + ")";
         break;
     default:
         break;
@@ -678,9 +686,18 @@ void MainWindow::on_project_index_valueChanged(double arg1)
 void MainWindow::on_deleteProjectButton_clicked()
 {
     ui->process_status->setText("");
-    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-    midiWorker->DeleteProject();
-    ui->midiProgressBar->setValue(0);
+
+    int proj_idx = static_cast<int>(ui->project_index->value());
+    midiWorker->UpdateProjIdx( proj_idx );
+
+    QMessageBox::StandardButton reply;
+    QString question = QString("This will delete OXI One's project %1.\nAre you sure you want to proceed?").arg(proj_idx);
+    reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        midiWorker->DeleteProject();
+        ui->midiProgressBar->setValue(0);
+    }
 }
 
 #if 0
@@ -774,5 +791,62 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 void MainWindow::on_setWorkingFolderButton_clicked()
 {
     SetWorkingDirectory();
+}
+
+using namespace smf;
+using namespace std;
+
+void MainWindow::on_exportToMIDI_clicked()
+{
+
+    QString midi_file_path = FileDialog(FILE_MIDI);
+
+    QFile midi_file;
+    midi_file.setFileName(midi_file_path);
+    if (!midi_file.open(QIODevice::ReadOnly))
+        return;
+
+    // Read the file's contents into a QByteArray
+    QByteArray fileData = midi_file.readAll();
+    midi_file.close();
+
+    // Convert QByteArray to std::string
+    std::string fileContent = fileData.toStdString();
+
+    // Create a std::istringstream from the std::string
+    std::istringstream iss(fileContent);
+
+    MidiFile midifile;
+    midifile.read(iss);
+    midifile.doTimeAnalysis();
+    midifile.linkNotePairs();
+
+    int tracks = midifile.getTrackCount();
+    cout << "TPQ: " << midifile.getTicksPerQuarterNote() << endl;
+    if (tracks > 1) cout << "TRACKS: " << tracks << endl;
+    for (int track=0; track<tracks; track++) {
+        if (tracks > 1) cout << "\nTrack " << track << endl;
+        cout << "Tick\tSeconds\tDur(s)\tDur(ticks)\tMessage" << endl;
+        for (int event=0; event<midifile[track].size(); event++) {
+            cout << dec << midifile[track][event].tick;
+            cout << '\t' << dec << midifile[track][event].seconds;
+            cout << '\t';
+            if (midifile[track][event].isNoteOn())
+                cout << midifile[track][event].getDurationInSeconds();
+            cout << '\t';
+            if (midifile[track][event].isNoteOn())
+                cout << midifile[track][event].getTickDuration();
+            cout << '\t' << hex;
+            for (int i=0; i<midifile[track][event].size(); i++)
+                cout << (int)midifile[track][event][i] << ' ';
+            cout << endl;
+        }
+    }
+}
+
+
+void MainWindow::on_importFromMIDI_clicked()
+{
+
 }
 
