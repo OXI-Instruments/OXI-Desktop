@@ -80,6 +80,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
+    ui->process_status->setWordWrap(true);
+    ui->process_status->setMaximumWidth(350);
+    ui->process_status->setMaximumHeight(50);
 
     _netManager = std::make_unique<QNetworkAccessManager>();
 
@@ -650,7 +653,7 @@ void MainWindow::on_sendProjectButton_clicked()
 
 void MainWindow::on_getProjectButton_clicked()
 {
-    if (GetWorkingDirectory().isEmpty())
+    if (DefaultWorkingDirectory())
         SetWorkingDirectory();
 
     ui->process_status->setText("");
@@ -700,7 +703,7 @@ void MainWindow::on_deletePatternButton_clicked()
 
 void MainWindow::on_getCalibDataButton_clicked()
 {
-    if (GetWorkingDirectory().isEmpty())
+    if (DefaultWorkingDirectory())
         SetWorkingDirectory();
 
     ui->process_status->setText("");
@@ -765,13 +768,8 @@ void MainWindow::on_gotoOXIBootloaderButton_2_clicked()
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    if (index > 0 && GetWorkingDirectory().isEmpty()) {
+    if (index > 0 && DefaultWorkingDirectory()) {
         SetWorkingDirectory();
-    } else {
-        QDir dir;
-        QString absolutePath = dir.absoluteFilePath(oxi_path_);
-        QString message = QString("Selected folder:\n%1").arg(absolutePath);
-        ui->process_status->setText(message);
     }
 }
 
