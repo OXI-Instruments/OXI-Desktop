@@ -650,7 +650,7 @@ void MainWindow::on_sendProjectButton_clicked()
 
 void MainWindow::on_getProjectButton_clicked()
 {
-    if (DefaultWorkingDirectory())
+    if (GetWorkingDirectory().isEmpty())
         SetWorkingDirectory();
 
     ui->process_status->setText("");
@@ -700,7 +700,7 @@ void MainWindow::on_deletePatternButton_clicked()
 
 void MainWindow::on_getCalibDataButton_clicked()
 {
-    if (DefaultWorkingDirectory())
+    if (GetWorkingDirectory().isEmpty())
         SetWorkingDirectory();
 
     ui->process_status->setText("");
@@ -765,8 +765,13 @@ void MainWindow::on_gotoOXIBootloaderButton_2_clicked()
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    if (index > 0 && DefaultWorkingDirectory()) {
+    if (index > 0 && GetWorkingDirectory().isEmpty()) {
         SetWorkingDirectory();
+    } else {
+        QDir dir;
+        QString absolutePath = dir.absoluteFilePath(oxi_path_);
+        QString message = QString("Selected folder:\n%1").arg(absolutePath);
+        ui->process_status->setText(message);
     }
 }
 

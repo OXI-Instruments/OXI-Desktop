@@ -129,14 +129,12 @@ private:
     void DeployOXIOneUpdate(const QString& updateFile);
     QVersionNumber GetFrmVersion();
 
-    bool DefaultWorkingDirectory() {
-        QString temp = workingDirectory_ + "/OXI_Files";
+    QString GetWorkingDirectory() {
         QDir temp_dir;
-        bool created = false;
-        if (temp_dir.exists(temp)) {
-            created = true;
+        if (temp_dir.exists(workingDirectory_ + "/OXI_Files")) {
+            return workingDirectory_;
         }
-        return workingDirectory_ == oxiFilesDir_ || !created;
+        return "";
     }
 
     void SetWorkingDirectory() {
@@ -146,30 +144,40 @@ private:
                     QString("Select your folder for the OXI One projects and data..."),
                     QMessageBox::Ok);
 
-        workingDirectory_ = QFileDialog::getExistingDirectory(
-                    this,
-                    tr("Select your folder for the OXI One projects and data."),
-                    QDir::homePath(),
-                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-        oxi_path_ = workingDirectory_ + "/OXI_Files";
-
-
-
-        QDir system_dir;
-        if (!system_dir.exists(oxi_path_)) {
-
-            system_dir.mkdir(oxi_path_);
+        QString dialogDir;
+        if (workingDirectory_.isEmpty()) {
+            dialogDir = QDir::homePath();
+        } else {
+            dialogDir = workingDirectory_;
         }
 
-        QDir dir = QDir::current(); // current directory
-        QString absolutePath = dir.absoluteFilePath(oxi_path_);
-        QString message = QString("Selected folder:\n%1").arg(absolutePath);
-        ui->process_status->setText(message);
+        QString workingDirectoryFromDialog;
 
-        // Save directory
-        writeSettings();
-        emit workingDirectoryChanged(oxi_path_);
+        workingDirectoryFromDialog = QFileDialog::getExistingDirectory(
+                    this,
+                    tr("Select your folder for the OXI One projects and data."),
+                    dialogDir,
+                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+        if (!workingDirectoryFromDialog.isNull()) {
+            workingDirectory_ = workingDirectoryFromDialog;
+            oxi_path_ = workingDirectory_ + "/OXI_Files";
+
+            QDir system_dir;
+            if (!system_dir.exists(oxi_path_)) {
+
+                system_dir.mkdir(oxi_path_);
+            }
+
+            QDir dir = QDir::current(); // current directory
+            QString absolutePath = dir.absoluteFilePath(oxi_path_);
+            QString message = QString("Selected folder:\n%1").arg(absolutePath);
+            ui->process_status->setText(message);
+
+            // Save directory
+            writeSettings();
+            emit workingDirectoryChanged(oxi_path_);
+        }
     }
 
     void writeSettings()
@@ -184,9 +192,8 @@ private:
         QSettings settings("OXI Instruments", "OXI ONE DESKTOP");
         workingDirectory_ = settings.value("WorkingDirectory", oxiFilesDir_).toString();
         qDebug() << "Stored working directory: " + workingDirectory_ << Qt::endl;
-
-       // if (DefaultWorkingDirectory())
-         //   SetWorkingDirectory();
+        oxi_path_ = workingDirectory_ + "/OXI_Files";
+        emit workingDirectoryChanged(oxi_path_);
     }
 
 private:
