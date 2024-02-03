@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
+# This variable is ignored on non Apple devices and needs to be a Cached string
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
+
 project(Oxi-Desktop-App LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
