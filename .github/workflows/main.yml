@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 env:
-  QT_VERSION: 5.15.2
+  QT_VERSION: 5.15.12
   OXI_SOURCE_PATH: ${{ github.workspace }}
   OXI_BUILD_PATH: ${{ github.workspace }}/build
   OXI_OUTPUT_NAME: OXI-Desktop
