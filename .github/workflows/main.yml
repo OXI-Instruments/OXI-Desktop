@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 env:
-  QT_VERSION: 5.15.12
+  QT_VERSION: 5.15.2
   OXI_SOURCE_PATH: ${{ github.workspace }}
   OXI_BUILD_PATH: ${{ github.workspace }}/build
   OXI_OUTPUT_NAME: OXI-Desktop
@@ -96,103 +96,15 @@ jobs:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/**
         name: OXI-Desktop_Win_x64
 
-  build-mac-11:
-    runs-on: macos-11
-
-    steps:        
-    - name: Install aqt
-      run: |
-        python3 -m pip install aqtinstall
-    
-    - name: List aqt-tools for mac desktop
-      run: |
-        sudo aqt list-tool mac desktop
-    - name: Install Qt
-      run: |
-        sudo aqt install-qt --outputdir /opt/qt mac desktop ${{ env.QT_VERSION }} clang_64 \
-        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_cmake \
-        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_ninja \
-        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_qtcreator
-        
-    - name: Append PATH
-      run: echo "/opt/qt/Tools/Ninja" >> $GITHUB_PATH
-
-    - name: Checkout
-      uses: actions/checkout@v3.3.0
-      with:
-        lfs: true
-        submodules: recursive
-
-    - name: Create Build Directory
-      run: |
-        mkdir -p ${{ env.OXI_BUILD_PATH }}
-    - name: Build CMake Cache
-      run: >
-        /opt/qt/Tools/CMake/CMake.app/Contents/bin/cmake
-        -S ${{ env.OXI_SOURCE_PATH }}
-        -B ${{ env.OXI_BUILD_PATH }}
-        -DCMAKE_GENERATOR:STRING=Ninja
-        -DCMAKE_BUILD_TYPE:STRING=Release
-        '-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=/opt/qt/Qt Creator.app/Contents/Resources/package-manager/auto-setup.cmake'
-        -DQT_QMAKE_EXECUTABLE:FILEPATH=${{ env.QT_ARCH_MAC_PATH }}/bin/qmake
-        -DCMAKE_PREFIX_PATH:PATH=${{ env.QT_ARCH_MAC_PATH }}
-        -DCMAKE_C_COMPILER:FILEPATH=${{ env.QT_TOOLS_CXX_MAC_PATH }}/clang
-        -DCMAKE_CXX_COMPILER:FILEPATH=${{ env.QT_TOOLS_CXX_MAC_PATH }}/clang++
-      working-directory: ${{ env.OXI_BUILD_PATH }}
-
-    - name: Build
-      run: |
-        /opt/qt/Tools/CMake/CMake.app/Contents/bin/cmake --build ${{ env.OXI_BUILD_PATH }} --target all
-      working-directory: ${{ env.OXI_BUILD_PATH }}
-
-    - name: Move to Deploy Staging
-      run: |
-        mkdir deploy && cp -r ./${{ env.OXI_OUTPUT_NAME }}.app ./deploy
-      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop
-
-    - name: Create mac deployable
-      run: |
-        ${{ env.QT_ARCH_MAC_PATH }}/bin/macdeployqt ${{ env.OXI_OUTPUT_NAME }}.app -always-overwrite -dmg
-      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
-
-    - name: Set Version for Packaging
-      run: |
-        echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-
-    - name: Rename artifact
-      run: |
-        mv ${{ env.OXI_OUTPUT_NAME }}.dmg ${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS-11.dmg
-      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
-
-    - name: Upload Mac Build Artifact
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS-11.dmg
-        name: OXI-Desktop_MacOS-11
-
   build-mac-12:
     runs-on: macos-12
 
     steps:        
-    - name: Install aqt
-      run: |
-        python3 -m pip install aqtinstall
-    
-    - name: List aqt-tools for mac desktop
-      run: |
-        sudo aqt list-tool mac desktop
     - name: Install Qt
-      run: |
-        sudo aqt install-qt --outputdir /opt/qt mac desktop ${{ env.QT_VERSION }} clang_64 \
-        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_cmake \
-        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_ninja \
-        && sudo aqt install-tool --outputdir /opt/qt mac desktop tools_qtcreator
-        
-    - name: Append PATH
-      run: echo "/opt/qt/Tools/Ninja" >> $GITHUB_PATH
-
+      run: brew install qt@5 cmake ninja
+      
     - name: Checkout
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4
       with:
         lfs: true
         submodules: recursive
@@ -200,23 +112,20 @@ jobs:
     - name: Create Build Directory
       run: |
         mkdir -p ${{ env.OXI_BUILD_PATH }}
+
     - name: Build CMake Cache
       run: >
-        /opt/qt/Tools/CMake/CMake.app/Contents/bin/cmake
+        cmake
         -S ${{ env.OXI_SOURCE_PATH }}
         -B ${{ env.OXI_BUILD_PATH }}
         -DCMAKE_GENERATOR:STRING=Ninja
         -DCMAKE_BUILD_TYPE:STRING=Release
-        '-DCMAKE_PROJECT_INCLUDE_BEFORE:FILEPATH=/opt/qt/Qt Creator.app/Contents/Resources/package-manager/auto-setup.cmake'
-        -DQT_QMAKE_EXECUTABLE:FILEPATH=${{ env.QT_ARCH_MAC_PATH }}/bin/qmake
-        -DCMAKE_PREFIX_PATH:PATH=${{ env.QT_ARCH_MAC_PATH }}
-        -DCMAKE_C_COMPILER:FILEPATH=${{ env.QT_TOOLS_CXX_MAC_PATH }}/clang
-        -DCMAKE_CXX_COMPILER:FILEPATH=${{ env.QT_TOOLS_CXX_MAC_PATH }}/clang++
+        -DCMAKE_PREFIX_PATH:PATH=$(brew --prefix qt5)/lib/cmake
       working-directory: ${{ env.OXI_BUILD_PATH }}
 
     - name: Build
       run: |
-        /opt/qt/Tools/CMake/CMake.app/Contents/bin/cmake --build ${{ env.OXI_BUILD_PATH }} --target all
+        cmake --build ${{ env.OXI_BUILD_PATH }} --target all
       working-directory: ${{ env.OXI_BUILD_PATH }}
 
     - name: Move to Deploy Staging
@@ -226,7 +135,7 @@ jobs:
 
     - name: Create mac deployable
       run: |
-        ${{ env.QT_ARCH_MAC_PATH }}/bin/macdeployqt ${{ env.OXI_OUTPUT_NAME }}.app -always-overwrite -dmg
+        $(brew --prefix qt5)/bin/macdeployqt ${{ env.OXI_OUTPUT_NAME }}.app -always-overwrite -dmg
       working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
 
     - name: Set Version for Packaging
@@ -243,7 +152,7 @@ jobs:
       with:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS-12.dmg
         name: OXI-Desktop_MacOS-12
-
+     
   build-linux:
     runs-on: ubuntu-22.04
     steps:
@@ -408,7 +317,7 @@ jobs:
 
   create-release:
     # if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-win, build-mac-11, build-mac-12, build-linux, test-linux]
+    needs: [build-win, build-mac-12, build-linux, test-linux]
     runs-on: ubuntu-22.04
 
     steps:
@@ -417,12 +326,6 @@ jobs:
         with:
           name: OXI-Desktop_Linux
           path: artifact_linux
-
-      - name: Download Mac 11 Build Artifact
-        uses: actions/download-artifact@v2.1.1
-        with:
-          name: OXI-Desktop_MacOS-11
-          path: artifact_mac_11
 
       - name: Download Mac 12 Build Artifact
         uses: actions/download-artifact@v2.1.1
