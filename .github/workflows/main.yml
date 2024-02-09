@@ -54,7 +54,7 @@ jobs:
           "C:\Qt\Tools\mingw810_64\bin;C:\Qt\Tools\Ninja" >> $env:GITHUB_PATH
         
     - name: Checkout
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4.1.1
       with:
         lfs: true
         submodules: recursive  
@@ -91,12 +91,13 @@ jobs:
       working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
 
     - name: Upload Windows Build Artifact
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v4.3.1
       with:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/**
         name: OXI-Desktop_Win_x64
 
   build-mac-12:
+    if: false
     runs-on: macos-12
 
     steps:        
@@ -148,11 +149,74 @@ jobs:
       working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
 
     - name: Upload Mac Build Artifact
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v4.3.1
       with:
         path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS-12.dmg
         name: OXI-Desktop_MacOS-12
-     
+
+  build-mac-universal:
+    runs-on: macos-14
+
+    steps:        
+    - name: Install deps
+      run: brew install cmake ninja
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3.3.0
+      with:
+        version: '6.2.4'
+        arch: "clang_64"
+        install-deps: true
+        cache: true
+      
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+      with:
+        lfs: true
+        submodules: recursive
+
+    - name: Create Build Directory
+      run: |
+        mkdir -p ${{ env.OXI_BUILD_PATH }}
+    - name: Build CMake Cache
+      run: >
+        cmake
+        -S ${{ env.OXI_SOURCE_PATH }}
+        -B ${{ env.OXI_BUILD_PATH }}
+        -DCMAKE_GENERATOR:STRING=Ninja
+        -DCMAKE_BUILD_TYPE:STRING=Release
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
+    - name: Build
+      run: |
+        cmake --build ${{ env.OXI_BUILD_PATH }} --target all
+      working-directory: ${{ env.OXI_BUILD_PATH }}
+
+    - name: Move to Deploy Staging
+      run: |
+        mkdir deploy && cp -r ./${{ env.OXI_OUTPUT_NAME }}.app ./deploy
+      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop
+
+    - name: Create mac deployable
+      run: |
+        macdeployqt ${{ env.OXI_OUTPUT_NAME }}.app -always-overwrite -dmg
+      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
+
+    - name: Set Version for Packaging
+      run: |
+        echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+    - name: Rename artifact
+      run: |
+        mv ${{ env.OXI_OUTPUT_NAME }}.dmg ${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
+      working-directory: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy
+
+    - name: Upload Mac Build Artifact
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        path: ${{ env.OXI_BUILD_PATH }}/apps/oxi_desktop/deploy/${{ env.OXI_OUTPUT_NAME }}-${{ env.VERSION }}-MacOS.dmg
+        name: OXI-Desktop_MacOS
+      
+
   build-linux:
     runs-on: ubuntu-22.04
     steps:
@@ -184,7 +248,7 @@ jobs:
         libfuse2
         
     - name: Checkout
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4.1.1
       with:
         lfs: true
         submodules: recursive
@@ -241,7 +305,7 @@ jobs:
       working-directory: ${{ env.OXI_BUILD_PATH }}
 
     - name: Upload Linux Build Artifact
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v4.3.1
       with:
         path: ${{ env.OXI_BUILD_PATH }}/OXI-Desktop-${{ env.VERSION }}-x86_64.AppImage
         name: OXI-Desktop_Linux
@@ -277,7 +341,7 @@ jobs:
         libfuse2
         
     - name: Checkout
-      uses: actions/checkout@v3.3.0
+      uses: actions/checkout@v4.1.1
       with:
         lfs: true
         submodules: recursive
@@ -308,7 +372,7 @@ jobs:
       working-directory: ${{ env.OXI_BUILD_PATH }}
 
     - name: Upload Test Report
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v4.3.1
       if: always()
       with:
         name: test-results
@@ -317,24 +381,30 @@ jobs:
 
   create-release:
     # if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build-win, build-mac-12, build-linux, test-linux]
+    needs: [build-win, build-mac-universal, build-linux, test-linux]
     runs-on: ubuntu-22.04
 
     steps:
       - name: Download Linux Build Artifact
-        uses: actions/download-artifact@v2.1.1
+        uses: actions/download-artifact@v4.1.1
         with:
           name: OXI-Desktop_Linux
           path: artifact_linux
 
-      - name: Download Mac 12 Build Artifact
-        uses: actions/download-artifact@v2.1.1
-        with:
-          name: OXI-Desktop_MacOS-12
-          path: artifact_mac_12
+      # - name: Download Mac 12 Build Artifact
+      #   uses: actions/download-artifact@v4.1.1
+      #   with:
+      #     name: OXI-Desktop_MacOS-12
+      #     path: artifact_mac_12
 
+      - name: Download Mac Build Artifact
+        uses: actions/download-artifact@v4.1.1
+        with:
+          name: OXI-Desktop_MacOS
+          path: artifact_mac
+    
       - name: Download Win Build Artifact
-        uses: actions/download-artifact@v2.1.1
+        uses: actions/download-artifact@v4.1.1
         with:
           name: OXI-Desktop_Win_x64
           path: artifact_win
@@ -354,8 +424,7 @@ jobs:
         with:
           files: |
             ./artifact_linux/**
-            ./artifact_mac_11/**
-            ./artifact_mac_12/**
+            ./artifact_mac/**
             ${{ env.OXI_OUTPUT_NAME }}-${{ github.ref_name }}-Win_x64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
