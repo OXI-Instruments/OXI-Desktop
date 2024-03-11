@@ -25,6 +25,9 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
         oxi_desktop.qrc
+        projectbrowser.cpp 
+        projectbrowser.h 
+        projectbrowser.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

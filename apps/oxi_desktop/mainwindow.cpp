@@ -14,6 +14,7 @@
 #include "MIDI.h"
 #include "Nibble.h"
 #include "miniz.h"
+#include "projectbrowser.h"
 
 
 
@@ -653,12 +654,15 @@ void MainWindow::on_sendProjectButton_clicked()
 
 void MainWindow::on_getProjectButton_clicked()
 {
-    if (GetWorkingDirectory().isEmpty())
-        SetWorkingDirectory();
+    // if (GetWorkingDirectory().isEmpty())
+    //     SetWorkingDirectory();
 
-    ui->process_status->setText("");
-    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-    midiWorker->GetProject();
+    // ui->process_status->setText("");
+    // midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
+    // midiWorker->GetProject();
+    ProjectBrowser *projectBrowser = new ProjectBrowser;
+    projectBrowser->show();
+    projectBrowser->setMidiWorker(midiWorker);
 }
 
 #if 0
