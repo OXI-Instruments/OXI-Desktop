@@ -101,6 +101,7 @@ void OxiDiscovery::Discover()
             } else {
                 // SetFwVersion
                 emit discoveryOxiConnected();
+                emit OxiDiscovery_connected();
             }
         }
     } else {
@@ -141,6 +142,7 @@ bool OxiDiscovery::DiscoverOutPort(){
     }
     else {
         emit ui_UpdateConnectionLabel("CONNECT YOUR OXI ONE");
+        emit OxiDiscovery_disconnected();
 //        int oxiOutIdx = GetOxiOutIndex(outPorts);
         if (oxiOutIdx >= 0){
             qInfo() << "Discovered MIDI OUT port " + outPorts[oxiOutIdx] + " and will open";
@@ -156,6 +158,7 @@ bool OxiDiscovery::DiscoverOutPort(){
             _out_idx = oxiOutIdx;
 
             emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
+            emit OxiDiscovery_connected();
         }
     }
 

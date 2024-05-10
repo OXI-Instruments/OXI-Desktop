@@ -46,7 +46,9 @@ signals:
     void ui_UpdateConnectionLabel(QString);
     void ui_PortAlreadyInUse(void);
     void discoveryOxiConnected(void);
-
+    void OxiDiscovery_connected(void);
+    void OxiDiscovery_disconnected(void);
+    
 public slots:
     void Discover(void);
 };
