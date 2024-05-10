@@ -659,8 +659,8 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     else
                     {
                         if (state_ == WORKER_GET_ALL_PROJECTS) {
+                            project_index_ ++;
                             if (project_index_ < PROJ_NUM) {
-                                project_index_ ++;
                                 GetProject();
                                 QString message = QString("Get Project %1...").arg(project_index_ + 1);
                                 emit ui_updateStatusLabel(message);

@@ -76,9 +76,8 @@ public slots:
     void GetPattern(void);
     void ReadProjectFromFiles(void);
 
-private:
+
     void GetProject(void);
-public:
     void GetSingleProject(void);
     void GetAllProjects(void);
 
