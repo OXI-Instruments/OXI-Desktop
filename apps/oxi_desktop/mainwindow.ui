@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>401</width>
-    <height>500</height>
+    <height>570</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -284,7 +284,7 @@ font-size: 14px;
             <x>20</x>
             <y>10</y>
             <width>321</width>
-            <height>261</height>
+            <height>361</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -444,6 +444,31 @@ font-size: 14px;
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="getAllProjectButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>35</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>BACKUP PROJECTS</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="deleteProjectButton">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -471,7 +496,7 @@ font-size: 14px;
            <item>
             <widget class="QPushButton" name="setWorkingFolderButton">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -533,6 +558,19 @@ font-size: 14px;
               <number>24</number>
              </property>
             </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -664,7 +702,7 @@ font-size: 14px;
         <property name="maximumSize">
          <size>
           <width>320</width>
-          <height>50</height>
+          <height>10</height>
          </size>
         </property>
         <property name="text">

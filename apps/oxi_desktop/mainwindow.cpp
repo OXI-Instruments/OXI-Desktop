@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
             midiWorker, SLOT(ui_DelayTimeUpdated(int)));
 
     connect(this, SIGNAL(workingDirectoryChanged(QString)),
-            midiWorker, SLOT(setWorkingDirectory(QString)));
+            midiWorker, SLOT(setWorkerDirectory(QString)));
 
     connect(connection_timer, SIGNAL(timeout()), discovery, SLOT(Discover()));
 
@@ -137,6 +137,14 @@ void MainWindow::uiPortAlreadyInUse(){
 
 void MainWindow::updateUiStatus(QString statusMessage){
     ui->connection_status_label->setText(statusMessage);
+}
+
+int MainWindow::CheckWorkerBusy() {
+    if (midiWorker->isRunning()) {
+        QMessageBox::warning(0, QString("Information"), QString("APP Busy, try later."), QMessageBox::Ok);
+        return 1 ;
+    }
+    return 0;
 }
 
 void MainWindow::updateProgressBar(int value)
@@ -550,6 +558,8 @@ void MainWindow::on_gotoOXIBootloaderButton_clicked()
 #if 1
 	ui->process_status->setText("");
 
+    if (CheckWorkerBusy()) return;
+
 	if ( midiWorker->midi_out.isPortOpen())
 	{
 		if (midiWorker->isRunning()) {
@@ -613,6 +623,8 @@ void MainWindow::on_stopButton_clicked()
 
 void MainWindow::on_sendProjectButton_clicked()
 {
+    if (CheckWorkerBusy()) return;
+
     ui->process_status->setText("");
 
     int proj_idx = static_cast<int>(ui->project_index->value());
@@ -628,7 +640,7 @@ void MainWindow::on_sendProjectButton_clicked()
             // User clicked Yes
 
             if (midiWorker->isRunning()) {
-                midiWorker->terminate();
+                 midiWorker->terminate();
             }
             midiWorker->run_process_ = midiWorker->PROJECT_SEND;
 
@@ -650,15 +662,41 @@ void MainWindow::on_sendProjectButton_clicked()
         QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
     }
 }
-
+// GET SINGLE PROJECT
 void MainWindow::on_getProjectButton_clicked()
 {
+    if (CheckWorkerBusy()) return;
+
     if (GetWorkingDirectory().isEmpty())
         SetWorkingDirectory();
 
     ui->process_status->setText("");
     midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-    midiWorker->GetProject();
+    midiWorker->GetSingleProject();
+}
+
+// GET ALL PROJECTS
+void MainWindow::on_getAllProjectButton_clicked()
+{
+     if (CheckWorkerBusy()) return;
+
+    QMessageBox::StandardButton reply;
+    QString question = QString("This will overwrite the existing projects of your OXI One computer folder.\nContinue?" );
+    reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        // User clicked Yes
+        if (GetWorkingDirectory().isEmpty())
+            SetWorkingDirectory();
+
+        ui->process_status->setText("");
+        // midiWorker->UpdateProjIdx(static_cast<int>(1) );
+        midiWorker->GetAllProjects();
+
+    } else {
+        // User clicked No or closed the dialog
+        // Do something else...
+    }
 }
 
 #if 0
@@ -680,6 +718,8 @@ void MainWindow::on_project_index_valueChanged(double arg1)
 
 void MainWindow::on_deleteProjectButton_clicked()
 {
+     if (CheckWorkerBusy()) return;
+
     ui->process_status->setText("");
     midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
     midiWorker->DeleteProject();
@@ -703,6 +743,8 @@ void MainWindow::on_deletePatternButton_clicked()
 
 void MainWindow::on_getCalibDataButton_clicked()
 {
+    if (CheckWorkerBusy()) return;
+
     if (GetWorkingDirectory().isEmpty())
         SetWorkingDirectory();
 
@@ -714,6 +756,7 @@ void MainWindow::on_getCalibDataButton_clicked()
 
 void MainWindow::on_sendCalibDataButton_clicked()
 {
+    if (CheckWorkerBusy()) return;
     // TODO move to MIDI Worker
     ui->process_status->setText("");
     midiWorker->raw_data.clear();
@@ -783,4 +826,6 @@ void MainWindow::on_setWorkingFolderButton_clicked()
 {
     SetWorkingDirectory();
 }
+
+
 

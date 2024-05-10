@@ -113,6 +113,8 @@ private slots:
 
     void on_setWorkingFolderButton_clicked();
 
+    void on_getAllProjectButton_clicked();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerUpdateFile(QString);
@@ -122,6 +124,7 @@ private:
     Ui::MainWindow *ui;
     void updateUiStatus(QString statusMessage);
 
+    int CheckWorkerBusy();
 private:
     int UncompressUpdateFile(const QString &filename, const QString &destDir);
     void DetectOXIOneAvailableUpdate();

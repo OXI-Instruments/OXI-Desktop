@@ -26,6 +26,8 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
     Q_ASSUME(connect(_discovery, SIGNAL(discoveryOxiConnected()),
                      this, SLOT(OxiConnected())));
 
+    state_ = WORKER_IDLE;
+
 }
 
 OxiDiscovery* MidiWorker::GetDiscovery(){
@@ -178,6 +180,8 @@ void MidiWorker::runFWUpdate()
     bool success = false;
     bool wait_for_ack = false;
 
+    state_ = WORKER_FW_UPDATE;
+
     file.setFileName(update_file_name_);
     if (!file.open(QIODevice::ReadOnly))
         return;
@@ -328,6 +332,7 @@ EXIT:
 /* SEND RAW DATA WITHOUT PARSING */
 void MidiWorker::runSendProjectRAW(void)
 {
+    state_ = WORKER_SEND_PROJECT;
 
     QFile projectFile( project_file_ );
 
@@ -453,6 +458,21 @@ void MidiWorker::GetProject(void)
     }
 }
 
+
+void MidiWorker::GetSingleProject(void)
+{
+    state_ = WORKER_GET_PROJECT;
+    GetProject();
+}
+
+void MidiWorker::GetAllProjects(void)
+{
+    state_ = WORKER_GET_ALL_PROJECTS;
+    project_index_ = 0;
+
+    GetProject();
+}
+
 void MidiWorker::GetPattern(void)
 {
     raw_data.clear();
@@ -537,7 +557,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
                     QDir system_dir;
-                    QString system_path = oxi_path_ + "/System";
+                    QString system_path = worker_path_ + "/System";
                     qDebug() << system_path << Qt::endl;
                     if (!system_dir.exists(system_path)) {
 
@@ -574,7 +594,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
                     QDir system_dir;
-                    project_path_ = oxi_path_ + "/Projects/Project " + QString::number(project_index_ + 1);
+                    project_path_ = worker_path_ + "/Projects/Project " + QString::number(project_index_ + 1);
                     if (!system_dir.exists(project_path_)) {
 
                         system_dir.mkdir(project_path_);
@@ -610,7 +630,6 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
 
                     QDir system_dir;
                     if (!system_dir.exists(project_path_)) {
-
                         system_dir.mkdir(project_path_);
                     }
 
@@ -629,15 +648,34 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                     if (pattern_index_ < PROJ_PATT_MAX)
                     {
                         GetPattern();
-                        QString message = QString("Receiving pattern %1...").arg(pattern_index_ + 1);
+                        QString message;
+                        if (state_ == WORKER_GET_ALL_PROJECTS) {
+                            message = QString("Receiving Project %1 Pattern %2...").arg(project_index_ + 1).arg(pattern_index_ + 1);
+                        } else {
+                            message = QString("Receiving pattern %1...").arg(pattern_index_ + 1);
+                        }
                         emit ui_updateStatusLabel(message);
                     }
                     else
                     {
-                        QDir dir = QDir::current(); // current directory
-                        QString absolutePath = dir.absoluteFilePath(project_path_);
-                        QString message = QString("Project saved on: %1").arg(absolutePath);
-                        emit ui_updateStatusLabel(message);
+                        if (state_ == WORKER_GET_ALL_PROJECTS) {
+                            if (project_index_ < PROJ_NUM) {
+                                project_index_ ++;
+                                GetProject();
+                                QString message = QString("Get Project %1...").arg(project_index_ + 1);
+                                emit ui_updateStatusLabel(message);
+                            }
+                            else {
+                                QString message = QString("Projects backup finished!");
+                                emit ui_updateStatusLabel(message);
+                            }
+                        }
+                        else {
+                            QDir dir = QDir::current(); // current directory
+                            QString absolutePath = dir.absoluteFilePath(project_path_);
+                            QString message = QString("Project saved on: %1").arg(absolutePath);
+                            emit ui_updateStatusLabel(message);
+                        }
                     }
                     emit ui_UpdateProjectProgressBar(100 * pattern_index_ / 64);
                     break;

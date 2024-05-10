@@ -33,7 +33,7 @@ public:
 
     QString update_file_name_;
 
-    QString oxi_path_;
+    QString worker_path_;
     QString project_path_;
     QString projects_path_;
     QString project_file_;
@@ -75,7 +75,12 @@ public slots:
 
     void GetPattern(void);
     void ReadProjectFromFiles(void);
+
+private:
     void GetProject(void);
+public:
+    void GetSingleProject(void);
+    void GetAllProjects(void);
 
     void SetProjectHeader(uint16_t proj_index) {
         // clear sysex buffer
@@ -123,12 +128,12 @@ public slots:
     	SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_GET_CALIB_DATA);
     }
 
-    void setWorkingDirectory(const QString& workingDirectory) {
-        oxi_path_ = workingDirectory;
+    void setWorkerDirectory(const QString& workingDirectory) {
+        worker_path_ = workingDirectory;
 
         QDir dir;
-        projects_path_ = oxi_path_ + "/Projects";
-        qDebug() << projects_path_ << Qt::endl;
+        projects_path_ = worker_path_ + "/Projects";
+        qDebug() << "worker dir: " << projects_path_ << Qt::endl;
         if (!dir.exists(projects_path_)) {
 
             dir.mkdir(projects_path_);
@@ -152,6 +157,18 @@ signals:
     void error(QString err);
 
 private:
+
+    enum WorkerState_e {
+    	WORKER_IDLE,
+        WORKER_FW_UPDATE,
+        WORKER_GET_PROJECT,
+        WORKER_SEND_PROJECT,
+        WORKER_GET_ALL_PROJECTS,
+
+    };
+
+    WorkerState_e state_ = WORKER_IDLE;
+
     int delay_time = 100;
     volatile int oxi_ack_ = 0;
 
