@@ -817,22 +817,56 @@ void MainWindow::on_exportToMIDI_clicked()
     std::istringstream iss(fileContent);
 
     MidiFile midifile;
-    midifile.read(iss);
+    std::string fileStr = midi_file_path.toStdString();
+
+    midifile.read(fileStr);
+    // midifile.read(iss);
+    // midifile.setFilename(fileStr);
     midifile.doTimeAnalysis();
     midifile.linkNotePairs();
 
     int tracks = midifile.getTrackCount();
-    cout << "TPQ: " << midifile.getTicksPerQuarterNote() << endl;
+
+    int accent[1024];
+    int timing[1024];
+    int idx = 0;
+    memset(accent, 0, 1024);
+    memset(timing, 0, 1024);
+    int tpq = midifile.getTicksPerQuarterNote();
+    int tick16th = tpq / 4;
+    int prev_tick = 0 - tick16th;
+
+    cout << "TPQ: " << tpq << endl;
     if (tracks > 1) cout << "TRACKS: " << tracks << endl;
     for (int track=0; track<tracks; track++) {
         if (tracks > 1) cout << "\nTrack " << track << endl;
         cout << "Tick\tSeconds\tDur(s)\tDur(ticks)\tMessage" << endl;
-        for (int event=0; event<midifile[track].size(); event++) {
-            cout << dec << midifile[track][event].tick;
+        for (int event=0; event < midifile[track].size() &&
+                            idx < 32; event++) {
+
+            int tick = midifile[track][event].tick;
+            cout << dec << tick;
             cout << '\t' << dec << midifile[track][event].seconds;
             cout << '\t';
-            if (midifile[track][event].isNoteOn())
+            if (midifile[track][event].isNoteOn()) {
+                int dif = tick - prev_tick;
+
+                // increase index if skipped note
+                while (dif >= tick16th * 1.5)  {
+                    dif -= tick16th;
+                    accent[idx] = -64; // ghost notes, negative vel
+                    idx++;
+                }
+
+                accent[idx] = (int)midifile[track][event][2] - 64;
+                int uoffset = (dif - tick16th) * 100 / tick16th;
+                timing[idx] = uoffset;
+                prev_tick = tick16th * idx;
+                idx++;
+            }
+            if (midifile[track][event].isNoteOn()) {
                 cout << midifile[track][event].getDurationInSeconds();
+            }
             cout << '\t';
             if (midifile[track][event].isNoteOn())
                 cout << midifile[track][event].getTickDuration();
@@ -842,6 +876,22 @@ void MainWindow::on_exportToMIDI_clicked()
             cout << endl;
         }
     }
+
+    cout << dec << "Name: " << midifile.getFilename() << endl;
+    cout << dec << "Length: " << idx << endl;
+    cout << "Accent: \t";
+    for (int step=0; step<idx; step++) {
+        cout << accent[step];
+        cout << ", ";
+    }
+    cout << endl;
+    cout << "Timing: \t";
+    for (int step=0; step<idx; step++) {
+        cout << dec << timing[step];
+        cout << ", ";
+    }
+    cout << endl;
+
 }
 
 
