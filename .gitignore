@@ -58,3 +58,5 @@ build/*
 debug.log
 .vscode/*
 .cache/*
+/build/
+*build
