@@ -7,8 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>401</width>
-    <height>542</height>
+    <height>502</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>401</width>
+    <height>502</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>401</width>
+    <height>502</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>OXI ONE DESKTOP</string>
