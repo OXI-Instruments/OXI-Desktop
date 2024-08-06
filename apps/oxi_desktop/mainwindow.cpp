@@ -803,7 +803,7 @@ void MainWindow::on_eraseMemButton_clicked()
     ui->midiProgressBar->setValue(0);
 }
 
-void MainWindow::on_gotoOXIBootloaderButton_2_clicked()
+void MainWindow::on_getLatestFW_Button_clicked()
 {
     DetectOXIOneAvailableUpdate();
 }

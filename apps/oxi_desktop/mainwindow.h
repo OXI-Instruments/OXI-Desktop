@@ -54,14 +54,14 @@ private slots:
 
     void lockUpdateButtons(void)
     {
-        ui->gotoOXIBootloaderButton_2->setEnabled(false);
+        ui->getLatestFW_Button->setEnabled(false);
         ui->gotoOXIBootloaderButton->setEnabled(false);
         ui->gotoBLEBootloaderButton->setEnabled(false);
     }
 
     void unlockUpdateButtons(void)
     {
-        ui->gotoOXIBootloaderButton_2->setEnabled(true);
+        ui->getLatestFW_Button->setEnabled(true);
         ui->gotoOXIBootloaderButton->setEnabled(true);
         ui->gotoBLEBootloaderButton->setEnabled(true);
     }
@@ -107,7 +107,7 @@ private slots:
 
     QString FileDialog(FileType file);
 
-    void on_gotoOXIBootloaderButton_2_clicked();
+    void on_getLatestFW_Button_clicked();
 
     void on_tabWidget_currentChanged(int index);
 

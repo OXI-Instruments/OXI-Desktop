@@ -131,7 +131,7 @@ font-size: 14px;
              <number>5</number>
             </property>
             <item>
-             <widget class="QPushButton" name="gotoOXIBootloaderButton_2">
+             <widget class="QPushButton" name="getLatestFW_Button">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                 <horstretch>0</horstretch>
