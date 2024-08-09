@@ -8,6 +8,7 @@
 #include "oxidiscovery.h"
 #include <QFile>
 #include <QTextStream>
+//#include <QTimer>
 
 
 #include "SYSEX_APP.h"
@@ -151,23 +152,31 @@ bool MidiWorker::WaitForOXIUpdate(void)
     }
 }
 
+// where the midiworker thread actually runs
 void MidiWorker::run()
 {
-    switch (this->run_process_) {
-    case OXI_ONE_UPDATE:
-    case OXI_SPLIT_UPDATE:
-    case OXI_ONE_BLE_UPDATE:
+    switch (this->state_) {
+    case WORKER_FW_UPDATE_OXI_ONE:
+    case WORKER_FW_UPDATE_SPLIT:
+    case WORKER_FW_UPDATE_BLE:
         qDebug() << "Thread START: FW Update";
         runFWUpdate();
         break;
-    case PROJECT_SEND:
+    case WORKER_SEND_PROJECT:
         qDebug() << "Thread START: Send Project RAW";
         runSendProjectRAW();
+        break;
+    case WORKER_GET_PROJECT:
+        qDebug() << "Thread START: Get Project RAW";
+        runGetProject();
         break;
     default:
         break;
     }
+    //a test to confirm get project thread stop
+    qDebug() << "Thread STOP";
 }
+
 
 
 // UPDATE PROCESS
@@ -180,14 +189,14 @@ void MidiWorker::runFWUpdate()
     bool success = false;
     bool wait_for_ack = false;
 
-    state_ = WORKER_FW_UPDATE;
+    // state_ = WORKER_FW_UPDATE;
 
     file.setFileName(update_file_name_);
     if (!file.open(QIODevice::ReadOnly))
         return;
 
-    switch (this->run_process_){
-    case OXI_ONE_UPDATE:
+    switch (this->state_){
+    case WORKER_FW_UPDATE_OXI_ONE:
         wait_for_ack = true;
         SendGotoBoot(MSG_FW_UPDT_OXI_ONE);
 
@@ -196,12 +205,12 @@ void MidiWorker::runFWUpdate()
             return;
         }
         break;
-    case OXI_SPLIT_UPDATE:
+    case WORKER_FW_UPDATE_SPLIT:
         wait_for_ack = false;
         SendGotoBoot(MSG_FW_UPDT_OXI_SPLIT);
         QThread::msleep(500);
         break;
-    case OXI_ONE_BLE_UPDATE:
+    case WORKER_FW_UPDATE_BLE:
         wait_for_ack = true;
         SendGotoBoot(MSG_FW_UPDT_OXI_BLE);
         QThread::msleep(500);
@@ -304,14 +313,14 @@ EXIT:
     if (success) {
         emit ui_UpdateProgressBar(100);
 
-        switch (this->run_process_){
-        case OXI_ONE_UPDATE:
-
+        switch (this->state_){
+        case WORKER_FW_UPDATE_OXI_ONE:
+            // do nothing
             break;
-        case OXI_SPLIT_UPDATE:
-            SendBootExit();
+        case WORKER_FW_UPDATE_SPLIT:
+            this->SendBootExit();
             break;
-        case OXI_ONE_BLE_UPDATE:
+        case WORKER_FW_UPDATE_BLE:
             SendBootExit();
             break;
         default:
@@ -364,6 +373,7 @@ void MidiWorker::runSendProjectRAW(void)
         QString project_folder = fi.absolutePath();
         qDebug() << project_folder << Qt::endl;
 
+        // 64 patterns in total
         for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
         {
             QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + FileExtension[FILE_PATTERN];
@@ -381,6 +391,7 @@ void MidiWorker::runSendProjectRAW(void)
 
                 oxi_ack_ = 0;
 
+                // llamamos a qmidi para enviar el paquete de sysex
                 SendRaw();
 
                 if (WaitProjectACK() != true) {
@@ -402,7 +413,15 @@ void MidiWorker::runSendProjectRAW(void)
         // emit ui_updateStatusLabel("PROJECT ERROR");
         emit ui_ProjectError();
     }
+
+    this->quit();
 }
+
+void MidiWorker::runGetProject(void)
+{
+     qDebug() << "Getting project";
+}
+
 
 void MidiWorker::ReadProjectFromFiles(void)
 {
@@ -668,6 +687,17 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                             else {
                                 QString message = QString("Projects backup finished!");
                                 emit ui_updateStatusLabel(message);
+
+                                QDir dir = QDir::current();
+                                //dir.cdUp(); // Move to the parent directory. DOES NOT SEEM TO WORK
+
+                                QString absolutePath = dir.absoluteFilePath(worker_path_);
+                                message = QString("Projects saved on: %1").arg(absolutePath);
+
+                                QTimer::singleShot(2000, [this, message]() {
+                                    emit ui_updateStatusLabel(message);
+                                });
+
                             }
                         }
                         else {

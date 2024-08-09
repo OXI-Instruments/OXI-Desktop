@@ -93,6 +93,9 @@ font-size: 14px;
       </item>
       <item>
        <widget class="QTabWidget" name="tabWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
           <horstretch>0</horstretch>
@@ -156,7 +159,10 @@ font-size: 14px;
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="gotoOXIBootloaderButton">
+             <widget class="QPushButton" name="updateFromFileButton">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                 <horstretch>0</horstretch>
@@ -300,6 +306,9 @@ font-size: 14px;
          </layout>
         </widget>
         <widget class="QWidget" name="tab_project">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <attribute name="title">
           <string>PROJECT</string>
          </attribute>
@@ -512,6 +521,9 @@ font-size: 14px;
                <width>16777215</width>
                <height>35</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If the project is opened on the OXI One, it will NOT be deleted until is changed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>DELETE PROJECT</string>

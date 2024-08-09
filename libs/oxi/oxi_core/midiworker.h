@@ -20,6 +20,7 @@ public:
     void run();
     void runSendProjectRAW(void);
     void runFWUpdate(void);
+    void runGetProject(void);
 
     // if Stop = true, the thread will break
     // out of the loop, and will be disposed
@@ -37,16 +38,6 @@ public:
     QString project_path_;
     QString projects_path_;
     QString project_file_;
-
-    typedef enum  {
-        OXI_ONE_UPDATE,
-        OXI_ONE_BLE_UPDATE,
-        OXI_SPLIT_UPDATE,
-
-        PROJECT_SEND,
-    } process_e;
-
-    process_e run_process_;
 
     OxiDiscovery *GetDiscovery();
 
@@ -155,16 +146,35 @@ signals:
     void finished();
     void error(QString err);
 
-private:
-
+public:
     enum WorkerState_e {
-    	WORKER_IDLE,
-        WORKER_FW_UPDATE,
+        WORKER_IDLE,
+        WORKER_CANCELLING,
+        // launch thread
+        WORKER_FW_UPDATE_OXI_ONE,
+        WORKER_FW_UPDATE_BLE,
+        WORKER_FW_UPDATE_SPLIT,
         WORKER_GET_PROJECT,
         WORKER_SEND_PROJECT,
         WORKER_GET_ALL_PROJECTS,
-
     };
+
+    void SetState(WorkerState_e state) {
+        state_ = state;
+    }
+
+private:
+
+    // typedef enum  {
+    //     OXI_ONE_UPDATE,
+    //     OXI_ONE_BLE_UPDATE,
+    //     OXI_SPLIT_UPDATE,
+        //     PROJECT_SEND,
+        //     PROJECT_GET,
+        // } process_e;
+
+        // process_e run_process_;
+
 
     WorkerState_e state_ = WORKER_IDLE;
 

@@ -29,7 +29,13 @@ MainWindow::MainWindow(QWidget *parent)
     midiWorker = new MidiWorker(this);
     OxiDiscovery *discovery = midiWorker->GetDiscovery();
 
+    /* TIMER FOR OXI DISCOVERY
+     *
+     * */
     connection_timer = new QTimer(this);
+    connect(connection_timer, SIGNAL(timeout()), discovery, SLOT(Discover()));
+    connection_timer->start(500);
+
 
     // connect signal/slot
     connect(midiWorker, SIGNAL(ui_UpdateProgressBar(int)),
@@ -73,10 +79,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(this, SIGNAL(workingDirectoryChanged(QString)),
             midiWorker, SLOT(setWorkerDirectory(QString)));
-
-    connect(connection_timer, SIGNAL(timeout()), discovery, SLOT(Discover()));
-
-    connection_timer->start(500);
 
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
@@ -203,19 +205,29 @@ void MainWindow::connectionError(void)
     updateStatusLabel("");
 }
 
+bool MainWindow::checkOXIconnected(void)
+{
+    if ( midiWorker->midi_out.isPortOpen()) {
+        return true;
+    } else {
+        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
+        return false;
+    }
+}
+
 // BLE
 void MainWindow::on_gotoBLEBootloaderButton_clicked()
 {
 #if 1
     ui->process_status->setText("");
 
-    if ( midiWorker->midi_out.isPortOpen())
+    if ( checkOXIconnected())
     {
         if (midiWorker->isRunning()) {
             midiWorker->terminate();
         }
 
-        midiWorker->run_process_ = midiWorker->OXI_ONE_BLE_UPDATE;
+        midiWorker->SetState(midiWorker->WORKER_FW_UPDATE_BLE);
         ui->process_status->setText("");
         midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
 
@@ -228,9 +240,6 @@ void MainWindow::on_gotoBLEBootloaderButton_clicked()
         if (!midiWorker->isRunning()) {
             midiWorker->start();
         }
-    }
-    else {
-        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
     }
 #endif
 }
@@ -241,13 +250,13 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
 #if 1
     ui->process_status->setText("");
 
-    if ( midiWorker->midi_out.isPortOpen())
+    if ( checkOXIconnected())
     {
         if (midiWorker->isRunning()) {
             midiWorker->terminate();
         }
 
-        midiWorker->run_process_ = midiWorker->OXI_SPLIT_UPDATE;
+        midiWorker->SetState(midiWorker->WORKER_FW_UPDATE_SPLIT);
         ui->process_status->setText("");
         midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
 
@@ -260,9 +269,6 @@ void MainWindow::on_gotoSPLITBootloaderButton_clicked()
         if (!midiWorker->isRunning()) {
             midiWorker->start();
         }
-    }
-    else {
-        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
     }
 #endif
 }
@@ -318,9 +324,60 @@ int MainWindow::UncompressUpdateFile(const QString &filename, const QString &des
 
 QVersionNumber MainWindow::GetFrmVersion()
 {
-    // TODO: Get firmware version;
     return fw_version_;
 }
+
+int MainWindow::SetWorkingDirectory() {
+    QMessageBox::information(
+        0,
+        QString("Working folder"),
+        QString("Select your folder for the OXI One projects and data..."),
+        QMessageBox::Ok);
+
+    bool already_created = 1;
+
+    QString dialogDir;
+    if (workingDirectory_.isEmpty()) {
+        dialogDir = QDir::homePath();
+    } else {
+        dialogDir = workingDirectory_;
+    }
+
+    QString workingDirectoryFromDialog;
+
+    workingDirectoryFromDialog = QFileDialog::getExistingDirectory(
+        this,
+        tr("Select your folder for the OXI One projects and data."),
+        dialogDir,
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+    if (!workingDirectoryFromDialog.isNull()) {
+        workingDirectory_ = workingDirectoryFromDialog;
+        oxi_path_ = workingDirectory_ + "/OXI_Files";
+
+        QDir system_dir;
+        if (!system_dir.exists(oxi_path_)) {
+            already_created = 0;
+            system_dir.mkdir(oxi_path_);
+        }
+
+        QDir dir = QDir::current(); // current directory
+        QString absolutePath = dir.absoluteFilePath(oxi_path_);
+        QString message = QString("Selected folder:\n%1").arg(absolutePath);
+        ui->process_status->setText(message);
+
+        // Save directory
+        writeSettings();
+        emit workingDirectoryChanged(oxi_path_);
+    }
+    // que pasa si el usuario cancela??
+    else {
+
+    }
+
+    return already_created;
+}
+
 
 void MainWindow::resetFwVersion(void)
 {
@@ -457,7 +514,7 @@ void MainWindow::DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, 
      ui->progressBar->setFormat("Downloading update");
      ui->progressBar->setValue(0);
     ui->process_status->setText("Downloading update");
-    ui->gotoOXIBootloaderButton->setEnabled(false);
+    ui->updateFromFileButton->setEnabled(false);
 
     connect(downloadUpdateReply, &QNetworkReply::downloadProgress, [=](auto bytesReceived, auto bytesTotal)
     {
@@ -512,7 +569,7 @@ void MainWindow::DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, 
             }
         }
 
-        ui->gotoOXIBootloaderButton->setEnabled(true);
+        ui->updateFromFileButton->setEnabled(true);
         downloadUpdateReply->deleteLater();
     });
 }
@@ -522,15 +579,50 @@ void MainWindow::DeployOXIOneUpdate(const QString& updateFile)
 #if 1
     ui->process_status->setText("");
 
-    if ( midiWorker->midi_out.isPortOpen())
+    if (CheckWorkerBusy()) return;
+    if ( checkOXIconnected())
+    {
+        if (midiWorker->isRunning()) {
+            midiWorker->quit();
+        }
+        }
+
+        midiWorker->SetState(midiWorker->WORKER_FW_UPDATE_OXI_ONE);
+
+        midiWorker->update_file_name_ = updateFile;
+
+        qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
+        qDebug() << midiWorker->update_file_name_ << Qt::endl;
+        if (midiWorker->update_file_name_ == "" ) return;
+
+        ui->process_status->setText("UPDATING");
+
+        qDebug() << "file selected" << Qt::endl;
+
+        // launch worker
+        midiWorker->start();
+    }
+#endif
+
+
+// OXI ONE
+void MainWindow::on_updateFromFileButton_clicked()
+{
+
+#if 1
+    ui->process_status->setText("");
+
+    if (CheckWorkerBusy()) return;
+
+    if ( checkOXIconnected())
     {
         if (midiWorker->isRunning()) {
             midiWorker->terminate();
         }
 
-        midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
+        midiWorker->SetState(midiWorker->WORKER_FW_UPDATE_OXI_ONE);
 
-        midiWorker->update_file_name_ = updateFile;
+        midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
 
         qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
         qDebug() << midiWorker->update_file_name_ << Qt::endl;
@@ -545,47 +637,6 @@ void MainWindow::DeployOXIOneUpdate(const QString& updateFile)
             midiWorker->start();
         }
     }
-    else {
-        QMessageBox::warning(this, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
-    }
-#endif
-}
-
-// OXI ONE
-void MainWindow::on_gotoOXIBootloaderButton_clicked()
-{
-
-#if 1
-	ui->process_status->setText("");
-
-    if (CheckWorkerBusy()) return;
-
-	if ( midiWorker->midi_out.isPortOpen())
-	{
-		if (midiWorker->isRunning()) {
-			midiWorker->terminate();
-		}
-
-		midiWorker->run_process_ = midiWorker->OXI_ONE_UPDATE;
-
-		midiWorker->update_file_name_ = FileDialog(FILE_SYSEX);
-
-		qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
-		qDebug() << midiWorker->update_file_name_ << Qt::endl;
-		if (midiWorker->update_file_name_ == "" ) return;
-
-		ui->process_status->setText("UPDATING");
-
-		qDebug() << "file selected" << Qt::endl;
-
-		// launch worker
-		if (!midiWorker->isRunning()) {
-			midiWorker->start();
-		}
-	}
-	else {
-		QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
-	}
 #endif
 
 
@@ -630,7 +681,7 @@ void MainWindow::on_sendProjectButton_clicked()
     int proj_idx = static_cast<int>(ui->project_index->value());
     midiWorker->UpdateProjIdx( proj_idx );
 
-    if ( midiWorker->midi_out.isPortOpen())
+    if ( checkOXIconnected())
     {
         QMessageBox::StandardButton reply;
         QString question = QString("This will overwrite OXI One's project %1.\nAre you sure you want to proceed?").arg(proj_idx);
@@ -639,10 +690,7 @@ void MainWindow::on_sendProjectButton_clicked()
         if (reply == QMessageBox::Yes) {
             // User clicked Yes
 
-            if (midiWorker->isRunning()) {
-                 midiWorker->terminate();
-            }
-            midiWorker->run_process_ = midiWorker->PROJECT_SEND;
+            midiWorker->SetState(midiWorker->WORKER_SEND_PROJECT);
 
             midiWorker->project_file_ =  FileDialog(FILE_PROJECT);
 
@@ -650,16 +698,31 @@ void MainWindow::on_sendProjectButton_clicked()
             if (midiWorker->project_file_ == "" ) return;
 
             // launch worker
-            if (!midiWorker->isRunning()) {
-                midiWorker->start();
+            midiWorker->start();
+
+            QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
+            QString questionCancel = QString("Would you like to cancel the process?" );
+
+            //casting to remove the NO option. Dunno why states question is deprecated while works previously
+            cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
+            if (cancelReply == QMessageBox::Yes) {
+
+                qDebug ()<< "canceled---------------------------------------------------\n"
+                            "---------------------------------------------------\n"
+                            "---------------------------------------------------\n"
+                            "---------------------------------------------------\n"
+                            "---------------------------------------------------canceled\n";
+
+                //pggoxi: HERE SHOULD STOP THE PROCESS OF COLLECTING PROJECTS. FIGURING OUT....
+                midiWorker -> quit();
+
             }
+
+
         } else {
             // User clicked No or closed the dialog
             // Do something else...
         }
-    }
-    else {
-        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
     }
 }
 // GET SINGLE PROJECT
@@ -667,35 +730,94 @@ void MainWindow::on_getProjectButton_clicked()
 {
     if (CheckWorkerBusy()) return;
 
-    if (GetWorkingDirectory().isEmpty())
-        SetWorkingDirectory();
-
     ui->process_status->setText("");
-    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-    midiWorker->GetSingleProject();
+
+    if (checkOXIconnected())
+    {
+        bool folder_existed = 0;
+        if (GetWorkingDirectory().isEmpty()){
+            folder_existed = SetWorkingDirectory();
+
+            if (GetWorkingDirectory().isEmpty())
+                return;
+        }
+        else
+            folder_existed = 1;
+
+        midiWorker->SetState(midiWorker->WORKER_GET_PROJECT);
+
+        QMessageBox::StandardButton reply = QMessageBox::Yes;
+        if (folder_existed) {
+            QString question = QString("This will overwrite the existing Project of your OXI One computer folder.\nContinue?" );
+            reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+        }
+
+        if (reply == QMessageBox::Yes) {
+            ui->process_status->setText("");
+            midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
+
+            midiWorker->start();
+        }
+    }
 }
 
 // GET ALL PROJECTS
 void MainWindow::on_getAllProjectButton_clicked()
 {
-     if (CheckWorkerBusy()) return;
 
-    QMessageBox::StandardButton reply;
-    QString question = QString("This will overwrite the existing projects of your OXI One computer folder.\nContinue?" );
-    reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+    if (CheckWorkerBusy()) return;
+    ui->process_status->setText("");
 
-    if (reply == QMessageBox::Yes) {
-        // User clicked Yes
-        if (GetWorkingDirectory().isEmpty())
-            SetWorkingDirectory();
+    if ( checkOXIconnected())
+    {
+        bool folder_existed = 0;
+        bool isGetProjectRunning = 0;
 
-        ui->process_status->setText("");
-        // midiWorker->UpdateProjIdx(static_cast<int>(1) );
-        midiWorker->GetAllProjects();
+        if (GetWorkingDirectory().isEmpty()){
+            folder_existed = SetWorkingDirectory();
 
-    } else {
-        // User clicked No or closed the dialog
-        // Do something else...
+            if (GetWorkingDirectory().isEmpty())
+                return;
+        }
+
+        else
+            folder_existed = 1;
+
+
+        if(isGetProjectRunning == 0){
+            QMessageBox::StandardButton reply = QMessageBox::Yes;
+            if (folder_existed) {
+                QString question = QString("This will overwrite ALL the existing Projects of your OXI One computer folder.\nContinue?" );
+                reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+            }
+
+            if (reply == QMessageBox::Yes) {
+                ui->process_status->setText("");
+                //midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
+                midiWorker->GetAllProjects();
+
+                isGetProjectRunning = 1;
+
+                if (isGetProjectRunning == 1){
+
+                    QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
+                    QString questionCancel = QString("Would you like to cancel the process?" );
+
+                    //casting to remove the NO option. Dunno why states question is deprecated while works previously
+                    cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
+                    if (cancelReply == QMessageBox::Yes) {
+
+                        //pggoxi: HERE must end the Thread
+                        midiWorker -> quit();
+
+                    }
+
+
+                }
+            }
+
+        }
+
     }
 }
 
@@ -718,12 +840,28 @@ void MainWindow::on_project_index_valueChanged(double arg1)
 
 void MainWindow::on_deleteProjectButton_clicked()
 {
-     if (CheckWorkerBusy()) return;
+    if (CheckWorkerBusy()) return;
 
-    ui->process_status->setText("");
-    midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-    midiWorker->DeleteProject();
-    ui->midiProgressBar->setValue(0);
+    if ( midiWorker->midi_out.isPortOpen())
+    {
+        int proj_idx = static_cast<int>(ui->project_index->value());
+        midiWorker->UpdateProjIdx( proj_idx );
+
+        QMessageBox::StandardButton reply;
+        QString question = QString("This will delete OXI One's Project %1.\nAre you sure you want to proceed?").arg(proj_idx);
+
+        reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+
+            midiWorker->DeleteProject();
+            ui->midiProgressBar->setValue(100);
+
+        }
+    }
+    else {
+        QMessageBox::warning(0, QString("Information"), QString("Connect your OXI One"), QMessageBox::Ok);
+    }
 }
 
 #if 0
