@@ -52,17 +52,19 @@ private slots:
     void projectError(void);
     void uiPortAlreadyInUse(void);
 
+    bool checkOXIconnected(void);
+
     void lockUpdateButtons(void)
     {
         ui->getLatestFW_Button->setEnabled(false);
-        ui->gotoOXIBootloaderButton->setEnabled(false);
+        ui->updateFromFileButton->setEnabled(false);
         ui->gotoBLEBootloaderButton->setEnabled(false);
     }
 
     void unlockUpdateButtons(void)
     {
         ui->getLatestFW_Button->setEnabled(true);
-        ui->gotoOXIBootloaderButton->setEnabled(true);
+        ui->updateFromFileButton->setEnabled(true);
         ui->gotoBLEBootloaderButton->setEnabled(true);
     }
 
@@ -82,7 +84,7 @@ private slots:
 
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoSPLITBootloaderButton_clicked();
-    void on_gotoOXIBootloaderButton_clicked();
+    void on_updateFromFileButton_clicked();
 #if 0
     void on_exitBootloaderButton_clicked();
 
