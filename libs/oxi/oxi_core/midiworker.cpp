@@ -14,6 +14,9 @@
 #include "SYSEX_APP.h"
 //QString update_file_name_;
 
+
+#define CANCELLED do { if (UserCancelled()) return; } while(0)
+
 uint8_t seq_data_buffer[4096*2];
 
 MidiWorker::MidiWorker(QObject *parent, bool b) :
@@ -22,10 +25,11 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
     _discovery = new OxiDiscovery(&midi_in, &midi_out);
     midi_in.setIgnoreTypes(false, true, true);
 
-    Q_ASSUME(connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
-                     this, SLOT(onMidiReceive(QMidiMessage*))));
-    Q_ASSUME(connect(_discovery, SIGNAL(discoveryOxiConnected()),
-                     this, SLOT(OxiConnected())));
+    //removed Q_ASSUME as is deprecated
+    connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
+                     this, SLOT(onMidiReceive(QMidiMessage*)));
+    connect(_discovery, SIGNAL(discoveryOxiConnected()),
+                     this, SLOT(OxiConnected()));
 
     state_ = WORKER_IDLE;
 
@@ -78,20 +82,35 @@ void MidiWorker::SendRaw(void)
 
 bool MidiWorker::WaitProjectACK(void) {
     int timeout = 0;
-    const int TIMEOUT_TIME = 5000;
+    const int TIMEOUT_TIME = 3000;
     const int DELAY_TIME = 100;
 
     while((oxi_ack_ == 0) && (timeout < TIMEOUT_TIME))
     {
         QThread::msleep(DELAY_TIME);
+
         timeout += DELAY_TIME;
     }
+
     if (timeout >= TIMEOUT_TIME) {
         qDebug() << "TIMEOUT ERROR";
         return false;
     }
     return true;
 }
+
+bool MidiWorker::UserCancelled(void)
+{
+    if (state_ == WORKER_CANCELLING) {
+        emit ui_UpdateProgressBar(0);
+
+        emit ui_updateStatusLabel("CANCELLED");
+
+        return 1;
+    }
+    return 0;
+}
+
 
 
 void MidiWorker::GetFwVersion(void)
@@ -164,7 +183,7 @@ void MidiWorker::run()
         break;
     case WORKER_SEND_PROJECT:
         qDebug() << "Thread START: Send Project RAW";
-        runSendProjectRAW();
+        runSendProject();
         break;
     case WORKER_GET_PROJECT:
         qDebug() << "Thread START: Get Project RAW";
@@ -173,7 +192,9 @@ void MidiWorker::run()
     default:
         break;
     }
-    //a test to confirm get project thread stop
+
+    state_ = WORKER_IDLE;
+    //a test to confirm thread stopped
     qDebug() << "Thread STOP";
 }
 
@@ -334,15 +355,11 @@ EXIT:
     }
 
     file.close();
-    this->quit();
-//    this->terminate();
 }
 
 /* SEND RAW DATA WITHOUT PARSING */
-void MidiWorker::runSendProjectRAW(void)
+void MidiWorker::runSendProject(void)
 {
-    state_ = WORKER_SEND_PROJECT;
-
     QFile projectFile( project_file_ );
 
     if ( projectFile.open(QIODevice::ReadOnly) )
@@ -394,11 +411,13 @@ void MidiWorker::runSendProjectRAW(void)
                 // llamamos a qmidi para enviar el paquete de sysex
                 SendRaw();
 
-                if (WaitProjectACK() != true) {
+                if (WaitProjectACK() != true ) {
                     emit ui_UpdateProgressBar(0);
                     emit ui_UpdateError();
                     return;
                 }
+
+                CANCELLED;
 
                 QString message = QString("Sending pattern %1...").arg(pattern_index + 1);
                 emit ui_updateStatusLabel(message);
@@ -413,8 +432,6 @@ void MidiWorker::runSendProjectRAW(void)
         // emit ui_updateStatusLabel("PROJECT ERROR");
         emit ui_ProjectError();
     }
-
-    this->quit();
 }
 
 void MidiWorker::runGetProject(void)

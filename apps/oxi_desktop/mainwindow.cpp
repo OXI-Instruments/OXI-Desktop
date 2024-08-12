@@ -752,13 +752,18 @@ void MainWindow::on_getProjectButton_clicked()
             midiWorker->start();
             midiWorker->GetSingleProject();
 
-            QString questionCancel = QString("Would you like to cancel the process?" );
 
+            //QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
             QMessageBox msgBox;
             msgBox.setText("Would you like to cancel the process?");
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
             msgBox.setDefaultButton(QMessageBox::Cancel);
             msgBox.setEscapeButton(QMessageBox::Cancel);
+
+            // Hide the Cancel button
+            QAbstractButton* cancelButton = msgBox.button(QMessageBox::Cancel);
+            if (cancelButton)
+                cancelButton->setVisible(false);
 
             QMessageBox::StandardButton cancelReply = static_cast<QMessageBox::StandardButton>(msgBox.exec());
 
@@ -769,6 +774,8 @@ void MainWindow::on_getProjectButton_clicked()
 
                 //WARNING: setting value to higher so exits the loop.
                 midiWorker->Set_pattern_index(100);
+
+                //this should not needed as presumably was set by worker cancelling
                 ui->midiProgressBar->setValue(0);
 
             }
