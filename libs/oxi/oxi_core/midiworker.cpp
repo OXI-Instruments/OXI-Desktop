@@ -105,9 +105,11 @@ bool MidiWorker::UserCancelled(void)
         emit ui_UpdateProgressBar(0);
 
         emit ui_updateStatusLabel("CANCELLED");
+        qDebug() << "-------------user CANCELLED DENTRO IF--------------------------------";
 
         return 1;
     }
+    qDebug() << "-------------user CANCELLED FUERA IF--------------------------------";
     return 0;
 }
 
@@ -437,6 +439,27 @@ void MidiWorker::runSendProject(void)
 void MidiWorker::runGetProject(void)
 {
      qDebug() << "Getting project";
+
+    raw_data.clear();
+    raw_data.assign(sysex_header, &sysex_header[sizeof(sysex_header)]);
+    raw_data.push_back(MSG_CAT_PROJECT);
+    raw_data.push_back(MSG_PROJECT_GET_PROJ_HEADER);
+    raw_data.push_back(project_index_);
+    raw_data.push_back(0);
+    raw_data.push_back(0xF7);
+
+    ui_updateStatusLabel("");
+
+    try {
+        ui_updateStatusLabel("Receiving Project Data");
+        midi_out.sendRawMessage(raw_data);
+
+    }
+    catch ( RtMidiError &error ) {
+        error.printMessage();
+    }
+
+
 }
 
 
@@ -681,6 +704,8 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
 
                     pattern_index_ ++;
 
+                    CANCELLED;
+
                     if (pattern_index_ < PROJ_PATT_MAX)
                     {
                         GetPattern();
@@ -689,6 +714,7 @@ void MidiWorker::onMidiReceive(QMidiMessage* p_msg)
                             message = QString("Receiving Project %1 Pattern %2...").arg(project_index_ + 1).arg(pattern_index_ + 1);
                         } else {
                             message = QString("Receiving pattern %1...").arg(pattern_index_ + 1);
+                            qDebug() << "------------------------------get projects----------------------------------------";
                         }
                         emit ui_updateStatusLabel(message);
                     }

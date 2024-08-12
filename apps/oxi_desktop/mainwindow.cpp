@@ -737,7 +737,7 @@ void MainWindow::on_getProjectButton_clicked()
         else
             folder_existed = 1;
 
-        midiWorker->SetState(midiWorker->WORKER_GET_PROJECT);
+
 
         QMessageBox::StandardButton reply = QMessageBox::Yes;
         if (folder_existed) {
@@ -749,8 +749,11 @@ void MainWindow::on_getProjectButton_clicked()
             ui->process_status->setText("");
             midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
 
+            midiWorker->SetState(midiWorker->WORKER_GET_PROJECT);
             midiWorker->start();
-            midiWorker->GetSingleProject();
+            // midiWorker->GetSingleProject();
+            midiWorker->runGetProject();
+
 
 
             //QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
@@ -771,12 +774,15 @@ void MainWindow::on_getProjectButton_clicked()
 
                 midiWorker->SetState(midiWorker->WORKER_CANCELLING);
 
-
+                qDebug() << "------------USER CANCELs------------";
+                //midiWorker->UserCancelled();
                 //WARNING: setting value to higher so exits the loop.
-                midiWorker->Set_pattern_index(100);
+                //midiWorker->Set_pattern_index(100);
+
+
 
                 //this should not needed as presumably was set by worker cancelling
-                ui->midiProgressBar->setValue(0);
+                //ui->midiProgressBar->setValue(0);
 
             }
         }

@@ -165,6 +165,7 @@ public:
         state_ = state;
     }
 
+    //pggoxi: this setters will need to be removed when properly implemented with threads rungetproject() and all
     void Set_pattern_index(uint8_t pattern_index){
         pattern_index_ = pattern_index;
     }
