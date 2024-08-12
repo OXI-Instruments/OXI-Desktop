@@ -18,7 +18,7 @@ class OXI_CORE_EXPORT MidiWorker : public QThread {
 public:
     explicit MidiWorker(QObject *parent = 0, bool b = false);
     void run();
-    void runSendProjectRAW(void);
+    void runSendProject(void);
     void runFWUpdate(void);
     void runGetProject(void);
 
@@ -63,6 +63,8 @@ public slots:
     void SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd);
     bool WaitForOXIUpdate(void);
     bool WaitProjectACK(void);
+
+    bool UserCancelled(void);
 
     void GetPattern(void);
     void ReadProjectFromFiles(void);
@@ -115,7 +117,7 @@ public slots:
     }
 
     void GetCalibData(void) {
-    	SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_GET_CALIB_DATA);
+        SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_GET_CALIB_DATA);
     }
 
     void setWorkerDirectory(const QString& workingDirectory) {
@@ -163,6 +165,15 @@ public:
         state_ = state;
     }
 
+    void Set_pattern_index(uint8_t pattern_index){
+        pattern_index_ = pattern_index;
+    }
+
+    void Set_project_index(uint8_t pattern_index){
+        pattern_index_ = pattern_index;
+    }
+
+
 private:
 
     // typedef enum  {
@@ -181,9 +192,11 @@ private:
     int delay_time = 100;
     volatile int oxi_ack_ = 0;
 
-    uint8_t project_index_ = 0;
+
     uint8_t seq_index_ = 0;
     uint8_t pattern_index_ = 0;
+    uint8_t project_index_ = 0;
+
 
     QFile file;
     Project project_;
