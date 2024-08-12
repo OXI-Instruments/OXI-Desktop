@@ -688,7 +688,6 @@ void MainWindow::on_sendProjectButton_clicked()
         reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
 
         if (reply == QMessageBox::Yes) {
-            // User clicked Yes
 
             midiWorker->SetState(midiWorker->WORKER_SEND_PROJECT);
 
@@ -707,14 +706,8 @@ void MainWindow::on_sendProjectButton_clicked()
             cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
             if (cancelReply == QMessageBox::Yes) {
 
-                qDebug ()<< "canceled---------------------------------------------------\n"
-                            "---------------------------------------------------\n"
-                            "---------------------------------------------------\n"
-                            "---------------------------------------------------\n"
-                            "---------------------------------------------------canceled\n";
-
-                //pggoxi: HERE SHOULD STOP THE PROCESS OF COLLECTING PROJECTS. FIGURING OUT....
-                midiWorker -> quit();
+                midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+                //ui->midiProgressBar->setValue(0);
 
             }
 
@@ -757,6 +750,28 @@ void MainWindow::on_getProjectButton_clicked()
             midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
 
             midiWorker->start();
+            midiWorker->GetSingleProject();
+
+            QString questionCancel = QString("Would you like to cancel the process?" );
+
+            QMessageBox msgBox;
+            msgBox.setText("Would you like to cancel the process?");
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+            msgBox.setDefaultButton(QMessageBox::Cancel);
+            msgBox.setEscapeButton(QMessageBox::Cancel);
+
+            QMessageBox::StandardButton cancelReply = static_cast<QMessageBox::StandardButton>(msgBox.exec());
+
+            if (cancelReply == QMessageBox::Yes) {
+
+                midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+
+
+                //WARNING: setting value to higher so exits the loop.
+                midiWorker->Set_pattern_index(100);
+                ui->midiProgressBar->setValue(0);
+
+            }
         }
     }
 }
@@ -771,7 +786,7 @@ void MainWindow::on_getAllProjectButton_clicked()
     if ( checkOXIconnected())
     {
         bool folder_existed = 0;
-        bool isGetProjectRunning = 0;
+        //bool isGetProjectRunning = 0;  //This would not be required if cancel button is on top
 
         if (GetWorkingDirectory().isEmpty()){
             folder_existed = SetWorkingDirectory();
@@ -784,7 +799,7 @@ void MainWindow::on_getAllProjectButton_clicked()
             folder_existed = 1;
 
 
-        if(isGetProjectRunning == 0){
+        //if(isGetProjectRunning == 0){
             QMessageBox::StandardButton reply = QMessageBox::Yes;
             if (folder_existed) {
                 QString question = QString("This will overwrite ALL the existing Projects of your OXI One computer folder.\nContinue?" );
@@ -796,27 +811,50 @@ void MainWindow::on_getAllProjectButton_clicked()
                 //midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
                 midiWorker->GetAllProjects();
 
-                isGetProjectRunning = 1;
+                //isGetProjectRunning = 1;
 
-                if (isGetProjectRunning == 1){
+                QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
+                QString questionCancel = QString("Would you like to cancel the process?" );
 
-                    QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
-                    QString questionCancel = QString("Would you like to cancel the process?" );
+                //casting to remove the NO option. Dunno why states question is deprecated while works previously
+                cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
+                if (cancelReply == QMessageBox::Yes) {
 
-                    //casting to remove the NO option. Dunno why states question is deprecated while works previously
-                    cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
-                    if (cancelReply == QMessageBox::Yes) {
+                    //pggoxi: revise
+                    midiWorker->SetState(midiWorker->WORKER_CANCELLING);
 
-                        //pggoxi: HERE must end the Thread
-                        midiWorker -> quit();
-
-                    }
-
+                    //WARNING: setting value to higher so exits the loop.
+                    //midiWorker->Set_pattern_index(100); //also works
+                    midiWorker->Set_project_index(100);
+                    ui->midiProgressBar->setValue(0);
 
                 }
+
+
             }
 
-        }
+
+
+            /*
+            if (isGetProjectRunning == 1){
+
+                QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
+                QString questionCancel = QString("Would you like to cancel the process?" );
+
+                //casting to remove the NO option. Dunno why states question is deprecated while works previously
+                cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
+                if (cancelReply == QMessageBox::Yes) {
+
+                    //pggoxi: HERE must end the Thread
+                    //the pop up should vanish when finished
+                    midiWorker -> quit(); //quit does not stop the thread. should be implemented
+
+                }
+
+            */
+            //}
+
+        //}
 
     }
 }
@@ -939,6 +977,7 @@ void MainWindow::on_eraseMemButton_clicked()
     midiWorker->SendRaw();
 
     ui->midiProgressBar->setValue(0);
+
 }
 
 void MainWindow::on_getLatestFW_Button_clicked()
