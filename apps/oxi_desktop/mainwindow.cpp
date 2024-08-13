@@ -707,7 +707,7 @@ void MainWindow::on_sendProjectButton_clicked()
             if (cancelReply == QMessageBox::Yes) {
 
                 midiWorker->SetState(midiWorker->WORKER_CANCELLING);
-                //ui->midiProgressBar->setValue(0);
+                ui->midiProgressBar->setValue(0);
 
             }
 
@@ -774,15 +774,9 @@ void MainWindow::on_getProjectButton_clicked()
 
                 midiWorker->SetState(midiWorker->WORKER_CANCELLING);
 
-                qDebug() << "------------USER CANCELs------------";
-                //midiWorker->UserCancelled();
-                //WARNING: setting value to higher so exits the loop.
-                //midiWorker->Set_pattern_index(100);
-
-
-
-                //this should not needed as presumably was set by worker cancelling
-                //ui->midiProgressBar->setValue(0);
+                qDebug() << "------------USER CLICKED ON YES TO CANCEL------------";
+                //the one below might need to be implemented somewhere else?
+                ui->midiProgressBar->setValue(0);
 
             }
         }
@@ -835,10 +829,7 @@ void MainWindow::on_getAllProjectButton_clicked()
 
                     //pggoxi: revise
                     midiWorker->SetState(midiWorker->WORKER_CANCELLING);
-
-                    //WARNING: setting value to higher so exits the loop.
-                    //midiWorker->Set_pattern_index(100); //also works
-                    midiWorker->Set_project_index(100);
+                    //the one below might need to be implemented somewhere else?
                     ui->midiProgressBar->setValue(0);
 
                 }
