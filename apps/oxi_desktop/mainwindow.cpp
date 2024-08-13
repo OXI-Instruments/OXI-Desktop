@@ -751,8 +751,8 @@ void MainWindow::on_getProjectButton_clicked()
 
             midiWorker->SetState(midiWorker->WORKER_GET_PROJECT);
             midiWorker->start();
-            // midiWorker->GetSingleProject();
-            midiWorker->runGetProject();
+            midiWorker->GetSingleProject();
+            // midiWorker->runGetProject();
 
 
 
@@ -817,7 +817,7 @@ void MainWindow::on_getAllProjectButton_clicked()
                 ui->process_status->setText("");
                 //midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
                 midiWorker->GetAllProjects();
-
+                //midiWorker->runGetProject();
                 //isGetProjectRunning = 1;
 
                 QMessageBox::StandardButton cancelReply = QMessageBox::Yes;

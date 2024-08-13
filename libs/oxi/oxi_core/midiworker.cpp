@@ -525,7 +525,8 @@ void MidiWorker::GetProject(void)
 void MidiWorker::GetSingleProject(void)
 {
     state_ = WORKER_GET_PROJECT;
-    GetProject();
+    //GetProject();
+    runGetProject();
 }
 
 void MidiWorker::GetAllProjects(void)
@@ -533,7 +534,8 @@ void MidiWorker::GetAllProjects(void)
     state_ = WORKER_GET_ALL_PROJECTS;
     project_index_ = 0;
 
-    GetProject();
+    //GetProject();
+    runGetProject();
 }
 
 void MidiWorker::GetPattern(void)
