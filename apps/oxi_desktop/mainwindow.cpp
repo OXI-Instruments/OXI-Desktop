@@ -726,9 +726,9 @@ void MainWindow::on_sendProjectButton_clicked()
             qDebug() << midiWorker->project_file_ << Qt::endl;
             if (midiWorker->project_file_ == "" ) return;
 
-            progressDialog->setValue(0);  // Reset the progress dialog
-            // progressDialog->show();
-            progressDialog->setLabelText("Sending project to OXI ONE");
+            // progressDialog->setValue(0);  // Reset the progress dialog
+            // // progressDialog->show();
+            // progressDialog->setLabelText("Sending project to OXI ONE");
 
             // launch worker
             midiWorker->start();
@@ -821,9 +821,12 @@ void MainWindow::on_getAllProjectButton_clicked()
             if (reply == QMessageBox::Yes) {
                 ui->process_status->setText("");
                 //midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-                midiWorker->GetAllProjects();
+                // midiWorker->GetAllProjects();
                 //midiWorker->runGetProject();
-                //isGetProjectRunning = 1;
+
+
+                midiWorker->SetState(midiWorker->WORKER_GET_ALL_PROJECTS);
+                midiWorker->start();
 
                 cancelProgressBox();
 
@@ -857,6 +860,7 @@ void MainWindow::on_getAllProjectButton_clicked()
 
 void MainWindow::cancelProgressBox()
 {
+
     QMessageBox msgBox;
     msgBox.setText("Would you like to cancel the process?");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
