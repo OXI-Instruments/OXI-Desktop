@@ -66,13 +66,16 @@ public slots:
 
     bool UserCancelled(void);
 
-    void GetPattern(void);
     void ReadProjectFromFiles(void);
 
 
     void GetProject(void);
     void GetSingleProject(void);
     void GetAllProjects(void);
+    void GetPattern(int pattern_idx);
+
+    void ProcessProjectHeader(void);
+    void ProcessPatternData(int pattern_idx);
 
     void SetProjectHeader(uint16_t proj_index) {
         // clear sysex buffer
@@ -165,16 +168,6 @@ public:
         state_ = state;
     }
 
-    //pggoxi: this setters will need to be removed when properly implemented with threads rungetproject() and all
-    void Set_pattern_index(uint8_t pattern_index){
-        pattern_index_ = pattern_index;
-    }
-
-    void Set_project_index(uint8_t pattern_index){
-        pattern_index_ = pattern_index;
-    }
-
-
 private:
 
     // typedef enum  {
@@ -195,9 +188,10 @@ private:
 
 
     uint8_t seq_index_ = 0;
-    uint8_t pattern_index_ = 0;
+    // uint8_t pattern_index_ = 0;
     uint8_t project_index_ = 0;
 
+    std::vector<uint8_t>sysex_data_;
 
     QFile file;
     Project project_;
