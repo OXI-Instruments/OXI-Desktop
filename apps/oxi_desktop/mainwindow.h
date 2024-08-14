@@ -40,8 +40,6 @@ public:
 
 private slots:
 
-    void onStartProcessing();  // Slot for button click
-
     void updateProgressBar(int value);
     void updateMidiProgressBar(int value);
     void updateStatusLabel(QString text);

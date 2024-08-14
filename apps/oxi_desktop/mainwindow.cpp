@@ -14,7 +14,7 @@
 #include "MIDI.h"
 #include "Nibble.h"
 #include "miniz.h"
-
+#include <QtConcurrent/QtConcurrentRun>
 
 
 
@@ -24,7 +24,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    //, progressWindow_(new QProgressDialog(this))
+
 {
     ui->setupUi(this);
 
@@ -90,8 +90,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     _netManager = std::make_unique<QNetworkAccessManager>();
 
+#if 0
 
-    progressDialog = new QProgressDialog("Operation in progress...", "Cancel", 0, 98);
+//DIALOG WINDOW CREATION
+    progressDialog = new QProgressDialog("Operation in progress...", "Cancel", 0, 98, this);
     //flag to hide, then would require show()
     //progressWindow_ = new QProgressDialog(this, Qt::WindowFlags(Qt::Widget | Qt::WindowDoesNotAcceptFocus));
 
@@ -105,7 +107,9 @@ MainWindow::MainWindow(QWidget *parent)
     //progressWindow_->setHidden(true);
 
     progressDialog->close();
+    progressDialog->reset();
     //progressWindow_->cancel();
+#endif
 
     readSettings();
 }
@@ -115,9 +119,9 @@ MainWindow::~MainWindow()
     //pggoxi: free up. to be looked into
     delete ui;
 
-    if (progressDialog) {
-        delete progressDialog;
-    }
+    // if (progressDialog) {
+    //     delete progressDialog;
+    // }
 
 }
 
@@ -156,21 +160,6 @@ QString MainWindow::FileDialog(FileType type){
     return ret;
 }
 
-void MainWindow::onStartProcessing()
-{
-    progressDialog->reset();  // Reset in case it was used before
-    progressDialog->show();   // Show the progress dialog
-
-    for (int i = 0; i <= 100; ++i) {
-        progressDialog->setValue(i);
-        if (progressDialog->wasCanceled()) {
-            break;
-        }
-        QCoreApplication::processEvents();  // Keep the UI responsive
-        QThread::msleep(50);  // Simulate some work being done
-    }
-}
-
 void MainWindow::uiPortAlreadyInUse(){
     connection_timer->stop();
     QMessageBox::information(this, tr("Port Already in Use"),
@@ -198,8 +187,8 @@ void MainWindow::updateProgressBar(int value)
 
 void MainWindow::updateMidiProgressBar(int value)
 {
-    // ui->midiProgressBar->setValue(value);
-    progressDialog->setValue(value);
+     ui->midiProgressBar->setValue(value);
+    //progressDialog->setValue(value);
 }
 
 void MainWindow::updateStatusLabel(QString text)
@@ -738,7 +727,7 @@ void MainWindow::on_sendProjectButton_clicked()
             if (midiWorker->project_file_ == "" ) return;
 
             progressDialog->setValue(0);  // Reset the progress dialog
-            progressDialog->show();
+            // progressDialog->show();
             progressDialog->setLabelText("Sending project to OXI ONE");
 
             // launch worker
@@ -784,20 +773,16 @@ void MainWindow::on_getProjectButton_clicked()
             ui->process_status->setText("");
             midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
 
+            // progressDialog->setValue(0);  // Reset the progress dialog
+            // progressDialog->setLabelText("Sending project to OXI ONE");
+            // progressDialog->show();
+
             midiWorker->SetState(midiWorker->WORKER_GET_PROJECT);
             midiWorker->start();
 
             cancelProgressBox();
 
-            // //was not cancelled, ie. reset() was applied
-            // if (progressWindow_->wasCanceled()){
-            //     progressWindow_-> reset();
-            //     progressWindow_->setValue(0);  // Reset the progress dialog
-            //     progressWindow_->show();
-            //     progressWindow_->setLabelText("Getting project from OXI ONE");
 
-            //     cancelProgressBox();
-            // }
 
         }
     }
@@ -872,29 +857,31 @@ void MainWindow::on_getAllProjectButton_clicked()
 
 void MainWindow::cancelProgressBox()
 {
-    // QMessageBox msgBox;
-    // msgBox.setText("Would you like to cancel the process?");
-    // msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-    // msgBox.setDefaultButton(QMessageBox::Cancel);
-    // msgBox.setEscapeButton(QMessageBox::Cancel);
+    QMessageBox msgBox;
+    msgBox.setText("Would you like to cancel the process?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    msgBox.setEscapeButton(QMessageBox::Cancel);
 
-    // // Hide the Cancel button
-    // QAbstractButton* cancelButton = msgBox.button(QMessageBox::Cancel);
-    // if (cancelButton)
-    //     cancelButton->setVisible(false);
+    // Hide the Cancel button
+    QAbstractButton* cancelButton = msgBox.button(QMessageBox::Cancel);
+    if (cancelButton)
+        cancelButton->setVisible(false);
 
-    // QMessageBox::StandardButton cancelReply = static_cast<QMessageBox::StandardButton>(msgBox.exec());
+    QMessageBox::StandardButton cancelReply = static_cast<QMessageBox::StandardButton>(msgBox.exec());
 
-    // if (cancelReply == QMessageBox::Yes) {
+    if (cancelReply == QMessageBox::Yes) {
 
-    //     midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+        midiWorker->SetState(midiWorker->WORKER_CANCELLING);
 
-    //     //qDebug() << "------------USER CLICKED ON YES TO CANCEL------------";
-    //     //the one below might need to be implemented somewhere else?
-    //     ui->midiProgressBar->setValue(0);
-    // }
+        //qDebug() << "------------USER CLICKED ON YES TO CANCEL------------";
+        //the one below might need to be implemented somewhere else?
+        ui->midiProgressBar->setValue(0);
+    }
 
+#if 0
 
+//TEST pggoxi
     if (progressDialog->wasCanceled()){
         qDebug() <<"-----progressWindows was cancelled -------- wasCanceled():" << progressDialog->wasCanceled() << "\n";
     }
@@ -909,14 +896,14 @@ void MainWindow::cancelProgressBox()
         // progressDialog = nullptr;  // Set the pointer to nullptr after deletion
     }
 
-    progressDialog = new QProgressDialog("Getting project from OXI ONE", "Cancel", 0, 100);
-    progressDialog->setMinimumDuration(100);
-    progressDialog->setWindowModality(Qt::WindowModal);
-    progressDialog->setValue(0);  // Reset the progress dialog
-    progressDialog->setAutoClose(true);
-    progressDialog->setAutoReset(true);
-    progressDialog->setFixedSize(400, 200);
-    progressDialog->show();
+    // progressDialog = new QProgressDialog("Getting project from OXI ONE", "Cancel", 0, 100);
+    // progressDialog->setMinimumDuration(100);
+    // progressDialog->setWindowModality(Qt::WindowModal);
+    // progressDialog->setValue(0);  // Reset the progress dialog
+    // progressDialog->setAutoClose(true);
+    // progressDialog->setAutoReset(true);
+    // progressDialog->setFixedSize(400, 200);
+    // progressDialog->show();
     // progressWindow_->setLabelText("Getting project from OXI ONE");
 
     // bool userClickedCancel = 1;
@@ -939,9 +926,15 @@ void MainWindow::cancelProgressBox()
     else{
         qDebug() <<"-----progressWindows was NOT cancelled -------- wasCanceled(): " << progressDialog->wasCanceled() << "\n";
     }
+#endif
 
+#if 0
+
+    progressDialog->show();
 
     while (1) {
+         // QThread::msleep(500);  // Simulate some work being done
+
         if (progressDialog->wasCanceled()) {
             // User cancelled
             midiWorker->SetState(midiWorker->WORKER_CANCELLING);
@@ -953,10 +946,10 @@ void MainWindow::cancelProgressBox()
             return;
         }
     }
-
-    // Clean up the progress dialog
-    delete progressDialog;
-    progressDialog = nullptr;  // Set the pointer to nullptr after deletion
+#endif
+    // Clean up the progress dialog if the pointer was created within this function. not needed otherwise
+    // delete progressDialog;
+    // progressDialog = nullptr;  // Set the pointer to nullptr after deletion
 }
 
 #if 0
