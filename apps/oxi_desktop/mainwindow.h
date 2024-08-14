@@ -40,6 +40,8 @@ public:
 
 private slots:
 
+    void onStartProcessing();  // Slot for button click
+
     void updateProgressBar(int value);
     void updateMidiProgressBar(int value);
     void updateStatusLabel(QString text);
@@ -117,6 +119,8 @@ private slots:
 
     void on_getAllProjectButton_clicked();
 
+    void cancelProgressBox();
+
 signals:
     void updateWorkerDelayTime(int);
     void WorkerUpdateFile(QString);
@@ -165,6 +169,9 @@ private:
     std::unique_ptr<QTemporaryDir> _updateFileTempDir;
 
     QVersionNumber fw_version_;
+
+    // popup progress window
+    QProgressDialog * progressDialog;
 
     QString workingDirectory_ = "";
     QString oxi_path_ = "";
