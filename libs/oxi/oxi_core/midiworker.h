@@ -21,6 +21,7 @@ public:
     void runSendProject(void);
     void runFWUpdate(void);
     void runGetProject(void);
+    void runGetAllProjects(void);
 
     // if Stop = true, the thread will break
     // out of the loop, and will be disposed
@@ -70,8 +71,8 @@ public slots:
 
 
     void GetProject(void);
-    void GetSingleProject(void);
-    void GetAllProjects(void);
+    // void GetSingleProject(void);
+    // void GetAllProjects(void);
     void GetPattern(int pattern_idx);
 
     void ProcessProjectHeader(void);
