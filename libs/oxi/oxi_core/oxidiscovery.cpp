@@ -160,6 +160,7 @@ bool OxiDiscovery::DiscoverOutPort(){
             _out_idx = oxiOutIdx;
 
             emit ui_UpdateConnectionLabel("OXI ONE CONNECTED");
+            emit OxiDiscovery_connected();
         }
     }
 
