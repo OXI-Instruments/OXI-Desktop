@@ -566,7 +566,8 @@ void MidiWorker::runGetAllProjects(void){
 
 
     //15 projects PROJ_NUM in total. Defined as 15 so should <= ?
-    for(project_index_ = 0; project_index_ < PROJ_NUM; project_index_++){
+    for(project_index_ = 0; project_index_ < PROJ_NUM; project_index_++)
+    {
         GetProject();
         // wait for OXI's ACK
         if (WaitProjectACK() != true) {
@@ -664,7 +665,8 @@ void MidiWorker::GetProject(void)
     ui_updateStatusLabel("");
 
     try {
-        ui_updateStatusLabel("Receiving Project Data");
+        QString label = QString("Receiving Project: %1").arg(project_index_ + 1);
+        ui_updateStatusLabel(label);
         midi_out.sendRawMessage(raw_data);
     }
     catch ( RtMidiError &error ) {
@@ -682,11 +684,17 @@ void MidiWorker::ProcessProjectHeader(void)
 
     QByteArray raw_data(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
-    QDir system_dir;
-    project_path_ = worker_path_ + "/Projects/Project " + QString::number(project_index_ + 1);
-    if (!system_dir.exists(project_path_)) {
+    QDir dir;
 
-        system_dir.mkdir(project_path_);
+    QString general_projects_dir = worker_path_ + "/Projects";
+    if (!dir.exists(general_projects_dir)) {
+        dir.mkdir(general_projects_dir);
+    }
+
+    project_path_ = worker_path_ + "/Projects/Project " + QString::number(project_index_ + 1);
+    if (!dir.exists(project_path_)) {
+
+        dir.mkdir(project_path_);
     }
 
     QString proj_filename = project_path_ + "/Project " + QString::number(project_index_ + 1) + FileExtension[FILE_PROJECT];
