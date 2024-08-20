@@ -27,9 +27,9 @@ MidiWorker::MidiWorker(QObject *parent, bool b) :
 
     //removed Q_ASSUME as is deprecated
     connect(&midi_in, SIGNAL(midiMessageReceived(QMidiMessage*)),
-                     this, SLOT(onMidiReceive(QMidiMessage*)));
+            this, SLOT(onMidiReceive(QMidiMessage*)));
     connect(_discovery, SIGNAL(discoveryOxiConnected()),
-                     this, SLOT(OxiConnected()));
+            this, SLOT(OxiConnected()));
 
     state_ = WORKER_IDLE;
 
@@ -134,7 +134,7 @@ void MidiWorker::SendUpdateReset(void)
 
 void MidiWorker::SendGotoBoot(OXI_SYSEX_FW_UPDT_e device_cmd)
 {
-	SendCmd(MSG_CAT_FW_UPDATE, device_cmd);
+    SendCmd(MSG_CAT_FW_UPDATE, device_cmd);
 }
 
 void MidiWorker::SendCmd(OXI_SYSEX_CAT_e cat, uint8_t id)
@@ -159,9 +159,9 @@ bool MidiWorker::WaitForOXIUpdate(void)
     int retries = 10;
 
     while (((midi_out.isPortOpen() == false) ||
-           (midi_in.isPortOpen() == false) ||
-           (!_discovery->IsOutFwUpdate()) ||
-           (!_discovery->IsInFwUpdate())) &&
+            (midi_in.isPortOpen() == false) ||
+            (!_discovery->IsOutFwUpdate()) ||
+            (!_discovery->IsInFwUpdate())) &&
            (retries > 0))
     {
         QThread::msleep(500);
@@ -196,7 +196,7 @@ void MidiWorker::run()
         break;
     case WORKER_GET_ALL_PROJECTS:
         qDebug() << "Thread START: Get ALL Projects";
-        runGetProject();
+        runGetAllProjects();
         break;
     default:
         break;
@@ -326,18 +326,18 @@ LOOP:
     goto EXIT;
 
 SEND_RESET:
-    {
-        SendUpdateReset();
-        this->msleep(DELAY_TIME);
+{
+    SendUpdateReset();
+    this->msleep(DELAY_TIME);
 
-        if (retries < 3) {
-            retries ++;
-            goto LOOP;
-        } else {
-            goto EXIT;
-        }
-
+    if (retries < 3) {
+        retries ++;
+        goto LOOP;
+    } else {
+        goto EXIT;
     }
+
+}
 
 EXIT:
     if (success) {
@@ -405,6 +405,7 @@ void MidiWorker::runSendProject(void)
         // 64 patterns in total
         for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
         {
+
             QString pattern_file_ = project_folder + "/Pattern " + QString::number(pattern_index + 1) + FileExtension[FILE_PATTERN];
 
             QFile patternFile(pattern_file_);
@@ -448,6 +449,10 @@ void MidiWorker::runSendProject(void)
     //qDebug() << "***********************Run send Project ENDS***********************\n";
 }
 
+void MidiWorker::requestCancel() {
+    cancelRequested = 1;  // Set the cancellation flag to 1 (true)
+}
+
 void MidiWorker::runGetProject(void)
 //QMidiMessage* p_msg
 {
@@ -464,10 +469,7 @@ void MidiWorker::runGetProject(void)
      *  - Update progress bar on each step
      *
      *  4. Update UI when process finished
-     *
-     *
-     *
-     *
+
  */
 
     GetProject();
@@ -485,6 +487,12 @@ void MidiWorker::runGetProject(void)
     // 64 patterns in total
     for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
     {
+        if (cancelRequested == 1) {  // Use the overloaded operator to check the value
+            qDebug() << "Worker thread was requested to cancel.";
+            return;  // Exit the run method early
+        }
+
+
         GetPattern(pattern_index);
 
         if (WaitProjectACK() != true ) {
@@ -499,61 +507,87 @@ void MidiWorker::runGetProject(void)
 
         emit ui_UpdateProjectProgressBar(100 * pattern_index / 64);
 
-#if 0
-        if (pattern_index_ < PROJ_PATT_MAX)
-        {
-            GetPattern();
-            QString message;
-            if (state_ == WORKER_GET_ALL_PROJECTS) {
-                message = QString("Receiving Project %1 Pattern %2...").arg(project_index_ + 1).arg(pattern_index_ + 1);
-            } else {
-                message = QString("Receiving pattern %1...").arg(pattern_index_ + 1);
-                //qDebug() << "------------------------------getting projects----------------------------------------";
-            }
-            emit ui_updateStatusLabel(message);
-        }
-        else
-        {
-            if (state_ == WORKER_GET_ALL_PROJECTS) {
-                project_index_ ++;
-                if (project_index_ < PROJ_NUM) {
-                    GetProject();
-                    QString message = QString("Get Project %1...").arg(project_index_ + 1);
-                    emit ui_updateStatusLabel(message);
-                }
-                else {
-                    QString message = QString("Projects backup finished!");
-                    emit ui_updateStatusLabel(message);
-
-                    QDir dir = QDir::current();
-                    //dir.cdUp(); // Move to the parent directory. DOES NOT SEEM TO WORK
-
-                    QString absolutePath = dir.absoluteFilePath(worker_path_);
-                    message = QString("Projects saved on: %1").arg(absolutePath);
-
-                    QTimer::singleShot(2000, [this, message]() {
-                        emit ui_updateStatusLabel(message);
-                    });
-
-                }
-            }
-            else {
-                QDir dir = QDir::current(); // current directory
-                QString absolutePath = dir.absoluteFilePath(project_path_);
-                QString message = QString("Project saved on: %1").arg(absolutePath);
-                emit ui_updateStatusLabel(message);
-            }
-        }
-#endif
     }
+
 
     // Project received successfully
     QDir dir = QDir::current(); // current directory
     QString absolutePath = dir.absoluteFilePath(project_path_);
     QString message = QString("Project saved on: %1").arg(absolutePath);
     emit ui_updateStatusLabel(message);
+
+    //resetting value
+    emit ui_UpdateProjectProgressBar(0);
+
+    //flag to end cancel the button
+    //emit workFinished(1);
+
+
+
 }
 
+
+void MidiWorker::runGetAllProjects(void){
+
+    qDebug() << "\n------------\n runGetAllProjects\n------------\n ";
+
+    setWorkerDirectory(worker_path_);
+
+    //15 projects PROJ_NUM in total. Defined as 15 so should <= ?
+    for(project_index_ = 0; project_index_ < PROJ_NUM; project_index_++){
+        GetProject();
+        // wait for OXI's ACK
+        if (WaitProjectACK() != true) {
+            qDebug() << "GET PROJECT ERROR" << Qt::endl;
+            emit ui_UpdateProgressBar(0);
+            emit ui_ProjectError();
+            return;
+        }
+        emit ui_UpdateProjectProgressBar(1);
+
+        ProcessProjectHeader();
+
+        // 64 patterns in total
+        for (int pattern_index = 0; pattern_index < 64; ++pattern_index)
+        {
+            GetPattern(pattern_index);
+
+            if (WaitProjectACK() != true ) {
+                emit ui_UpdateProgressBar(0);
+                emit ui_UpdateError();
+                return;
+            }
+
+            if (cancelRequested == 1) {  // Use the overloaded operator to check the value
+                qDebug() << "Worker thread was requested to cancel.";
+                return;  // Exit the run method early
+            }
+
+            CANCELLED; //this might not needed if using atomicInt
+
+            ProcessPatternData(pattern_index);
+
+            emit ui_UpdateProjectProgressBar(100 * pattern_index / 64);
+
+        }
+
+    }
+
+
+
+    // Project received successfully
+    QString message = QString("Projects backup finished!");
+    emit ui_updateStatusLabel(message);
+
+    QDir dir = QDir::current();
+    //dir.cdUp(); // Move to the parent directory. DOES NOT SEEM TO WORK. using worker_path instead
+
+    QString absolutePath = dir.absoluteFilePath(worker_path_);
+    message = QString("Projects saved on: %1").arg(absolutePath);
+
+    //resetting value
+    emit ui_UpdateProjectProgressBar(0);
+}
 
 void MidiWorker::ReadProjectFromFiles(void)
 {
@@ -626,6 +660,7 @@ void MidiWorker::ProcessProjectHeader(void)
         system_dir.mkdir(project_path_);
     }
 
+
     QString proj_filename = project_path_ + "/Project " + QString::number(project_index_ + 1) + FileExtension[FILE_PROJECT];
     qDebug() << proj_filename << Qt::endl;;
 
@@ -650,7 +685,7 @@ void MidiWorker::ProcessPatternData(int pattern_idx)
     }
 
     QString patt_filename = project_path_ + "/Pattern " + QString::number(pattern_idx + 1) + FileExtension[FILE_PATTERN];
-    qDebug() << patt_filename;
+    qDebug() << patt_filename <<"\n";
 
     QFile patt_file( patt_filename );
     if ( patt_file.open(QIODevice::ReadWrite) )
@@ -661,21 +696,21 @@ void MidiWorker::ProcessPatternData(int pattern_idx)
 }
 
 
-void MidiWorker::GetSingleProject(void)
-{
-    state_ = WORKER_GET_PROJECT;
-    GetProject();
-    //runGetProject();
-}
+// void MidiWorker::GetSingleProject(void)
+// {
+//     state_ = WORKER_GET_PROJECT;
+//     GetProject();
+//     //runGetProject();
+// }
 
-void MidiWorker::GetAllProjects(void)
-{
-    state_ = WORKER_GET_ALL_PROJECTS;
-    project_index_ = 0;
+// void MidiWorker::GetAllProjects(void)
+// {
+//     state_ = WORKER_GET_ALL_PROJECTS;
+//     project_index_ = 0;
 
-    GetProject();
-    //runGetProject();
-}
+//     GetProject();
+//     //runGetProject();
+// }
 
 void MidiWorker::GetPattern(int pattern_idx)
 {

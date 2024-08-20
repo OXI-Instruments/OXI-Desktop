@@ -117,6 +117,8 @@ private slots:
 
     void on_getAllProjectButton_clicked();
 
+    //bool onWorkFinished(bool flag);
+
     void cancelProgressBox();
 
 signals:
@@ -175,6 +177,8 @@ private:
     QString oxi_path_ = "";
 
     const QString oxiFilesDir_ =  QCoreApplication::applicationDirPath() + "/../../.." ;
+
+    bool cancelFlag = 0;
 };
 
 

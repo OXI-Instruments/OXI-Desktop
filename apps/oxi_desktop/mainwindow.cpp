@@ -82,6 +82,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(workingDirectoryChanged(QString)),
             midiWorker, SLOT(setWorkerDirectory(QString)));
 
+
+
+    //connect(midiWorker, &MidiWorker::workFinished, this, &MainWindow::onWorkFinished);
+    //connect(this, SIGNAL(workFinished(bool)),this, SLOT(onWorkFinished(bool)));
+
+
+
     ui->progressBar->setValue(0);
     ui->midiProgressBar->setValue(0);
     ui->process_status->setWordWrap(true);
@@ -116,14 +123,32 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    // // Clean up the progressDialog safely
+    // if (progressDialog) {
+    //     progressDialog->deleteLater();
+    // }
+
     //pggoxi: free up. to be looked into
     delete ui;
 
-    // if (progressDialog) {
-    //     delete progressDialog;
-    // }
 
 }
+
+//testing for progress Dialog . Now using different method
+// bool MainWindow::onWorkFinished(bool flag) {
+//     // Handle the boolean value here
+//     if (flag) {
+//         // Do something if the flag is true
+//         qDebug() << "Work finished with flag set to true\n\r";
+//         cancelFlag = 1;
+//     } else {
+//         // Handle the false case
+//         qDebug() << "Work finished with flag set to false\n\r";
+//     }
+
+//     //this might be within if as would not happen, also would work with 1-true
+//     return flag;
+// }
 
 QString MainWindow::FileDialog(FileType type){
     QString filter = "";
@@ -152,10 +177,10 @@ QString MainWindow::FileDialog(FileType type){
     }
 
     QString ret = QFileDialog::getOpenFileName(
-                        this,
-                        user_msg,
-                        path,
-                        filter);
+        this,
+        user_msg,
+        path,
+        filter);
 
     return ret;
 }
@@ -163,7 +188,7 @@ QString MainWindow::FileDialog(FileType type){
 void MainWindow::uiPortAlreadyInUse(){
     connection_timer->stop();
     QMessageBox::information(this, tr("Port Already in Use"),
-    tr("Another process is already using the MIDI port.\n\nPlease ensure the port is not in use and restart OXI Desktop."));
+                             tr("Another process is already using the MIDI port.\n\nPlease ensure the port is not in use and restart OXI Desktop."));
 }
 
 void MainWindow::updateUiStatus(QString statusMessage){
@@ -187,7 +212,7 @@ void MainWindow::updateProgressBar(int value)
 
 void MainWindow::updateMidiProgressBar(int value)
 {
-     ui->midiProgressBar->setValue(value);
+    ui->midiProgressBar->setValue(value);
     //progressDialog->setValue(value);
 }
 
@@ -204,14 +229,14 @@ void MainWindow::updateConnectionLabel(QString text)
 void MainWindow::updateError(void)
 {
     QMessageBox::warning(
-                0,
-                QString("Update error"),
-                QString("Any error occurred during the update procedure.\n\r"
-                        "If your device is unresponsive, do the following:\n\r"
-                        "1. Hold the power button until the unit shuts down completely.\n\r"
-                        "2. Turn the device in UPDATE MODE by holding Mute button and powering on.\n\r"
-                        "3. Restart the firmware update procedure by either 'Get latest firmware' or 'Update from file'."),
-                QMessageBox::Ok);
+        0,
+        QString("Update error"),
+        QString("Any error occurred during the update procedure.\n\r"
+                "If your device is unresponsive, do the following:\n\r"
+                "1. Hold the power button until the unit shuts down completely.\n\r"
+                "2. Turn the device in UPDATE MODE by holding Mute button and powering on.\n\r"
+                "3. Restart the firmware update procedure by either 'Get latest firmware' or 'Update from file'."),
+        QMessageBox::Ok);
 
     unlockUpdateButtons();
 }
@@ -427,7 +452,7 @@ void MainWindow::updateFwVersion(QString version)
 
 void MainWindow::DetectOXIOneAvailableUpdate()
 {
-   lockUpdateButtons();
+    lockUpdateButtons();
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     QNetworkRequest request;
@@ -438,46 +463,46 @@ void MainWindow::DetectOXIOneAvailableUpdate()
     ui->process_status->setText("Detecting available update");
 
     connect(updateReply, &QNetworkReply::finished, [=]()
-    {
-        QApplication::restoreOverrideCursor();
-        unlockUpdateButtons();
-
-        ui->process_status->setText("");
-
-        if (updateReply->error())
-        {
-            QMetaEnum metaEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
-
-            ui->process_status->setText(QString("Error detecting available update: %1").arg(metaEnum.valueToKey(updateReply->error())));
-
-            qDebug() << updateReply->errorString() << Qt::endl;
-            qDebug() << QSslSocket::supportsSsl();
-        }
-        else
-        {
-            auto responseData = updateReply->readAll();
-            auto jsonData = QJsonDocument::fromJson(responseData);
-            QJsonArray dataObject = jsonData.array();
-            auto jsonObj = dataObject.at(0);
-            auto version = jsonObj["name"].toString();
-            auto description = jsonObj["description"].toString();
-            auto assets = jsonObj["assets"].toObject();
-            auto links = assets["links"].toArray();
-
-            QString updateFile;
-            if (links.size() == 1)
             {
-                auto linkObj = links[0].toObject();
-                updateFile = linkObj["url"].toString();
-            }
+                QApplication::restoreOverrideCursor();
+                unlockUpdateButtons();
 
-            auto latestVersion = QVersionNumber::fromString(version);
+                ui->process_status->setText("");
 
-            if (!updateFile.isEmpty() &&
-                    !latestVersion.isNull())
-            {
-                if (latestVersion > fw_version_)
+                if (updateReply->error())
                 {
+                    QMetaEnum metaEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
+
+                    ui->process_status->setText(QString("Error detecting available update: %1").arg(metaEnum.valueToKey(updateReply->error())));
+
+                    qDebug() << updateReply->errorString() << Qt::endl;
+                    qDebug() << QSslSocket::supportsSsl();
+                }
+                else
+                {
+                    auto responseData = updateReply->readAll();
+                    auto jsonData = QJsonDocument::fromJson(responseData);
+                    QJsonArray dataObject = jsonData.array();
+                    auto jsonObj = dataObject.at(0);
+                    auto version = jsonObj["name"].toString();
+                    auto description = jsonObj["description"].toString();
+                    auto assets = jsonObj["assets"].toObject();
+                    auto links = assets["links"].toArray();
+
+                    QString updateFile;
+                    if (links.size() == 1)
+                    {
+                        auto linkObj = links[0].toObject();
+                        updateFile = linkObj["url"].toString();
+                    }
+
+                    auto latestVersion = QVersionNumber::fromString(version);
+
+                    if (!updateFile.isEmpty() &&
+                        !latestVersion.isNull())
+                    {
+                        if (latestVersion > fw_version_)
+                        {
 #if 0
                     auto choice = QMessageBox::question(this, "Update available", QString("Update to version %1 available to download. Do you wish to proceed?").arg(version));
                     if (choice == QMessageBox::StandardButton::Yes)
@@ -485,53 +510,53 @@ void MainWindow::DetectOXIOneAvailableUpdate()
                         DownloadOXIOneAvailableUpdate(updateFile, version);
                     }
 #endif
-                    QMessageBox messageBox;
-                    messageBox.setText(QString("Update to version %1 available to download. Do you wish to proceed?").arg(version));
-                    QAbstractButton* helpButton = messageBox.addButton("What's new?", QMessageBox::HelpRole);
-                    QAbstractButton* pButtonYes = messageBox.addButton("Yes", QMessageBox::YesRole);
-                    messageBox.addButton("No", QMessageBox::NoRole);
+                            QMessageBox messageBox;
+                            messageBox.setText(QString("Update to version %1 available to download. Do you wish to proceed?").arg(version));
+                            QAbstractButton* helpButton = messageBox.addButton("What's new?", QMessageBox::HelpRole);
+                            QAbstractButton* pButtonYes = messageBox.addButton("Yes", QMessageBox::YesRole);
+                            messageBox.addButton("No", QMessageBox::NoRole);
 
-                    // Add a "Help" button to the message box
-                    helpButton->disconnect();
+                            // Add a "Help" button to the message box
+                            helpButton->disconnect();
 
-                    messageBox.setEscapeButton(QMessageBox::No);
-                    messageBox.setWindowModality(Qt::ApplicationModal);
-                    messageBox.setWindowFlags(Qt::Sheet);
-                    messageBox.setModal(true);
-
-
-                    connect(helpButton, &QAbstractButton::clicked, this, [=](){
-                        // Handle the "Help" button action here
-                        QString markdownText = description;
-                        HelpDialog helpDialog(markdownText);
-                        helpDialog.setWindowTitle("What's new?");
-                        helpDialog.resize(450,600);
-                        helpDialog.exec();
-                        qDebug() << "HELP" << Qt::endl;
-                    });
-
-                    connect(pButtonYes, &QAbstractButton::clicked, this, [=](){
-                        // Handle the "Help" button action here
-                        DownloadOXIOneAvailableUpdate(updateFile, version);
-                    });
+                            messageBox.setEscapeButton(QMessageBox::No);
+                            messageBox.setWindowModality(Qt::ApplicationModal);
+                            messageBox.setWindowFlags(Qt::Sheet);
+                            messageBox.setModal(true);
 
 
-                    messageBox.exec();
+                            connect(helpButton, &QAbstractButton::clicked, this, [=](){
+                                // Handle the "Help" button action here
+                                QString markdownText = description;
+                                HelpDialog helpDialog(markdownText);
+                                helpDialog.setWindowTitle("What's new?");
+                                helpDialog.resize(450,600);
+                                helpDialog.exec();
+                                qDebug() << "HELP" << Qt::endl;
+                            });
 
+                            connect(pButtonYes, &QAbstractButton::clicked, this, [=](){
+                                // Handle the "Help" button action here
+                                DownloadOXIOneAvailableUpdate(updateFile, version);
+                            });
+
+
+                            messageBox.exec();
+
+                        }
+                        else
+                        {
+                            ui->process_status->setText("Firmware version is up to date.");
+                        }
+                    }
+                    else
+                    {
+                        ui->process_status->setText("No update file found.");
+                    }
                 }
-                else
-                {
-                    ui->process_status->setText("Firmware version is up to date.");
-                }
-            }
-            else
-            {
-                ui->process_status->setText("No update file found.");
-            }
-        }
 
-        updateReply->deleteLater();
-    });
+                updateReply->deleteLater();
+            });
 }
 
 void MainWindow::DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, const QString& version)
@@ -541,67 +566,67 @@ void MainWindow::DownloadOXIOneAvailableUpdate(const QString& updateZipFileUrl, 
     auto downloadUpdateReply = _netManager->get(request);
 
     // ui->progressBar->setTextVisible(true);
-     ui->progressBar->setFormat("Downloading update");
-     ui->progressBar->setValue(0);
+    ui->progressBar->setFormat("Downloading update");
+    ui->progressBar->setValue(0);
     ui->process_status->setText("Downloading update");
     ui->updateFromFileButton->setEnabled(false);
 
     connect(downloadUpdateReply, &QNetworkReply::downloadProgress, [=](auto bytesReceived, auto bytesTotal)
-    {
-        ui->progressBar->setMaximum(bytesTotal);
-        ui->progressBar->setValue(bytesReceived);
-    });
+            {
+                ui->progressBar->setMaximum(bytesTotal);
+                ui->progressBar->setValue(bytesReceived);
+            });
 
     connect(downloadUpdateReply, &QNetworkReply::finished, [=]()
-    {
-        ui->process_status->setText("");
-//        ui->progressBar->setTextVisible(false);
-        ui->progressBar->setFormat("%p%");
-
-//        ui->progressBar->reset();
-
-        if (downloadUpdateReply->error())
-        {
-            QMetaEnum metaEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
-
-            ui->process_status->setText(QString("Error downloading update file: %1").arg(metaEnum.valueToKey(downloadUpdateReply->error())));
-        }
-        else
-        {
-            _updateFileTempDir.reset(new QTemporaryDir());
-
-            if (_updateFileTempDir->isValid())
             {
-                QByteArray b = downloadUpdateReply->readAll();
-                auto updateFilePath = QString("%1/OxiOneUpdate%2.syx").arg(_updateFileTempDir->path(), version);
-                QSaveFile file(updateFilePath);
-                if (file.open(QIODevice::WriteOnly))
-                {
-                    file.write(b);
-                    if (file.commit())
-                    {
-                        DeployOXIOneUpdate(updateFilePath);
+                ui->process_status->setText("");
+                //        ui->progressBar->setTextVisible(false);
+                ui->progressBar->setFormat("%p%");
 
-                    }
-                    else
-                    {
-                        ui->process_status->setText("Unable to save update file to destination archive.");
-                    }
+                //        ui->progressBar->reset();
+
+                if (downloadUpdateReply->error())
+                {
+                    QMetaEnum metaEnum = QMetaEnum::fromType<QNetworkReply::NetworkError>();
+
+                    ui->process_status->setText(QString("Error downloading update file: %1").arg(metaEnum.valueToKey(downloadUpdateReply->error())));
                 }
                 else
                 {
-                    ui->process_status->setText("Unable to create destination archive for update file.");
-                }
-            }
-            else
-            {
-                ui->process_status->setText("Unable to create save location for update file.");
-            }
-        }
+                    _updateFileTempDir.reset(new QTemporaryDir());
 
-        ui->updateFromFileButton->setEnabled(true);
-        downloadUpdateReply->deleteLater();
-    });
+                    if (_updateFileTempDir->isValid())
+                    {
+                        QByteArray b = downloadUpdateReply->readAll();
+                        auto updateFilePath = QString("%1/OxiOneUpdate%2.syx").arg(_updateFileTempDir->path(), version);
+                        QSaveFile file(updateFilePath);
+                        if (file.open(QIODevice::WriteOnly))
+                        {
+                            file.write(b);
+                            if (file.commit())
+                            {
+                                DeployOXIOneUpdate(updateFilePath);
+
+                            }
+                            else
+                            {
+                                ui->process_status->setText("Unable to save update file to destination archive.");
+                            }
+                        }
+                        else
+                        {
+                            ui->process_status->setText("Unable to create destination archive for update file.");
+                        }
+                    }
+                    else
+                    {
+                        ui->process_status->setText("Unable to create save location for update file.");
+                    }
+                }
+
+                ui->updateFromFileButton->setEnabled(true);
+                downloadUpdateReply->deleteLater();
+            });
 }
 
 void MainWindow::DeployOXIOneUpdate(const QString& updateFile)
@@ -615,23 +640,23 @@ void MainWindow::DeployOXIOneUpdate(const QString& updateFile)
         if (midiWorker->isRunning()) {
             midiWorker->quit();
         }
-        }
-
-        midiWorker->SetState(midiWorker->WORKER_FW_UPDATE_OXI_ONE);
-
-        midiWorker->update_file_name_ = updateFile;
-
-        qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
-        qDebug() << midiWorker->update_file_name_ << Qt::endl;
-        if (midiWorker->update_file_name_ == "" ) return;
-
-        ui->process_status->setText("UPDATING");
-
-        qDebug() << "file selected" << Qt::endl;
-
-        // launch worker
-        midiWorker->start();
     }
+
+    midiWorker->SetState(midiWorker->WORKER_FW_UPDATE_OXI_ONE);
+
+    midiWorker->update_file_name_ = updateFile;
+
+    qDebug() <<  QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) << Qt::endl;
+    qDebug() << midiWorker->update_file_name_ << Qt::endl;
+    if (midiWorker->update_file_name_ == "" ) return;
+
+    ui->process_status->setText("UPDATING");
+
+    qDebug() << "file selected" << Qt::endl;
+
+    // launch worker
+    midiWorker->start();
+}
 #endif
 
 
@@ -726,14 +751,14 @@ void MainWindow::on_sendProjectButton_clicked()
             qDebug() << midiWorker->project_file_ << Qt::endl;
             if (midiWorker->project_file_ == "" ) return;
 
-            progressDialog->setValue(0);  // Reset the progress dialog
-            // progressDialog->show();
-            progressDialog->setLabelText("Sending project to OXI ONE");
+            // progressDialog->setValue(0);  // Reset the progress dialog
+            // // progressDialog->show();
+            // progressDialog->setLabelText("Sending project to OXI ONE");
 
             // launch worker
-            midiWorker->start();
+            //midiWorker->start();
 
-            cancelProgressBox();
+            //cancelProgressBox();
 
 
         } else {
@@ -777,11 +802,12 @@ void MainWindow::on_getProjectButton_clicked()
             // progressDialog->setLabelText("Sending project to OXI ONE");
             // progressDialog->show();
 
+            if (CheckWorkerBusy()) return;
+
             midiWorker->SetState(midiWorker->WORKER_GET_PROJECT);
-            midiWorker->start();
+            //midiWorker->start();
 
             cancelProgressBox();
-
 
 
         }
@@ -812,121 +838,157 @@ void MainWindow::on_getAllProjectButton_clicked()
 
 
         //if(isGetProjectRunning == 0){
-            QMessageBox::StandardButton reply = QMessageBox::Yes;
-            if (folder_existed) {
-                QString question = QString("This will overwrite ALL the existing Projects of your OXI One computer folder.\nContinue?" );
-                reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
-            }
+        QMessageBox::StandardButton reply = QMessageBox::Yes;
+        if (folder_existed) {
+            QString question = QString("This will overwrite ALL the existing Projects of your OXI One computer folder.\nContinue?" );
+            reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+        }
 
-            if (reply == QMessageBox::Yes) {
-                ui->process_status->setText("");
-                //midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-                midiWorker->GetAllProjects();
-                //midiWorker->runGetProject();
-                //isGetProjectRunning = 1;
-
-                cancelProgressBox();
-
-            }
+        if (reply == QMessageBox::Yes) {
+            ui->process_status->setText("");
+            //midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
+            // midiWorker->GetAllProjects();
+            //midiWorker->runGetProject();
 
 
+            midiWorker->SetState(midiWorker->WORKER_GET_ALL_PROJECTS);
 
-            /*
-            if (isGetProjectRunning == 1){
+            //this is stated on cancelProgressBox
+            midiWorker->start();
 
-                QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
-                QString questionCancel = QString("Would you like to cancel the process?" );
+            cancelProgressBox();
 
-                //casting to remove the NO option. Dunno why states question is deprecated while works previously
-                cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
-                if (cancelReply == QMessageBox::Yes) {
+        }
 
-                    //pggoxi: HERE must end the Thread
-                    //the pop up should vanish when finished
-                    midiWorker -> quit(); //quit does not stop the thread. should be implemented
-
-                }
-
-            */
-            //}
-
-        //}
 
     }
 }
 
 void MainWindow::cancelProgressBox()
 {
-    QMessageBox msgBox;
-    msgBox.setText("Would you like to cancel the process?");
-    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Cancel);
-    msgBox.setEscapeButton(QMessageBox::Cancel);
-
-    // Hide the Cancel button
-    QAbstractButton* cancelButton = msgBox.button(QMessageBox::Cancel);
-    if (cancelButton)
-        cancelButton->setVisible(false);
-
-    QMessageBox::StandardButton cancelReply = static_cast<QMessageBox::StandardButton>(msgBox.exec());
-
-    if (cancelReply == QMessageBox::Yes) {
-
-        midiWorker->SetState(midiWorker->WORKER_CANCELLING);
-
-        //qDebug() << "------------USER CLICKED ON YES TO CANCEL------------";
-        //the one below might need to be implemented somewhere else?
-        ui->midiProgressBar->setValue(0);
-    }
-
-#if 0
-
-//TEST pggoxi
-    if (progressDialog->wasCanceled()){
-        qDebug() <<"-----progressWindows was cancelled -------- wasCanceled():" << progressDialog->wasCanceled() << "\n";
-    }
-    else{
-        qDebug() <<"-----progressWindows was NOT cancelled -------- wasCanceled(): " << progressDialog->wasCanceled() << "\n";
-    }
-
-
-    // Delete the old progress dialog if it exists
-    if (progressDialog) {
-        delete progressDialog;
-        // progressDialog = nullptr;  // Set the pointer to nullptr after deletion
-    }
-
-    // progressDialog = new QProgressDialog("Getting project from OXI ONE", "Cancel", 0, 100);
-    // progressDialog->setMinimumDuration(100);
-    // progressDialog->setWindowModality(Qt::WindowModal);
-    // progressDialog->setValue(0);  // Reset the progress dialog
-    // progressDialog->setAutoClose(true);
-    // progressDialog->setAutoReset(true);
-    // progressDialog->setFixedSize(400, 200);
-    // progressDialog->show();
-    // progressWindow_->setLabelText("Getting project from OXI ONE");
-
-    // bool userClickedCancel = 1;
-
-    // if (progressWindow_->wasCanceled()){
-    //     userClickedCancel = !userClickedCancel;
-
-    //     qDebug() <<"-----progressWindows was cancelled --------:" << progressWindow_->wasCanceled() << "\n";
-    //     qDebug() << "enabled is: <<" << userClickedCancel  << "\n";
+    //TEST 1 recreating New MidiWorker
+    // if (midiWorker) {
+    //     if (midiWorker->isRunning()) {
+    //         qDebug() << "Worker is still running. Cancelling...";
+    //         midiWorker->requestCancel();
+    //         midiWorker->wait();  // Wait for the thread to finish
+    //     }
+    //     qDebug() << "PRE DELETE\n\n\n" ;
+    //     delete midiWorker;  // Delete the old worker
+    //     qDebug() << "POST DELETE\n\n" ;
+    //     midiWorker = new MidiWorker(this);  // Reinitialize with a new instance
+    // } else {
+    //     midiWorker = new MidiWorker(this);  // Initialize if not already done
+    //     qDebug() << "Creating new MidiWorker instance\n\n" ;
     // }
-    // // else{
-    // //     userClickedCancel = !progressWindow_->wasCanceled();
-    // //     qDebug() <<"-----progressWindows was NOT cancelled --------:" << progressWindow_->wasCanceled() << "\n";
-    // //     qDebug() << "enabled is: <<" << userClickedCancel  << "\n";
-    // // }
 
-    if (progressDialog->wasCanceled()){
-        qDebug() <<"-----progressWindows was cancelled -------- wasCanceled():" << progressDialog->wasCanceled() << "\n";
-    }
-    else{
-        qDebug() <<"-----progressWindows was NOT cancelled -------- wasCanceled(): " << progressDialog->wasCanceled() << "\n";
-    }
-#endif
+
+
+    //TEST 2 recreating New MidiWorker
+    // if (midiWorker->isRunning()) {
+    //       qDebug() << "Worker is still running. Please wait.";
+    //     //             return;
+    //     //         }qDebug() << "midiWorker--------------\n" << midiWorker;
+    // }
+
+    //     if (midiWorker) {
+    //         // If the worker is still running, wait for it to finish
+    //         if (midiWorker->isRunning()) {
+    //             qDebug() << "Worker is still running. Please wait.";
+    //             return;
+    //         }
+
+    //         // Clean up the previous worker if necessary
+    //         delete midiWorker;
+    //         midiWorker = nullptr;
+    //     }
+
+    // //     qDebug() << "Worker is NOT running after del running. Please wait.";
+
+    // //  Create a new instance of the worker thread
+    //     //midiWorker = new MidiWorker();
+    //     midiWorker = new MidiWorker(this);
+
+
+    ////-------------Working old QmessageBox
+    // QMessageBox msgBox;
+    // msgBox.setText("Would you like to cancel the process?");
+    // msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    // msgBox.setDefaultButton(QMessageBox::Cancel);
+    // msgBox.setEscapeButton(QMessageBox::Cancel);
+
+    // QObject::connect(midiWorker, &QThread::finished, [&msgBox]() {
+    //     qDebug() << "Worker thread finished. Closing the message box.";
+    //     msgBox.accept();  //will close the QMessageBox when thread finishes
+    // });
+
+    // // Hide the Cancel button
+    // QAbstractButton* cancelButton = msgBox.button(QMessageBox::Cancel);
+    // if (cancelButton)
+    //     cancelButton->setVisible(false);
+
+    // QMessageBox::StandardButton cancelReply = static_cast<QMessageBox::StandardButton>(msgBox.exec());
+
+    // if (cancelReply == QMessageBox::Yes)  {
+    //     midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+    //     //the one below might need to be implemented somewhere else?
+    //     ui->midiProgressBar->setValue(0);
+    // }
+    ////------------------------------
+
+
+
+    //#if 0
+    QProgressDialog *progressDialog = new QProgressDialog("Getting project from OXI ONE", "Cancel", 0, 100, this);
+    progressDialog->setWindowModality(Qt::WindowModal);
+    progressDialog->setValue(0);
+    progressDialog->setAutoClose(false);
+    progressDialog->setAutoReset(false);
+    progressDialog->setFixedSize(400, 200);
+    progressDialog->show();
+
+    QObject::connect(midiWorker, &MidiWorker::ui_UpdateProjectProgressBar, [progressDialog, this](int value) {
+        // Ensure this UI update runs on the main thread
+        QMetaObject::invokeMethod(progressDialog, [progressDialog, value, this]() {
+                progressDialog->setValue(value);
+
+                // Check for cancellation on the main thread
+                if (progressDialog->wasCanceled()) {
+                    //using QAtomicInt
+                    midiWorker->requestCancel();
+                    //midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+                    qDebug() << "User canceled the operation.";
+                    // Clean up the previous worker if necessary
+                    //delete midiWorker;
+                    // midiWorker = nullptr;
+                }
+            }, Qt::QueuedConnection);
+    });
+
+    // Connect the QProgressDialog cancel signal to request thread cancellation
+    QObject::connect(progressDialog, &QProgressDialog::canceled, this, [this, progressDialog]() {
+        //midiWorker->requestCancel();
+        midiWorker->requestCancel();
+        //midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+        qDebug() << "Cancel requested by user.";
+    });
+
+    // Connect the thread finished signal to close and clean up the progress dialog
+    QObject::connect(midiWorker, &QThread::finished, [progressDialog, this]() {
+        qDebug() << "Worker thread finished. Closing the progress dialog.";
+        progressDialog->deleteLater();  // Use deleteLater to safely delete the dialog
+    });
+
+
+    // Start the worker thread. Works the same if started here of before calling the function.?
+    midiWorker->start();
+
+
+    // Display the progress dialog (optional)
+    progressDialog->exec();
+
+//#endif
+
 
 #if 0
 
@@ -947,8 +1009,11 @@ void MainWindow::cancelProgressBox()
         }
     }
 #endif
-    // Clean up the progress dialog if the pointer was created within this function. not needed otherwise
+
+    // qDebug() << progressDialog;
+    // //Clean up the progress dialog if the pointer was created within this function. not needed otherwise
     // delete progressDialog;
+    // //maybe does not use delete as is managed by QT?
     // progressDialog = nullptr;  // Set the pointer to nullptr after deletion
 }
 
@@ -1048,7 +1113,7 @@ void MainWindow::on_sendCalibDataButton_clicked()
     Nibblize(midiWorker->raw_data, (uint8_t*)sysex_file_buffer.data(), sysex_file_buffer.size());
     midiWorker->raw_data.push_back(0xF7);
 
-     midiWorker->SendRaw();
+    midiWorker->SendRaw();
 
     ui->midiProgressBar->setValue(0);
 }

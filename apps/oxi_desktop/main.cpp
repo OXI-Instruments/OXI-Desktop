@@ -47,6 +47,8 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("OXI ONE Desktop APP");
     QCoreApplication::setOrganizationDomain("oxiinstruments.com");
 
+
+
     QFile styleSheetFile(":/resources/Style.qss");
     styleSheetFile.open(QFile::ReadOnly);
     QString styleSheet = QLatin1String(styleSheetFile.readAll());

@@ -17,10 +17,11 @@ class OXI_CORE_EXPORT MidiWorker : public QThread {
 
 public:
     explicit MidiWorker(QObject *parent = 0, bool b = false);
-    void run();
+    void run() override;
     void runSendProject(void);
     void runFWUpdate(void);
     void runGetProject(void);
+    void runGetAllProjects(void);
 
     // if Stop = true, the thread will break
     // out of the loop, and will be disposed
@@ -40,6 +41,10 @@ public:
     QString project_file_;
 
     OxiDiscovery *GetDiscovery();
+
+    void requestCancel();
+
+
 
 public slots:
     void ui_DelayTimeUpdated(int value) {delay_time = value;}
@@ -70,8 +75,6 @@ public slots:
 
 
     void GetProject(void);
-    void GetSingleProject(void);
-    void GetAllProjects(void);
     void GetPattern(int pattern_idx);
 
     void ProcessProjectHeader(void);
@@ -151,6 +154,10 @@ signals:
     void finished();
     void error(QString err);
 
+    //void workFinished (bool);
+
+
+
 public:
     enum WorkerState_e {
         WORKER_IDLE,
@@ -174,11 +181,11 @@ private:
     //     OXI_ONE_UPDATE,
     //     OXI_ONE_BLE_UPDATE,
     //     OXI_SPLIT_UPDATE,
-        //     PROJECT_SEND,
-        //     PROJECT_GET,
-        // } process_e;
+    //     PROJECT_SEND,
+    //     PROJECT_GET,
+    // } process_e;
 
-        // process_e run_process_;
+    // process_e run_process_;
 
 
     WorkerState_e state_ = WORKER_IDLE;
@@ -191,11 +198,15 @@ private:
     // uint8_t pattern_index_ = 0;
     uint8_t project_index_ = 0;
 
+    //bool cancelledButtonFinished = 0;
+
     std::vector<uint8_t>sysex_data_;
 
     QFile file;
     Project project_;
     OxiDiscovery* _discovery;
+
+    QAtomicInt cancelRequested;
 };
 
 
