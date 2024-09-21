@@ -410,7 +410,7 @@ font-size: 14px;
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>5</height>
+               <height>4</height>
               </size>
              </property>
              <property name="maximumSize">
