@@ -18,8 +18,10 @@ class OXI_CORE_EXPORT MidiWorker : public QThread {
 public:
     explicit MidiWorker(QObject *parent = 0, bool b = false);
     void run();
-    void runSendProjectRAW(void);
+    void runSendProject(void);
     void runFWUpdate(void);
+    void runGetProject(void);
+    void runGetAllProjects(void);
 
     // if Stop = true, the thread will break
     // out of the loop, and will be disposed
@@ -33,20 +35,10 @@ public:
 
     QString update_file_name_;
 
-    QString oxi_path_;
+    QString worker_path_;
     QString project_path_;
     QString projects_path_;
     QString project_file_;
-
-    typedef enum  {
-        OXI_ONE_UPDATE,
-        OXI_ONE_BLE_UPDATE,
-        OXI_SPLIT_UPDATE,
-
-        PROJECT_SEND,
-    } process_e;
-
-    process_e run_process_;
 
     OxiDiscovery *GetDiscovery();
 
@@ -73,9 +65,18 @@ public slots:
     bool WaitForOXIUpdate(void);
     bool WaitProjectACK(void);
 
-    void GetPattern(void);
+    bool UserCancelled(void);
+
     void ReadProjectFromFiles(void);
+
+
     void GetProject(void);
+    // void GetSingleProject(void);
+    // void GetAllProjects(void);
+    void GetPattern(int pattern_idx);
+
+    void ProcessProjectHeader(void);
+    void ProcessPatternData(int pattern_idx);
 
     void SetProjectHeader(uint16_t proj_index) {
         // clear sysex buffer
@@ -120,15 +121,15 @@ public slots:
     }
 
     void GetCalibData(void) {
-    	SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_GET_CALIB_DATA);
+        SendCmd(MSG_CAT_SYSTEM, MSG_SYSTEM_GET_CALIB_DATA);
     }
 
-    void setWorkingDirectory(const QString& workingDirectory) {
-        oxi_path_ = workingDirectory;
+    void setWorkerDirectory(const QString& workingDirectory) {
+        worker_path_ = workingDirectory;
 
         QDir dir;
-        projects_path_ = oxi_path_ + "/Projects";
-        qDebug() << projects_path_ << Qt::endl;
+        projects_path_ = worker_path_ + "/Projects";
+        qDebug() << "worker dir: " << projects_path_ << Qt::endl;
         if (!dir.exists(projects_path_)) {
 
             dir.mkdir(projects_path_);
@@ -151,13 +152,47 @@ signals:
     void finished();
     void error(QString err);
 
+public:
+    enum WorkerState_e {
+        WORKER_IDLE,
+        WORKER_CANCELLING,
+        // launch thread
+        WORKER_FW_UPDATE_OXI_ONE,
+        WORKER_FW_UPDATE_BLE,
+        WORKER_FW_UPDATE_SPLIT,
+        WORKER_GET_PROJECT,
+        WORKER_SEND_PROJECT,
+        WORKER_GET_ALL_PROJECTS,
+    };
+
+    void SetState(WorkerState_e state) {
+        state_ = state;
+    }
+
 private:
+
+    // typedef enum  {
+    //     OXI_ONE_UPDATE,
+    //     OXI_ONE_BLE_UPDATE,
+    //     OXI_SPLIT_UPDATE,
+        //     PROJECT_SEND,
+        //     PROJECT_GET,
+        // } process_e;
+
+        // process_e run_process_;
+
+
+    WorkerState_e state_ = WORKER_IDLE;
+
     int delay_time = 100;
     volatile int oxi_ack_ = 0;
 
-    uint8_t project_index_ = 0;
+
     uint8_t seq_index_ = 0;
-    uint8_t pattern_index_ = 0;
+    // uint8_t pattern_index_ = 0;
+    uint8_t project_index_ = 0;
+
+    std::vector<uint8_t>sysex_data_;
 
     QFile file;
     Project project_;

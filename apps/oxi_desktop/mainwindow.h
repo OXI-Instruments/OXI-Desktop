@@ -52,17 +52,19 @@ private slots:
     void projectError(void);
     void uiPortAlreadyInUse(void);
 
+    bool checkOXIconnected(void);
+
     void lockUpdateButtons(void)
     {
-        ui->gotoOXIBootloaderButton_2->setEnabled(false);
-        ui->gotoOXIBootloaderButton->setEnabled(false);
+        ui->getLatestFW_Button->setEnabled(false);
+        ui->updateFromFileButton->setEnabled(false);
         ui->gotoBLEBootloaderButton->setEnabled(false);
     }
 
     void unlockUpdateButtons(void)
     {
-        ui->gotoOXIBootloaderButton_2->setEnabled(true);
-        ui->gotoOXIBootloaderButton->setEnabled(true);
+        ui->getLatestFW_Button->setEnabled(true);
+        ui->updateFromFileButton->setEnabled(true);
         ui->gotoBLEBootloaderButton->setEnabled(true);
     }
 
@@ -82,7 +84,7 @@ private slots:
 
     void on_gotoBLEBootloaderButton_clicked();
     void on_gotoSPLITBootloaderButton_clicked();
-    void on_gotoOXIBootloaderButton_clicked();
+    void on_updateFromFileButton_clicked();
 #if 0
     void on_exitBootloaderButton_clicked();
 
@@ -107,11 +109,15 @@ private slots:
 
     QString FileDialog(FileType file);
 
-    void on_gotoOXIBootloaderButton_2_clicked();
+    void on_getLatestFW_Button_clicked();
 
     void on_tabWidget_currentChanged(int index);
 
     void on_setWorkingFolderButton_clicked();
+
+    void on_getAllProjectButton_clicked();
+
+    void cancelProgressBox();
 
 signals:
     void updateWorkerDelayTime(int);
@@ -122,6 +128,7 @@ private:
     Ui::MainWindow *ui;
     void updateUiStatus(QString statusMessage);
 
+    int CheckWorkerBusy();
 private:
     int UncompressUpdateFile(const QString &filename, const QString &destDir);
     void DetectOXIOneAvailableUpdate();
@@ -137,48 +144,7 @@ private:
         return "";
     }
 
-    void SetWorkingDirectory() {
-        QMessageBox::information(
-                    0,
-                    QString("Working folder"),
-                    QString("Select your folder for the OXI One projects and data..."),
-                    QMessageBox::Ok);
-
-        QString dialogDir;
-        if (workingDirectory_.isEmpty()) {
-            dialogDir = QDir::homePath();
-        } else {
-            dialogDir = workingDirectory_;
-        }
-
-        QString workingDirectoryFromDialog;
-
-        workingDirectoryFromDialog = QFileDialog::getExistingDirectory(
-                    this,
-                    tr("Select your folder for the OXI One projects and data."),
-                    dialogDir,
-                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-        if (!workingDirectoryFromDialog.isNull()) {
-            workingDirectory_ = workingDirectoryFromDialog;
-            oxi_path_ = workingDirectory_ + "/OXI_Files";
-
-            QDir system_dir;
-            if (!system_dir.exists(oxi_path_)) {
-
-                system_dir.mkdir(oxi_path_);
-            }
-
-            QDir dir = QDir::current(); // current directory
-            QString absolutePath = dir.absoluteFilePath(oxi_path_);
-            QString message = QString("Selected folder:\n%1").arg(absolutePath);
-            ui->process_status->setText(message);
-
-            // Save directory
-            writeSettings();
-            emit workingDirectoryChanged(oxi_path_);
-        }
-    }
+    int SetWorkingDirectory();
 
     void writeSettings()
     {
@@ -201,6 +167,9 @@ private:
     std::unique_ptr<QTemporaryDir> _updateFileTempDir;
 
     QVersionNumber fw_version_;
+
+    // popup progress window
+    QProgressDialog * progressDialog;
 
     QString workingDirectory_ = "";
     QString oxi_path_ = "";
