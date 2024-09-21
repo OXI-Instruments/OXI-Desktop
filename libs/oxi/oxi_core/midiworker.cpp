@@ -553,7 +553,8 @@ void MidiWorker::runGetProject(void)
     QString absolutePath = dir.absoluteFilePath(project_path_);
     QString message = QString("Project saved on: %1").arg(absolutePath);
     emit ui_updateStatusLabel(message);
-
+    emit ui_UpdateProjectProgressBar(100);
+    emit ui_Success();
     //resetting value
     emit ui_UpdateProjectProgressBar(0);
 }
@@ -603,7 +604,8 @@ void MidiWorker::runGetAllProjects(void){
 
     }
 
-
+    emit ui_UpdateProjectProgressBar(100);
+    emit ui_Success();
 
     // Project received successfully
     QString message = QString("Projects backup finished!");

@@ -726,15 +726,8 @@ void MainWindow::on_sendProjectButton_clicked()
             qDebug() << midiWorker->project_file_ << Qt::endl;
             if (midiWorker->project_file_ == "" ) return;
 
-            // progressDialog->setValue(0);  // Reset the progress dialog
-            // // progressDialog->show();
-            // progressDialog->setLabelText("Sending project to OXI ONE");
-
             // launch worker
             midiWorker->start();
-
-            cancelProgressBox();
-
 
         } else {
             // User clicked No or closed the dialog
@@ -773,17 +766,8 @@ void MainWindow::on_getProjectButton_clicked()
             ui->process_status->setText("");
             midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
 
-            // progressDialog->setValue(0);  // Reset the progress dialog
-            // progressDialog->setLabelText("Sending project to OXI ONE");
-            // progressDialog->show();
-
             midiWorker->SetState(midiWorker->WORKER_GET_PROJECT);
             midiWorker->start();
-
-            cancelProgressBox();
-
-
-
         }
     }
 }
@@ -811,57 +795,27 @@ void MainWindow::on_getAllProjectButton_clicked()
             folder_existed = 1;
 
 
-        //if(isGetProjectRunning == 0){
-            QMessageBox::StandardButton reply = QMessageBox::Yes;
-            if (folder_existed) {
-                QString question = QString("This will overwrite ALL the existing Projects of your OXI One computer folder.\nContinue?" );
-                reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
-            }
+        QMessageBox::StandardButton reply = QMessageBox::Yes;
+        if (folder_existed) {
+            QString question = QString("This will overwrite ALL the existing Projects of your OXI One computer folder.\nContinue?" );
+            reply = QMessageBox::question(nullptr, "Confirmation", question, QMessageBox::Yes|QMessageBox::No);
+        }
 
-            if (reply == QMessageBox::Yes) {
-                ui->process_status->setText("");
-                //midiWorker->UpdateProjIdx(static_cast<int>(ui->project_index->value()) );
-                // midiWorker->GetAllProjects();
-                //midiWorker->runGetProject();
+        if (reply == QMessageBox::Yes) {
+            ui->process_status->setText("");
 
+            midiWorker->SetState(midiWorker->WORKER_GET_ALL_PROJECTS);
+            midiWorker->start();
 
-                midiWorker->SetState(midiWorker->WORKER_GET_ALL_PROJECTS);
-                midiWorker->start();
+            cancelProgressBox();
 
-                cancelProgressBox();
-
-            }
-
-
-
-            /*
-            if (isGetProjectRunning == 1){
-
-                QMessageBox::StandardButton cancelReply = QMessageBox::Yes;
-                QString questionCancel = QString("Would you like to cancel the process?" );
-
-                //casting to remove the NO option. Dunno why states question is deprecated while works previously
-                cancelReply = static_cast<QMessageBox::StandardButton>(QMessageBox::question(nullptr, "Confirmation", questionCancel, QMessageBox::Yes));
-                if (cancelReply == QMessageBox::Yes) {
-
-                    //pggoxi: HERE must end the Thread
-                    //the pop up should vanish when finished
-                    midiWorker -> quit(); //quit does not stop the thread. should be implemented
-
-                }
-
-            */
-            //}
-
-        //}
-
+        }
     }
 }
 
 void MainWindow::cancelProgressBox()
 {
-
-    QMessageBox msgBox;
+    QMessageBox msgBox(this);
     msgBox.setText("Would you like to cancel the process?");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
@@ -872,16 +826,39 @@ void MainWindow::cancelProgressBox()
     if (cancelButton)
         cancelButton->setVisible(false);
 
-    QMessageBox::StandardButton cancelReply = static_cast<QMessageBox::StandardButton>(msgBox.exec());
+    // Track if the message box is closed manually
+    bool msgBoxClosed = false;
 
-    if (cancelReply == QMessageBox::Yes) {
+    msgBox.show();
 
-        midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+    // Create a temporary event loop to keep the application responsive while showing the message box
+    QEventLoop loop;
 
-        //qDebug() << "------------USER CLICKED ON YES TO CANCEL------------";
-        //the one below might need to be implemented somewhere else?
-        ui->midiProgressBar->setValue(0);
-    }
+    // Connect to progress bar updates to close the message box when progress is 100
+    connect(ui->midiProgressBar, &QProgressBar::valueChanged, &msgBox, [&](int value) mutable {
+        if (value == 100 && !msgBoxClosed) {
+            qDebug() << "Closing message box as progress is 100.";
+            msgBoxClosed = true;
+            msgBox.close();
+            loop.quit();  // Exit the event loop once the message box is closed
+        }
+    });
+
+    // Handle the "Yes" button click to cancel the process
+    connect(&msgBox, &QMessageBox::buttonClicked, [&](QAbstractButton *button) mutable {
+        if (msgBox.button(QMessageBox::Yes) == button && !msgBoxClosed) {
+            midiWorker->SetState(midiWorker->WORKER_CANCELLING);
+            ui->midiProgressBar->setValue(0);  // Reset the progress bar after canceling
+            qDebug() << "User clicked 'Yes' to cancel.";
+            msgBoxClosed = true;
+            msgBox.close();
+            loop.quit();  // Exit the event loop once the message box is closed
+        }
+    });
+
+    // Start a local event loop to keep the message box open without blocking the rest of the application
+    loop.exec();
+
 
 #if 0
 
